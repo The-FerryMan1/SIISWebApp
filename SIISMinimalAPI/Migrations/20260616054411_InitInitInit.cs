@@ -1,0 +1,22 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace SIISMinimalAPI.Migrations
+{
+    /// <inheritdoc />
+    public partial class InitInitInit : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+
+        }
+    }
+}
