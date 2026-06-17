@@ -6,7 +6,7 @@ namespace SIISMinimalAPI.Features.Shared.Models
     public class StudentModel
     {
         public long Id { get; set; }
-        public Guid StudentUUID { get; set; }
+        public Guid StudentUUID { get; set; } = Guid.NewGuid();
         [Required, EmailAddress]
         public string Email { get; set; }
 

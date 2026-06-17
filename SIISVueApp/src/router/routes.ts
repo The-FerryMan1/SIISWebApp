@@ -21,7 +21,13 @@ export const routes: RouteRecordRaw[] = [
                 component: ()=>import('../pages/admin/dashboard.vue'),
                 name: 'dashboard',
                 meta:{isRequiresAuth: true}
-            }
+            },
+             {
+                path: '/application',
+                component: ()=>import('../pages/admin/application.vue'),
+                name: 'application',
+                meta:{isRequiresAuth: true}
+            },
         ]
     },
 ]

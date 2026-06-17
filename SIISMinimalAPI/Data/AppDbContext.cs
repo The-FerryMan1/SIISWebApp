@@ -4,12 +4,18 @@ using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options):IdentityDbContext(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext(options)
     {
 
+        public DbSet<StudentModel> Students { get; set; }
+        public DbSet<SchoolModel> School { get; set; }
+        public DbSet<InternshipModel> Internship { get; set; }
+        public DbSet<RequirementModel> Requirements { get; set; }
+        public DbSet<ApplicationModel> Applications { get; set; }
+        public DbSet<OfficeModel> Offices { get; set; }
+        // DbSet<LogsModel> Logs {get; set;}
 
 
-        
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -63,7 +69,7 @@ namespace SIISMinimalAPI.Data
             {
                 school.HasQueryFilter(s => !s.IsDeleted);
             });
-            
+
             //internship
             builder.Entity<InternshipModel>(req =>
             {
@@ -76,10 +82,10 @@ namespace SIISMinimalAPI.Data
                 req.HasQueryFilter(r => !r.IsDeleted);
             });
 
-              // Requirement
+            // Requirement
             builder.Entity<ApplicationModel>(req =>
             {
-                req.HasQueryFilter(r => !r. IsDeleted);
+                req.HasQueryFilter(r => !r.IsDeleted);
             });
 
 

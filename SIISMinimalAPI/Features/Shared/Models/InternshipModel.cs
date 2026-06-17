@@ -8,9 +8,9 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public long Id { get; set; }
         [Required, EnumDataType(typeof(InternshipNatureEnum))]
         public InternshipNatureEnum InternshipNature { get; set; }
-        [Required, EnumDataType(typeof(StrandEnum))]
+        [EnumDataType(typeof(StrandEnum))]
         public StrandEnum? Strand { get; set; }
-        [Required, EnumDataType(typeof(DegreeEnum))]
+        [EnumDataType(typeof(DegreeEnum))]
         public DegreeEnum? Degree { get; set; }
         [DataType(DataType.Date)]
         public DateOnly StartDate { get; set; }

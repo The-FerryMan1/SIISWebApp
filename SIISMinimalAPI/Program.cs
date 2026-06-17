@@ -1,14 +1,18 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Application;
+using SIISMinimalAPI.Features.OnBoarding;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
 builder.Services.AddSqlite<AppDbContext>("Data Source=siisdemo.db");
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
@@ -27,10 +31,22 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials(); // only if using cookies/auth
-    });
+                });
 });
 
-
+builder.Services.AddProblemDetails();
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("standard", opt =>
+    {
+        opt.PermitLimit = 100;           // 100 requests
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.Window = TimeSpan.FromMinutes(1);  // per 1 minute
+        opt.QueueLimit = 10;             // queue 10 extra requests
+    });
+});
+builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
+builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -43,7 +59,12 @@ app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
+
+app.MapOnBoardingEnpoints();
+app.MapToApplication();
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
+
 
 
 
