@@ -19,7 +19,7 @@ const items = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Applications',
     icon: 'i-lucide-file',
-    active: route.name == 'application',
+    active: route.path.includes('/application'),
     to: { name: 'application' },
   },
   {

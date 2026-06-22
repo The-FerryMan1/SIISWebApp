@@ -15,7 +15,18 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
+   
     <PackageReference Include="Scalar.AspNetCore" Version="2.16.3" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\Application\AssignAndApprove\" />
+    <Folder Include="Features\Application\GetById\" />
+    <Folder Include="Features\Endorsement\" />
+    <Folder Include="Features\Endorsement\Create\" />
+    <Folder Include="Features\Endorsement\Preview\" />
+    <Folder Include="Features\Endorsement\Shared\" />
   </ItemGroup>
 
 </Project>

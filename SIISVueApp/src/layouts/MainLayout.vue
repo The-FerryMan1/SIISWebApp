@@ -18,17 +18,20 @@ const auth = UseAuthStore()
       </template>
     </UDashboardSidebar>
     <UDashboardPanel>
-      <UDashboardNavbar>
-        <template #leading>
-          <UDashboardSidebarCollapse variant="subtle" />
-        </template>
-        <template #right>
-          <UColorModeSwitch />
-          <AdminAvartar />
-        </template>
-      </UDashboardNavbar>
-
-      <RouterView />
+      <template #header>
+        <UDashboardNavbar>
+          <template #leading>
+            <UDashboardSidebarCollapse variant="subtle" />
+          </template>
+          <template #right>
+            <UColorModeSwitch />
+            <AdminAvartar />
+          </template>
+        </UDashboardNavbar>
+      </template>
+      <template #body>
+        <RouterView />
+      </template>
     </UDashboardPanel>
   </UDashboardGroup>
 </template>

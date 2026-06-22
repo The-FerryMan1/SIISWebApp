@@ -19,6 +19,24 @@ public static class  ApplicationEndpoint
            return TypedResults.Ok(applications);
         });
 
+        group.MapGet("/{uuid}", async Task<IResult> (Guid uuid, IApplicationService service, CancellationToken ct) =>
+        {
+            try
+            {
+                var result = await service.GetByIdAsync(uuid, ct);
+                return TypedResults.Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                
+                return TypedResults.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return TypedResults.InternalServerError(ex.Message);
+            }
+        });
+
         return app;
     }
 }

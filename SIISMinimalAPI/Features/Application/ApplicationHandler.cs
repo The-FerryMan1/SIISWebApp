@@ -1,6 +1,7 @@
-using System;
+
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Application.GetById;
 
 namespace SIISMinimalAPI.Features.Application;
 
@@ -17,10 +18,109 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         {
             Id = t.Application.Id,
             ApplicationUUID = t.Application.ApplicationUUID,
-            FullName = $"{t.LastName}, {t.FirstName} {t.MiddleName}".Trim(),  
-            Status = t.Application.Status.ToString(),                          
+            FullName = $"{t.LastName}, {t.FirstName} {t.MiddleName}".Trim(),
+            Status = t.Application.Status.ToString(),
             CreatedAt = t.Application.CreateAt,
-            UpdatedAt = t.Application.UpdatedAt                                
+            UpdatedAt = t.Application.UpdatedAt
         }).ToList();
+    }
+
+    public async Task<ApplicationGetByIdDto> GetByIdAsync(Guid uuid, CancellationToken ct)
+    {
+        var application = await _context.Students
+         .Include(t => t.School)
+         .Include(t => t.Internship)
+         .Include(t => t.Requirements)
+         .Include(t => t.Application)
+         .Include(t => t.Office)
+         .AsSplitQuery()
+         .AsNoTracking()
+         .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid);
+
+        if (application is null) throw new KeyNotFoundException("application not found");
+
+        return new ApplicationGetByIdDto
+        {
+            Student = application is null ? null : new StudentInfo
+            {
+                Id = application.Id,
+                StudentUUID = application.StudentUUID,
+                Email = application.Email,
+                LastName = application.LastName,
+                FirstName = application.FirstName,
+                MiddleName = application.MiddleName,
+                ContactNumber = application.ContactNumber,
+                Address = application.Address,
+                DateOfBirth = application.DateOfBirth,
+                Gender = application.Gender,
+                GradeLevel = application.GradeLevel,
+                IsDeleted = application.IsDeleted,
+                CreateAt = application.CreateAt,
+                UpdatedAt = application.UpdatedAt,
+                DeletedAt = application.DeletedAt,
+                OfficeId = application.OfficeId
+            },
+
+            Application = new ApplicationInfo
+            {
+                Id = application.Id,
+                ApplicationUUID = application.Application.ApplicationUUID,
+                Status = application.Application.Status,
+                IsDeleted = application.Application.IsDeleted,
+                CreateAt = application.Application.CreateAt,
+                UpdatedAt = application.Application.UpdatedAt,
+                DeletedAt = application.Application.DeletedAt
+            },
+            School = application.School is null ? null : new SchoolInfo
+            {
+                Id = application.School.Id,
+                Name = application.School.Name,
+                Address = application.School.Address,
+                ContactPerson = application.School.ContactPerson,      // Fixed
+                Email = application.School.Email,
+                ContactNumber = application.School.ContactNumber,
+                IsDeleted = application.School.IsDeleted,
+                CreateAt = application.School.CreateAt,
+                UpdatedAt = application.School.UpdatedAt,
+                DeletedAt = application.School.DeletedAt
+            },
+            Internship = application.Internship is null ? null : new InternshipInfo
+            {
+                Id = application.Internship.Id,
+                InternshipNature = application.Internship.InternshipNature,
+                Strand = application.Internship.Strand,
+                Degree = application.Internship.Degree,
+                StartDate = application.Internship.StartDate,
+                EstimatedEndDate = application.Internship.EstimatedEndDate,
+                InternshipTotalHours = application.Internship.InternshipTotalHours,
+                IsDeleted = application.Internship.IsDeleted,
+                CreateAt = application.Internship.CreateAt,
+                UpdatedAt = application.Internship.UpdatedAt,
+                DeletedAt = application.Internship.DeletedAt
+            },
+            Requirements = application.Requirements?
+         .Where(r => !r.IsDeleted)  // Optional: exclude soft-deleted
+         .Select(t => new RequirementInfo
+         {
+             Id = t.Id,
+             FileName = t.FileName,
+             FilePath = t.FilePath,
+             FileType = t.FileType,
+             IsDeleted = t.IsDeleted,
+             CreateAt = t.CreateAt,
+             UpdatedAt = t.UpdatedAt,
+             DeletedAt = t.DeletedAt
+         }).ToList(),
+            Office = application.Office is null ? null : new OfficeInfo
+            {
+                Id = application.Office.Id,
+                Name = application.Office.Name,
+                CurrentOIC = application.Office.CurrentOIC,
+                IsDeleted = application.Office.IsDeleted,
+                CreateAt = application.Office.CreateAt,
+                UpdatedAt = application.Office.UpdatedAt,
+                DeletedAt = application.Office.DeletedAt
+            }
+        };
     }
 }
