@@ -308,8 +308,8 @@ const openModal = () =>{
 
             <template>
                 <UForm>
-                    <UFormField>
-                        
+                    <UFormField label="Office">
+                        <USelect/>
                     </UFormField>
                 </UForm>
             </template>
