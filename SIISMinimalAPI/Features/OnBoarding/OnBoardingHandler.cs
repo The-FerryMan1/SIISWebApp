@@ -30,5 +30,21 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 throw;
             }
         }
+
+        public async Task UpdatedOnBoarding(Guid uuid, OnBoardingDto onBoardingDto, CancellationToken ct)
+        {
+            var exists = await _context.Students
+            .Include(t => t.Application)
+            .AsQueryable()
+            .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct)
+            ?? throw new KeyNotFoundException("Application not found");
+
+            var updatedAppliation = OnBoardingEntityMapper.ToStudentModel(onBoardingDto);
+
+            exists = updatedAppliation;
+
+            await _context.SaveChangesAsync(ct);
+
+        }
     }
 }

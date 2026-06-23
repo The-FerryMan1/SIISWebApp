@@ -25,7 +25,7 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
 
 
         exists.Office = office;
-        
+
         exists.Application.Status = Shared.Enums.ApplicationStatusEnum.Approved;
         exists.Application.UpdatedAt = DateTime.Now;
 
@@ -146,5 +146,35 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
                 DeletedAt = application.Office.DeletedAt
             }
         };
+    }
+
+    public async Task Trash(Guid uuid, CancellationToken ct)
+    {
+        var application = await _context.Students
+        .Include(t => t.School)
+        .Include(t => t.Internship)
+        .Include(t => t.Requirements)
+        .Include(t => t.Application)
+        .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct)
+        ?? throw new KeyNotFoundException("Application not found");
+
+        application.School.IsDeleted = true;
+        application.School.DeletedAt = DateTime.Now;
+
+        application.Application.IsDeleted = true;
+        application.Application.DeletedAt = DateTime.Now;
+
+        application.IsDeleted = true;
+        application.DeletedAt = DateTime.Now;
+
+        application.Internship.IsDeleted = true;
+        application.Internship.DeletedAt = DateTime.Now;
+        application.Requirements.Select(t =>
+        {
+            t.IsDeleted = true;
+            t.DeletedAt = DateTime.Now;
+            return t;
+        });
+        await _context.SaveChangesAsync(ct);
     }
 }

@@ -23,7 +23,10 @@
 
   <ItemGroup>
     <Folder Include="Features\Application\AssignAndApprove\" />
+    <Folder Include="Features\Application\Delete\" />
     <Folder Include="Features\Application\GetById\" />
+    <Folder Include="Features\Application\SoftDelete\" />
+    <Folder Include="Features\Application\Update\" />
     <Folder Include="Features\Endorsement\" />
     <Folder Include="Features\Endorsement\Create\" />
     <Folder Include="Features\Endorsement\Preview\" />

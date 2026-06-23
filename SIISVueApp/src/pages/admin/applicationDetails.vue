@@ -163,6 +163,8 @@ const generateEndorsement = async () => {
       responseType: 'blob' 
     });
     
+
+    toast.add({title: 'Downloaded', description: 'Endorsement letter', color: 'info'})
     const url = URL.createObjectURL(data);
     const link = document.createElement('a');
     link.href = url;                          // Set the URL
@@ -173,6 +175,7 @@ const generateEndorsement = async () => {
     URL.revokeObjectURL(url);               // Free memory
     
   } catch (error) {
+     toast.add({title: 'download failed', description: 'Please try again later', color: 'error'})
     console.error('Download failed:', error);
   }
 }

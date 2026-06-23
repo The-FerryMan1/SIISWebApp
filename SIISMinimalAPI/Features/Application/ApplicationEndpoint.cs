@@ -78,6 +78,20 @@ public static class  ApplicationEndpoint
             }
         });
 
+        group.MapPut("/trash/{uuid}", async Task<IResult>([FromRoute]Guid uuid, IApplicationService service , CancellationToken ct) =>
+        {
+            try
+            {
+                await service.Trash(uuid, ct);
+                return TypedResults.Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                
+                 return TypedResults.NotFound(ex.Message);
+            }
+        });
+
         return app;
     }
 }
