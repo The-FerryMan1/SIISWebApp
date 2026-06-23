@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application;
+using SIISMinimalAPI.Features.Endorsement;
 using SIISMinimalAPI.Features.OnBoarding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +48,7 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
 builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
+builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -63,6 +65,7 @@ app.UseRateLimiter();
 
 app.MapOnBoardingEnpoints();
 app.MapToApplication();
+app.MapToEndorsement();
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 
 
@@ -73,5 +76,6 @@ app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 using (var scope = app.Services.CreateScope())
 {
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
+    await SeederAdmin.InitOffices(scope.ServiceProvider);
 }
 app.Run();

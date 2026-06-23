@@ -1,28 +1,26 @@
 <script setup lang="ts">
-import { watch, ref, computed, h, resolveComponent } from 'vue'
+import { watch, ref, computed, h, resolveComponent, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useClipboard } from '@vueuse/core'
-import type { TableColumn, BreadcrumbItem  } from '@nuxt/ui'
+import { useClipboard, useDebounceFn } from '@vueuse/core'
+import type { TableColumn, BreadcrumbItem, FormSubmitEvent } from '@nuxt/ui'
 import { ApplicationStatusEnum, type ApplicationGetByIdResponse } from './types/applicationType'
 import { useAxios } from '../../fetch/axios'
-import { UseAuthStore } from '../../stores/auth'
-import { title } from 'process'
-import { describe } from 'zod/v4/core'
+import { OfficeNameLabels, OfficesArray, OfficeNameEnum } from './types/officeSelectValue'
+import z from 'zod'
 
-const auth = UseAuthStore()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const overlay = useOverlay()
+const UModal = resolveComponent('UModal');
+const modalOverlay = overlay.create(h(UModal))
 const { copy } = useClipboard()
-
+const formRef = useTemplateRef('form')
+const modalRef = useTemplateRef('modal')
 const details = ref<ApplicationGetByIdResponse | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
-
-const overlay = useOverlay()
-const modalComp = resolveComponent('UModal')
-const modal = overlay.create(h(modalComp))
-
+const isDisabled = ref<boolean>(true)
 const isPending = computed(() => details.value?.application?.status === ApplicationStatusEnum.Pending)
 
 // --- Data Fetching ---
@@ -98,234 +96,292 @@ const items = computed<BreadcrumbItem[]>(() => [
   {
     label: 'Application details',
     icon: 'i-lucide-box',
-    to: '/application/details/'+ route.params.uuid
+    to: '/application/details/' + route.params.uuid
   },
 ])
 
+
+
+
 //assign office & approve
-const openModal = () =>{
-  modal.open(
-    {
-      title: 'Assign office & Approved',
-      description: route.params.uuid
+
+const officeSchema = z.object({
+  office: z.enum(OfficeNameEnum, { error: 'Office is required' })
+});
+type OfficeSchema = z.infer<typeof officeSchema>
+
+const selectedOffice = ref<Partial<OfficeSchema>>({
+  office: undefined
+})
+
+const submitOffice = async (payload: FormSubmitEvent<OfficeSchema>) => {
+  if (!modalRef.value || !formRef.value) return
+
+  try {
+    modalOverlay.open({
+      titel: 'Loading',
+      close: false,
+      body: 'Loading..'
+    })
+    loading.value = true
+    await useAxios.post('/application/details/' + route.params.uuid, payload)
+    toast.add({ title: 'Approved and Assign office: success', color: 'success' })
+
+
+    if (details.value) {
+      details.value.office = {
+        id: details.value.office?.id ?? 0,  // or whatever default
+        name: payload.data.office as OfficeNameEnum,
+        currentOIC: details.value.office?.currentOIC ?? null,
+        isDeleted: details.value.office?.isDeleted ?? false,
+        createAt: details.value.office?.createAt ?? new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        deletedAt: details.value.office?.deletedAt ?? null
+      };
+
+      details.value.application.status = ApplicationStatusEnum.Approved
     }
-  )
+
+  } catch {
+    toast.add({ title: 'Approved and Assign office: Failed', color: 'error' })
+  } finally {
+    loading.value = false
+    modalOverlay.close()
+  }
 }
 
+const debounceSubmitOffice = useDebounceFn(submitOffice, 1000)
+
+
+const disableForm = () => {
+  isDisabled.value = !isDisabled.value
+}
+
+const generateEndorsement = async () => {
+  try {
+    const { data } = await useAxios.get('/endorsement/' + route.params.uuid, { 
+      responseType: 'blob' 
+    });
+    
+    const url = URL.createObjectURL(data);
+    const link = document.createElement('a');
+    link.href = url;                          // Set the URL
+    link.download = `endorsement-letter-${route.params.uuid}.pdf`; // Set filename
+    document.body.appendChild(link);        // Append to DOM (required in some browsers)
+    link.click();
+    document.body.removeChild(link);        // Clean up
+    URL.revokeObjectURL(url);               // Free memory
+    
+  } catch (error) {
+    console.error('Download failed:', error);
+  }
+}
+
+const debounceGenerateEndorsement = useDebounceFn(generateEndorsement, 1000)
 </script>
 
 <template>
-  
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <UButton variant="ghost" color="neutral" icon="i-lucide-arrow-left" @click="goBack">
-        Back
-      </UButton>
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <UButton variant="ghost" color="neutral" icon="i-lucide-arrow-left" @click="goBack">
+      Back
+    </UButton>
+  </div>
+
+  <UBreadcrumb :items="items" />
+
+  <!-- Loading State -->
+  <template v-if="loading">
+    <div class="space-y-4">
+      <USkeleton class="h-8 w-1/3" />
+      <USkeleton class="h-4 w-1/4" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <USkeleton class="h-64 w-full" />
+        <USkeleton class="h-64 w-full" />
+      </div>
+    </div>
+  </template>
+
+  <!-- Error State -->
+  <UAlert v-else-if="error" color="error" icon="i-lucide-circle-x" :title="error" />
+
+  <!-- Content -->
+  <template v-else-if="details">
+    <!-- Title + Status -->
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div>
+        <h1 class="text-2xl font-black text-highlighted">Application Details</h1>
+        <div class="flex items-center gap-2 mt-1">
+          <small class="text-muted">UUID: {{ details.application.applicationUUID }}</small>
+          <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-copy"
+            @click="copyId(details.application.applicationUUID)" aria-label="Copy UUID" />
+        </div>
+      </div>
+      <UBadge class="sm:ml-auto capitalize" :label="statusLabel(details.application.status)"
+        :color="statusColor(details.application.status)" variant="subtle" size="md">
+        <UIcon name="i-lucide-check-check" />
+        Approved
+
+      </UBadge>
+
     </div>
 
-    <UBreadcrumb :items="items" />
+    <USeparator class="my-4" />
 
-    <!-- Loading State -->
-    <template v-if="loading">
-      <div class="space-y-4">
-        <USkeleton class="h-8 w-1/3" />
-        <USkeleton class="h-4 w-1/4" />
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          <USkeleton class="h-64 w-full" />
-          <USkeleton class="h-64 w-full" />
-        </div>
-      </div>
-    </template>
+    <!-- Tabs -->
+    <UTabs :items="[
+      { label: 'Student', icon: 'i-lucide-user', slot: 'student' },
+      { label: 'School', icon: 'i-lucide-school', slot: 'school' },
+      { label: 'Internship', icon: 'i-lucide-briefcase', slot: 'internship' },
+      { label: 'Requirements', icon: 'i-lucide-file-text', slot: 'requirements' },
+      { label: 'Office', icon: 'i-lucide-building', slot: 'office' }
+    ]" variant="pill" class="w-full">
+      <!-- Student Tab -->
+      <template #student>
+        <UPageCard title="Student Information" icon="i-lucide-user-round" variant="outline" class="mt-4">
+          <UForm ref="form" :disabled="isDisabled" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormField label="Last Name">
+              <UInput v-model="details.student.lastName" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="First Name">
+              <UInput v-model="details.student.firstName" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Middle Name">
+              <UInput v-model="details.student.middleName" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Email">
+              <UInput v-model="details.student.email" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Contact Number">
+              <UInput v-model="details.student.contactNumber" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Address">
+              <UInput v-model="details.student.address" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Date of Birth">
+              <UInput v-model="details.student.dateOfBirth" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Gender">
+              <UInput :model-value="genderLabel(details.student.gender)" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Grade Level">
+              <UInput :model-value="gradeLabel(details.student.gradeLevel)" class="w-full" variant="soft" />
+            </UFormField>
+          </UForm>
+        </UPageCard>
+      </template>
 
-    <!-- Error State -->
-    <UAlert v-else-if="error" color="error" icon="i-lucide-circle-x" :title="error" />
+      <!-- School Tab -->
+      <template #school>
+        <UPageCard title="School Information" icon="i-lucide-school" variant="outline" class="mt-4">
+          <UForm disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormField label="School Name">
+              <UInput v-model="details.school.name" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Address">
+              <UInput v-model="details.school.address" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Contact Person">
+              <UInput v-model="details.school.contactPerson" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Email">
+              <UInput v-model="details.school.email" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Contact Number">
+              <UInput v-model="details.school.contactNumber" class="w-full" variant="soft" />
+            </UFormField>
+          </UForm>
+        </UPageCard>
+      </template>
 
-    <!-- Content -->
-    <template v-else-if="details">
-      <!-- Title + Status -->
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div>
-          <h1 class="text-2xl font-black text-highlighted">Application Details</h1>
-          <div class="flex items-center gap-2 mt-1">
-            <small class="text-muted">UUID: {{ details.application.applicationUUID }}</small>
-            <UButton
-              size="xs"
-              variant="ghost"
-              color="neutral"
-              icon="i-lucide-copy"
-              @click="copyId(details.application.applicationUUID)"
-              aria-label="Copy UUID"
-            />
-          </div>
-        </div>
-        <UBadge
-          class="sm:ml-auto capitalize"
-          :label="statusLabel(details.application.status)"
-          :color="statusColor(details.application.status)"
-          variant="subtle"
-          size="md"
-        />
-      </div>
+      <!-- Internship Tab -->
+      <template #internship>
+        <UPageCard title="Internship Information" icon="i-lucide-briefcase" variant="outline" class="mt-4">
+          <UForm disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormField label="Nature">
+              <UInput :model-value="natureLabel(details.internship.internshipNature)" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Strand">
+              <UInput :model-value="strandLabel(details.internship.strand)" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Degree">
+              <UInput :model-value="details.internship.degree?.toString() ?? 'N/A'" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Start Date">
+              <UInput v-model="details.internship.startDate" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Estimated End Date">
+              <UInput v-model="details.internship.estimatedEndDate" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Total Hours">
+              <UInput v-model="details.internship.internshipTotalHours" class="w-full" variant="soft" />
+            </UFormField>
+          </UForm>
+        </UPageCard>
+      </template>
 
-      <USeparator class="my-4" />
+      <!-- Requirements Tab -->
+      <template #requirements>
+        <UPageCard title="Submitted Requirements" icon="i-lucide-file-text" variant="outline" class="mt-4">
+          <UTable v-if="details.requirements?.length" :data="details.requirements" :columns="requirementColumns"
+            class="w-full" />
+          <UAlert v-else color="neutral" icon="i-lucide-inbox" title="No requirements submitted yet." />
+        </UPageCard>
+      </template>
 
-      <!-- Tabs -->
-      <UTabs
-        :items="[
-          { label: 'Student', icon: 'i-lucide-user', slot: 'student' },
-          { label: 'School', icon: 'i-lucide-school', slot: 'school' },
-          { label: 'Internship', icon: 'i-lucide-briefcase', slot: 'internship' },
-          { label: 'Requirements', icon: 'i-lucide-file-text', slot: 'requirements' },
-          { label: 'Office', icon: 'i-lucide-building', slot: 'office' }
-        ]"
-        variant="pill"
-        class="w-full"
-      >
-        <!-- Student Tab -->
-        <template #student>
-          <UPageCard title="Student Information" icon="i-lucide-user-round" variant="outline" class="mt-4">
-            <UForm disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField label="Last Name">
-                <UInput v-model="details.student.lastName" class="w-full" />
-              </UFormField>
-              <UFormField label="First Name">
-                <UInput v-model="details.student.firstName" class="w-full" />
-              </UFormField>
-              <UFormField label="Middle Name">
-                <UInput v-model="details.student.middleName" class="w-full" />
-              </UFormField>
-              <UFormField label="Email">
-                <UInput v-model="details.student.email" class="w-full" />
-              </UFormField>
-              <UFormField label="Contact Number">
-                <UInput v-model="details.student.contactNumber" class="w-full" />
-              </UFormField>
-              <UFormField label="Address">
-                <UInput v-model="details.student.address" class="w-full" />
-              </UFormField>
-              <UFormField label="Date of Birth">
-                <UInput v-model="details.student.dateOfBirth" class="w-full" />
-              </UFormField>
-              <UFormField label="Gender">
-                <UInput :model-value="genderLabel(details.student.gender)" class="w-full" />
-              </UFormField>
-              <UFormField label="Grade Level">
-                <UInput :model-value="gradeLabel(details.student.gradeLevel)" class="w-full" />
-              </UFormField>
-            </UForm>
-          </UPageCard>
+      <!-- Office Tab -->
+      <template #office>
+        <UPageCard :title="details.office ? 'Assigned Office' : 'No Office Assigned'"
+          :icon="details.office ? 'i-lucide-building' : 'i-lucide-building-x'" variant="outline" class="mt-4">
+          <UForm v-if="details.office" disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormField label="Office Name">
+              <UInput :model-value="OfficeNameLabels[details.office.name]" class="w-full" variant="soft" />
+            </UFormField>
+            <UFormField label="Current OIC">
+              <UInput :model-value="details.office.currentOIC ?? 'N/A'" class="w-full" variant="soft" />
+            </UFormField>
+          </UForm>
+          <p v-else class="text-muted text-sm">This application has not been assigned to an office yet.</p>
+        </UPageCard>
+      </template>
+    </UTabs>
+
+
+    <div class="flex justify-end gap-3 pt-4">
+
+
+      <UModal ref="modal" v-if="isPending" title="Assign office & approve" :description="route.params.uuid as string">
+        <UButton label=" Assign office & approve" color="success" icon="i-lucide-check" variant="subtle" size="sm" />
+
+        <template #body>
+          <UForm class="flex flex-col gap-3" :schema="officeSchema" :state="selectedOffice"
+            @submit="debounceSubmitOffice">
+            <UFormField label="Office" required name="office">
+              <USelect :value="selectedOffice.office" class="w-full" v-model="selectedOffice.office"
+                :items="OfficesArray" placeholder="Select office" />
+            </UFormField>
+
+            <div class="ms-auto">
+              <UButton type="submit" color="primary" icon="i-lucide-send" label="approve" />
+            </div>
+          </UForm>
         </template>
-
-        <!-- School Tab -->
-        <template #school>
-          <UPageCard title="School Information" icon="i-lucide-school" variant="outline" class="mt-4">
-            <UForm disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField label="School Name">
-                <UInput v-model="details.school.name" class="w-full" />
-              </UFormField>
-              <UFormField label="Address">
-                <UInput v-model="details.school.address" class="w-full" />
-              </UFormField>
-              <UFormField label="Contact Person">
-                <UInput v-model="details.school.contactPerson" class="w-full" />
-              </UFormField>
-              <UFormField label="Email">
-                <UInput v-model="details.school.email" class="w-full" />
-              </UFormField>
-              <UFormField label="Contact Number">
-                <UInput v-model="details.school.contactNumber" class="w-full" />
-              </UFormField>
-            </UForm>
-          </UPageCard>
-        </template>
-
-        <!-- Internship Tab -->
-        <template #internship>
-          <UPageCard title="Internship Information" icon="i-lucide-briefcase" variant="outline" class="mt-4">
-            <UForm disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField label="Nature">
-                <UInput :model-value="natureLabel(details.internship.internshipNature)" class="w-full" />
-              </UFormField>
-              <UFormField label="Strand">
-                <UInput :model-value="strandLabel(details.internship.strand)" class="w-full" />
-              </UFormField>
-              <UFormField label="Degree">
-                <UInput :model-value="details.internship.degree?.toString() ?? 'N/A'" class="w-full" />
-              </UFormField>
-              <UFormField label="Start Date">
-                <UInput v-model="details.internship.startDate" class="w-full" />
-              </UFormField>
-              <UFormField label="Estimated End Date">
-                <UInput v-model="details.internship.estimatedEndDate" class="w-full" />
-              </UFormField>
-              <UFormField label="Total Hours">
-                <UInput v-model="details.internship.internshipTotalHours" class="w-full" />
-              </UFormField>
-            </UForm>
-          </UPageCard>
-        </template>
-
-        <!-- Requirements Tab -->
-        <template #requirements>
-          <UPageCard title="Submitted Requirements" icon="i-lucide-file-text" variant="outline" class="mt-4">
-            <UTable
-              v-if="details.requirements?.length"
-              :data="details.requirements"
-              :columns="requirementColumns"
-              class="w-full"
-            />
-            <UAlert v-else color="neutral" icon="i-lucide-inbox" title="No requirements submitted yet." />
-          </UPageCard>
-        </template>
-
-        <!-- Office Tab -->
-        <template #office>
-          <UPageCard
-            :title="details.office ? 'Assigned Office' : 'No Office Assigned'"
-            :icon="details.office ? 'i-lucide-building' : 'i-lucide-building-x'"
-            variant="outline"
-            class="mt-4"
-          >
-            <UForm v-if="details.office" disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField label="Office Name">
-                <UInput :model-value="details.office.name" class="w-full" />
-              </UFormField>
-              <UFormField label="Current OIC">
-                <UInput :model-value="details.office.currentOIC ?? 'N/A'" class="w-full" />
-              </UFormField>
-            </UForm>
-            <p v-else class="text-muted text-sm">This application has not been assigned to an office yet.</p>
-          </UPageCard>
-        </template>
-      </UTabs>
-
-     
-      <div  class="flex justify-end gap-3 pt-4">
+      </UModal>
 
 
-        <UModal v-if="isPending" title="Assign office & approve" :description="route.params.uuid as string">
-            <UButton label=" Assign office & approve"color="success" icon="i-lucide-check" variant="subtle" />
+      <UButton @click="debounceGenerateEndorsement" v-if="!isPending" color="success" icon="i-lucide-file-text"
+        size="sm" variant="soft">
+        Endoresment letter
+      </UButton>
+      <UButton @click="disableForm" label="Edit" icon="i-lucide-pen" size="sm" variant="soft" color="info" />
+      <UButton v-if="isPending" color="error" variant="outline" icon="i-lucide-x">
+        Reject
+      </UButton>
+      <UButton v-if="!isPending" color="error" variant="soft" icon="i-lucide-trash" size="sm">
+        Delete
+      </UButton>
 
-            <template>
-                <UForm>
-                    <UFormField label="Office">
-                        <USelect/>
-                    </UFormField>
-                </UForm>
-            </template>
-        </UModal>
-
-      
-         <UButton v-if="!isPending" color="info" icon="i-lucide-file-text">
-          Endoresment letter
-        </UButton>
-        <UButton v-if="isPending" color="error" variant="outline" icon="i-lucide-x">
-          Reject
-        </UButton>
-        <UButton v-if="!isPending" color="error" variant="outline" icon="i-lucide-trash">
-          Delete
-        </UButton>
-       
-      </div>
-    </template>
+    </div>
+  </template>
 </template>

@@ -2,6 +2,42 @@
 {
     public enum OfficeNameEnum
     {
-        
+       OfficeOfTheProvincialGovernor,
+    OfficeOfTheProvincialViceGovernor,
+    OfficeOfTheProvincialAdministrator,
+    OpgRoadSafetyDivision,
+    BidsAndAwardsCommitteeB,
+    BidsAndAwardsCommitteeA,
+    CaviteProvincialJail,
+    OpgOfficeOfTheProvincialYouthDevelopmentOfficer,
+    OfficeOfTheProvincialHealthOfficer,
+    LocalEconomicDevelopmentAndInvestmentPromotionsOffice,
+    CaviteCenterForMentalHealth,
+    CaviteQualityManagementOffice,
+    OfficeOfTheSangguniangPanlalawigan,
+    OpgOfficeOfTheProvincialInternalAuditServices,
+    ProvincialInformationAndCommunicationsTechnologyOffice,
+    OfficeOfTheProvincialEnvironmentAndNaturalResourcesOfficer,
+    OfficeOfTheProvincialDisasterRiskReductionAndManagementOfficer,
+    PgCaviteOfficeOfPublicSafety,
+    OfficeOfTheProvincialEngineer,
+    OfficeOfTheProvincialVeterinarian,
+    OfficeOfTheProvincialSocialWelfareAndDevelopmentOfficer,
+    OfficeOfTheProvincialAgriculturist,
+    OfficeOfTheProvincialPopulationOfficer,
+    OfficeOfTheProvincialAssessor,
+    OfficeOfTheProvincialTreasurer,
+    OfficeOfTheProvincialAccountant,
+    OfficeOfTheProvincialBudgetOfficer,
+    OfficeOfTheProvincialGeneralServicesOfficer,
+    OfficeOfTheProvincialLegalOfficer,
+    OpgOfficeOfTheProvincialPersonsWithDisabilityAffairsOfficer,
+    OfficeOfTheProvincialPlanningAndDevelopmentCoordinator,
+    OfficeOfTheProvincialInformationOfficer,
+    OfficeOfTheProvincialTourismOfficer,
+    OfficeOfTheProvincialCooperativesDevelopmentOfficer,
+    OfficeOfTheProvincialPublicEmploymentServiceManager,
+    ProvincialHousingAndDevelopmentManagementOffice,
+    OfficeOfTheProvincialHumanResourceManagementOfficer
     }
 }

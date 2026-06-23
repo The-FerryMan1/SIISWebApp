@@ -24,6 +24,7 @@ public static class OnBoardingEntityMapper
             MiddleName = student.MiddleName,
             Address = student.Address,
             ContactNumber = student.ContactNumber,
+            DateOfBirth = student.DateOfBirth,
             Gender = student.Gender,
             GradeLevel = student.GradeLevel,
             School = new SchoolModel

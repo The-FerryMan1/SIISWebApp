@@ -1,6 +1,8 @@
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Application.AssignAndApprove;
 using SIISMinimalAPI.Features.Application.GetById;
 
 namespace SIISMinimalAPI.Features.Application;
@@ -8,13 +10,35 @@ namespace SIISMinimalAPI.Features.Application;
 public class ApplicationHandler(AppDbContext context) : IApplicationService
 {
     private readonly AppDbContext _context = context;
+
+    public async Task AssignAndApprove(Guid uuid, RequestDto requestDto, CancellationToken ct)
+    {
+        var exists = await _context.Students
+     .Include(t => t.Office)
+     .Include(t => t.Application)
+     .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
+     ?? throw new KeyNotFoundException("Application not found");
+
+        var office = await _context.Offices
+            .FirstOrDefaultAsync(t => t.Name == requestDto.Office, ct)
+            ?? throw new KeyNotFoundException("No office found");
+
+
+        exists.Office = office;
+        
+        exists.Application.Status = Shared.Enums.ApplicationStatusEnum.Approved;
+        exists.Application.UpdatedAt = DateTime.Now;
+
+        await _context.SaveChangesAsync(ct);
+    }
+
     public async Task<ICollection<ApplicationDto>> GetAllAsync(CancellationToken ct)
     {
         var applications = await _context.Students
         .Include(t => t.Application).AsSplitQuery()
-        .AsNoTracking().ToListAsync();
+        .AsNoTracking().OrderByDescending(t => t.CreateAt).ToListAsync(cancellationToken: ct);
 
-        return applications.Select(t => new ApplicationDto
+        return [.. applications.Select(t => new ApplicationDto
         {
             Id = t.Application.Id,
             ApplicationUUID = t.Application.ApplicationUUID,
@@ -22,7 +46,7 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
             Status = t.Application.Status.ToString(),
             CreatedAt = t.Application.CreateAt,
             UpdatedAt = t.Application.UpdatedAt
-        }).ToList();
+        })];
     }
 
     public async Task<ApplicationGetByIdDto> GetByIdAsync(Guid uuid, CancellationToken ct)
@@ -35,7 +59,7 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
          .Include(t => t.Office)
          .AsSplitQuery()
          .AsNoTracking()
-         .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid);
+         .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct);
 
         if (application is null) throw new KeyNotFoundException("application not found");
 
@@ -63,7 +87,7 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
 
             Application = new ApplicationInfo
             {
-                Id = application.Id,
+                Id = application.Application.Id,
                 ApplicationUUID = application.Application.ApplicationUUID,
                 Status = application.Application.Status,
                 IsDeleted = application.Application.IsDeleted,

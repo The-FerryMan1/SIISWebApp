@@ -1,7 +1,9 @@
+import type { OfficeNameEnum } from "./officeSelectValue";
+
 // Enums (match your C# enums)
 export enum ApplicationStatusEnum {
   Pending = 0,
-  Approved = 1
+  Approved = 2
   // Add other statuses...
 }
 
@@ -31,10 +33,6 @@ export enum StrandEnum {
   // etc.
 }
 
-export enum OfficeNameEnum {
-  // Add your office names
-  OSP = 0,
-}
 
 // Types
 export interface ApplicationInfo {
