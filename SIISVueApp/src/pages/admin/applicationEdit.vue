@@ -118,8 +118,8 @@ const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
                     </UFormField>
 
                     <UFormField label="Date of birth" title="Date of Birth" name="DateofBirth">
-                        <input type="date" v-model="details.student.dateOfBirth" placeholder="enter your email address"
-                            class="w-full p-2 border-slate-300 border rounded" />
+                        <UInput type="date" v-model="details.student.dateOfBirth" placeholder="enter your email address"
+                            class="w-full" />
                     </UFormField>
 
                     <UFormField label="Gender" title="Gender" name="Gender">
@@ -223,21 +223,21 @@ const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
                     </UFormField>
 
                     <UFormField label="Internhip total hours" title="totalHours" name="TotalHours">
-                        <UInput type="tel" v-model="details.internship.internshipTotalHours"
+                        <UInput type="number" v-model="details.internship.internshipTotalHours"
                             placeholder="Enter school contact person's number" class="w-full" />
                     </UFormField>
 
 
                     <UFormField label="Start date" title="Start date" name="startDate">
                         <UInput type="date" v-model="details.internship.startDate"
-                            placeholder="enter your email address" class="w-full p-2 border-slate-300 border rounded"
+                            placeholder="enter your email address" class="w-full"
                             :min="new Date().toISOString().split('T')[0]" />
                     </UFormField>
 
                     <UFormField label="Estimated end date" title="Date of Birth" name="DateofBirth"
                         description="Calculated field">
                         <UInput type="date" v-model="details.internship.estimatedEndDate"
-                            placeholder="enter your email address" class="w-full p-2 border-slate-300 border rounded"
+                            placeholder="enter your email address" class="w-full "
                             disabled />
                     </UFormField>
                 </UPageCard>

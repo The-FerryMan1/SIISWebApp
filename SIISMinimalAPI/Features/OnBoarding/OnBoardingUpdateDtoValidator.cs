@@ -6,11 +6,11 @@ namespace SIISMinimalAPI.Features.OnBoarding;
 public class OnBoardUpdateDtoValidator : AbstractValidator<OnBoardUpdateDto>
 {
     public OnBoardUpdateDtoValidator(
-        StudentUpdateDtoValidator studentValidator,
-        SchoolUpdateDtoValidator schoolValidator,
-        InternshipUpdateDtoValidator internshipValidator,
-        RequirementsUpdateDtoValidator requirementsValidator,
-        OfficeUpdateDtoValidator officeValidator)
+        IValidator<StudentUpdateDto> studentValidator,
+        IValidator<SchoolUpdateDto> schoolValidator,
+        IValidator<InternshipUpdateDto> internshipValidator,
+        IValidator<RequirementsUpdateDto> requirementsValidator,
+        IValidator<OfficeUpdateDto> officeValidator)
     {
         RuleFor(x => x.Student)
             .NotNull()
@@ -24,9 +24,8 @@ public class OnBoardUpdateDtoValidator : AbstractValidator<OnBoardUpdateDto>
             .NotNull()
             .SetValidator((FluentValidation.Validators.IPropertyValidator)internshipValidator);
 
-        RuleFor(x => x.Requirements)
-            .NotNull()
-            .ForEach(req => req.SetValidator((FluentValidation.Validators.IPropertyValidator)requirementsValidator));
+        RuleForEach(x => x.Requirements)
+            .SetValidator((FluentValidation.Validators.IPropertyValidator)requirementsValidator);
 
         RuleFor(x => x.Office)
             .NotNull()
@@ -179,7 +178,7 @@ public class InternshipUpdateDtoValidator : AbstractValidator<InternshipUpdateDt
             return true;
 
         var duration = dto.EstimatedEndDate.DayNumber - dto.StartDate.DayNumber;
-        var maxDays = (dto.InternshipTotalHours / 4) + 30; // Allow some buffer
+        var maxDays = (dto.InternshipTotalHours / 4) + 30;
         return duration <= maxDays;
     }
 }

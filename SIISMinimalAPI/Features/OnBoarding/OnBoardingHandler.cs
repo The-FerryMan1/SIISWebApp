@@ -76,7 +76,7 @@ namespace SIISMinimalAPI.Features.OnBoarding
             exists.Internship.InternshipTotalHours = dto.Internship.InternshipTotalHours;
             exists.Internship.UpdatedAt = DateTime.UtcNow;
             exists.Office.Id = existsOffice.Id;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
         }
     }
 }
