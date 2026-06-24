@@ -13,8 +13,8 @@ namespace SIISMinimalAPI.Features.OnBoarding
             try
             {
                 var existingStud = await _context.Students.AsNoTracking()
-                .FirstOrDefaultAsync( 
-                    t => t.Email.ToLower() == onBoardingDto.Student.Email.ToLower(), 
+                .FirstOrDefaultAsync(
+                    t => t.Email.ToLower() == onBoardingDto.Student.Email.ToLower(),
                     ct);
                 if (existingStud is not null)
                 {
@@ -31,20 +31,52 @@ namespace SIISMinimalAPI.Features.OnBoarding
             }
         }
 
-        public async Task UpdatedOnBoarding(Guid uuid, OnBoardingDto onBoardingDto, CancellationToken ct)
+        public async Task UpdatedOnBoarding(Guid uuid, OnBoardUpdateDto dto, CancellationToken ct)
         {
             var exists = await _context.Students
-            .Include(t => t.Application)
-            .AsQueryable()
-            .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct)
+                .Include(t => t.Application)
+                .Include(t => t.School)
+                .Include(t => t.Internship)
+                .Include(t => t.Office)
+                .Include(t => t.Requirements)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
+                ?? throw new KeyNotFoundException("Application not found");
+
+            var existsOffice = await _context.Offices.FirstOrDefaultAsync(t => t.Name == dto.Office.Name)
             ?? throw new KeyNotFoundException("Application not found");
+            // 1. Update Student (root entity) - map DTO directly, not through mapper
+            exists.FirstName = dto.Student.FirstName;
+            exists.LastName = dto.Student.LastName;
+            exists.MiddleName = dto.Student.MiddleName;
+            exists.Email = dto.Student.Email;
+            exists.ContactNumber = dto.Student.ContactNumber;
+            exists.Address = dto.Student.Address;
+            exists.DateOfBirth = dto.Student.DateOfBirth;
+            exists.Gender = dto.Student.Gender;
+            exists.GradeLevel = dto.Student.GradeLevel;
+            exists.UpdatedAt = DateTime.UtcNow;
 
-            var updatedAppliation = OnBoardingEntityMapper.ToStudentModel(onBoardingDto);
+            // 2. Update School
 
-            exists = updatedAppliation;
+            exists.School.Name = dto.School.Name;
+            exists.School.Address = dto.School.Address;
+            exists.School.ContactPerson = dto.School.ContactPerson;
+            exists.School.Email = dto.School.Email;
+            exists.School.ContactNumber = dto.School.ContactNumber;
 
-            await _context.SaveChangesAsync(ct);
 
+            // 3. Update Internship
+
+            exists.Internship.InternshipNature = dto.Internship.InternshipNature;
+            exists.Internship.Strand = dto.Internship.Strand;
+            exists.Internship.Degree = dto.Internship.Degree;
+            exists.Internship.StartDate = dto.Internship.StartDate;
+            exists.Internship.EstimatedEndDate = dto.Internship.EstimatedEndDate;
+            exists.Internship.InternshipTotalHours = dto.Internship.InternshipTotalHours;
+            exists.Internship.UpdatedAt = DateTime.UtcNow;
+            exists.Office.Id = existsOffice.Id;
+            await _context.SaveChangesAsync();
         }
     }
 }

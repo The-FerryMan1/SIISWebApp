@@ -6,5 +6,5 @@ public interface IOnBoadringService
 {
     Task CreateOnBoarding(OnBoardingDto onBoardingDto, CancellationToken ct);
 
-    Task UpdatedOnBoarding(Guid uuid, OnBoardingDto onBoardingDto, CancellationToken ct);
+    Task UpdatedOnBoarding(Guid uuid, OnBoardUpdateDto dto, CancellationToken ct);
 }

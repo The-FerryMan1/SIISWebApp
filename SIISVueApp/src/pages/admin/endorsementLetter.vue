@@ -43,12 +43,7 @@ const goBack = () => {
         </UButton>
     </div>
     <UBreadcrumb :items="items" />
-    <div>
-        <h1 class="text-2xl font-black text-primary">Endorsement Letter</h1>
-        <div class="flex items-center gap-2 mt-1">
-            <p class="text-muted text-sm">Generate Endorsement letter</p>
-        </div>
-    </div>
+   
     <UPage>
         <template #left>
             <UCard class="">

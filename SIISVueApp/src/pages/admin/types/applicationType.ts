@@ -16,21 +16,46 @@ export enum GenderEnum {
 
 export enum GradeLevelEnum {
   // 0 = ?, 1 = ?, 2 = ?
-  Grade11 = 1,
-  Grade12 = 2,
+  Grade11 = 11,
+  Grade12 = 12,
+
+  CollegeFirstYear = 1,
+  CollegeSecondYear = 2,
+  CollegeThirdYear = 3,
+  CollegeFourthYear = 4
 }
 
 export enum InternshipNatureEnum {
   // 1 = ?
-  WorkImmersion = 1,
+  OJT = 0,
+  Apprenticeship = 1,
+  Internship = 2,
+  WorkImmersion = 3
 }
 
 export enum StrandEnum {
   // 1 = ?
-  STEM = 1,
-  ABM = 2,
-  HUMSS = 3,
-  // etc.
+ 
+        STEM = 0,
+        ABM = 1,
+        HUMSS = 2,
+        GAS = 3,
+        ICT = 4
+}
+
+export enum DegreeEnum {
+        BSIT,
+        BSCS,
+        BSN,
+        BSA,
+        BSBA,
+        BSEd,
+        BSCE,
+        BSEE,
+        BSME,
+        BSArch,
+        BSPharma,
+        BSPsych
 }
 
 
@@ -83,7 +108,7 @@ export interface InternshipInfo {
   strand: StrandEnum | null;
   degree: number | null; // or DegreeEnum | null
   startDate: string; // "YYYY-MM-DD"
-  estimatedEndDate: string;
+  estimatedEndDate: string | undefined;
   internshipTotalHours: number;
   isDeleted: boolean;
   createAt: string;

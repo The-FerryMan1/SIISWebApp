@@ -35,9 +35,9 @@ export const routes: RouteRecordRaw[] = [
         meta: { isRequiresAuth: true },
       },
        {
-        path: '/application/details/endorsement:uuid',
-        component: () => import('../pages/admin/endorsementLetter.vue'),
-        name: 'application-endorsement',
+        path: '/application/details/:uuid/edit',
+        component: () => import('../pages/admin/applicationEdit.vue'),
+        name: 'application-edit',
         meta: { isRequiresAuth: true },
       },
     ],

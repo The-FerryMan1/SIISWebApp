@@ -377,7 +377,7 @@ const debounceGenerateEndorsement = useDebounceFn(generateEndorsement, 1000)
         size="sm" variant="soft">
         Endoresment letter
       </UButton>
-      <UButton @click="disableForm" label="Edit" icon="i-lucide-pen" size="sm" variant="soft" color="info" />
+      <UButton @click="router.push({name: 'application-edit', params:{uuid: route.params.uuid}})" label="Edit" icon="i-lucide-pen" size="sm" variant="soft" color="info" />
       <UButton v-if="isPending" color="error" variant="outline" icon="i-lucide-x">
         Reject
       </UButton>

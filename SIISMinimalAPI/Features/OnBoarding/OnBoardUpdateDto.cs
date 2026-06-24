@@ -3,18 +3,19 @@ using SIISMinimalAPI.Features.Shared.Enums;
 
 namespace SIISMinimalAPI.Features.OnBoarding;
 
-public class OnBoardingDto
+public class OnBoardUpdateDto
 {
     public StudentRegDto Student { get; set; }
     public SchoolRegDto School { get; set; }
     public InternshipRegDto Internship { get; set; }
     public ICollection<RequirementsRegDto> Requirements { get; set; }
+    public OfficeUpdateDto Office { get; set; }
 }
 
 
 
 // student registration dto
-public class StudentRegDto
+public class StudentUpdateDto
 {
     public string Email { get; set; }
     public string LastName { get; set; }
@@ -28,7 +29,7 @@ public class StudentRegDto
 }
 
 //school reg dto
-public class SchoolRegDto
+public class SchoolUpdateDto
 {
     public string Name { get; set; }
     public string Address { get; set; }
@@ -38,7 +39,7 @@ public class SchoolRegDto
 }
 
 //internship req dto
-public class InternshipRegDto
+public class InternshipUpdateDto
 {
     public InternshipNatureEnum InternshipNature { get; set; }
     public StrandEnum? Strand { get; set; }
@@ -49,13 +50,16 @@ public class InternshipRegDto
 
 }
 
-//requirements reg dto
-public class RequirementsRegDto
+//requirements Update dto
+public class RequirementsUpdateDto
 {
     public string FileName { get; set; }
     public string FilePath { get; set; }
     public string FileType { get; set; }
 }
 
-
+public class OfficeUpdateDto
+{
+    public OfficeNameEnum Name { get; set; }
+}
 
