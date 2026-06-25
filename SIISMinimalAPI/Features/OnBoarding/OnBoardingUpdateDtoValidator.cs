@@ -5,31 +5,26 @@ namespace SIISMinimalAPI.Features.OnBoarding;
 
 public class OnBoardUpdateDtoValidator : AbstractValidator<OnBoardUpdateDto>
 {
-    public OnBoardUpdateDtoValidator(
-        IValidator<StudentUpdateDto> studentValidator,
-        IValidator<SchoolUpdateDto> schoolValidator,
-        IValidator<InternshipUpdateDto> internshipValidator,
-        IValidator<RequirementsUpdateDto> requirementsValidator,
-        IValidator<OfficeUpdateDto> officeValidator)
+    public OnBoardUpdateDtoValidator()
     {
         RuleFor(x => x.Student)
             .NotNull()
-            .SetValidator((FluentValidation.Validators.IPropertyValidator)studentValidator);
+            .SetValidator(new StudentUpdateDtoValidator());
 
         RuleFor(x => x.School)
             .NotNull()
-            .SetValidator((FluentValidation.Validators.IPropertyValidator)schoolValidator);
+            .SetValidator(new SchoolUpdateDtoValidator());
 
         RuleFor(x => x.Internship)
             .NotNull()
-            .SetValidator((FluentValidation.Validators.IPropertyValidator)internshipValidator);
+            .SetValidator(new InternshipUpdateDtoValidator());
 
         RuleForEach(x => x.Requirements)
-            .SetValidator((FluentValidation.Validators.IPropertyValidator)requirementsValidator);
+            .SetValidator(new RequirementsUpdateDtoValidator());
 
         RuleFor(x => x.Office)
             .NotNull()
-            .SetValidator(officeValidator);
+            .SetValidator(new OfficeUpdateDtoValidator());
     }
 }
 
@@ -206,14 +201,14 @@ public class RequirementsUpdateDtoValidator : AbstractValidator<RequirementsUpda
 
     private static bool BeValidPath(string path)
     {
-        return !string.IsNullOrWhiteSpace(path) 
-            && !path.Contains("..") 
+        return !string.IsNullOrWhiteSpace(path)
+            && !path.Contains("..")
             && !path.Contains("<");
     }
 
     private static bool BeAllowedFileType(string fileType)
     {
-        var allowed = new[] { "pdf", "doc", "docx", "jpg", "jpeg", "png" };
+        var allowed = new[] { "application/pdf", "applicaton/doc", "applicaton/docx", "applicaton/jpg", "applicaton/jpeg", "applicaton/png" };
         return allowed.Contains(fileType.ToLower());
     }
 }

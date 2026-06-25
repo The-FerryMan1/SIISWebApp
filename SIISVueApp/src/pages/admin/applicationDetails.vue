@@ -60,10 +60,17 @@ const statusLabel = (status: ApplicationStatusEnum) => ApplicationStatusEnum[sta
 const genderLabel = (g: number) => ['Male', 'Female', 'Other'][g] ?? 'Unknown'
 const gradeLabel = (g: number) => ['', 'Grade 11', 'Grade 12'][g] ?? 'Unknown'
 const strandLabel = (s: number | null) => {
-  const map: Record<number, string> = { 1: 'STEM', 2: 'ABM', 3: 'HUMSS' }
+  const map: Record<number, string> = { 0: 'STEM', 1: 'ABM', 2: 'HUMSS', 3: 'GAS', 4: 'ICT' }
   return s ? (map[s] ?? 'Unknown') : 'N/A'
 }
-const natureLabel = (n: number) => ({ 1: 'Work Immersion' })[n] ?? 'Unknown'
+
+const degreeLabel = (s: number | null) => {
+  const map: Record<number, string> = { 0: 'BSIT', 1: 'BSCS', 2: 'BSN', 3: 'BSA', 4: 'BSBA', 5:'BSEd', 6:'BSCE', 7: 'BSEE', 8:'BSME', 9:'BSArch', 10:'BSPharma', 11:'BSPsych' }
+  return s ? (map[s] ?? 'Unknown') : 'N/A'
+}
+
+const natureLabel = (n: number) => ({0: 'OJT', 1:'Apprenticeship', 2:'Internship', 3: 'Work Immersion' })[n] ?? 'Unknown'
+
 
 // --- Requirements Table Columns ---
 const requirementColumns: TableColumn<any>[] = [
@@ -309,7 +316,7 @@ const debounceGenerateEndorsement = useDebounceFn(generateEndorsement, 1000)
               <UInput :model-value="strandLabel(details.internship.strand)" class="w-full" variant="soft" />
             </UFormField>
             <UFormField label="Degree">
-              <UInput :model-value="details.internship.degree?.toString() ?? 'N/A'" class="w-full" variant="soft" />
+              <UInput :model-value="degreeLabel(details.internship.degree) ?? 'N/A'" class="w-full" variant="soft" />
             </UFormField>
             <UFormField label="Start Date">
               <UInput v-model="details.internship.startDate" class="w-full" variant="soft" />

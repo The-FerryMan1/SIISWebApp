@@ -46,6 +46,7 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 10;             // queue 10 extra requests
     });
 });
+
 builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
 builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
@@ -69,10 +70,7 @@ app.MapToEndorsement();
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 
 
-
-
 //seed
-
 using (var scope = app.Services.CreateScope())
 {
     await SeederAdmin.InitAdmin(scope.ServiceProvider);

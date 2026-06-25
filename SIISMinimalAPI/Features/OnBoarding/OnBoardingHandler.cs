@@ -22,8 +22,8 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 }
 
                 var newOnboadingUser = OnBoardingEntityMapper.ToStudentModel(onBoardingDto);
-                await _context.AddAsync(newOnboadingUser);
-                await _context.SaveChangesAsync();
+                await _context.AddAsync(newOnboadingUser, ct);
+                await _context.SaveChangesAsync(ct);
             }
             catch (Exception)
             {
@@ -43,9 +43,7 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
                 ?? throw new KeyNotFoundException("Application not found");
 
-            var existsOffice = await _context.Offices.FirstOrDefaultAsync(t => t.Name == dto.Office.Name)
-            ?? throw new KeyNotFoundException("Application not found");
-            // 1. Update Student (root entity) - map DTO directly, not through mapper
+            // Student
             exists.FirstName = dto.Student.FirstName;
             exists.LastName = dto.Student.LastName;
             exists.MiddleName = dto.Student.MiddleName;
@@ -57,25 +55,33 @@ namespace SIISMinimalAPI.Features.OnBoarding
             exists.GradeLevel = dto.Student.GradeLevel;
             exists.UpdatedAt = DateTime.UtcNow;
 
-            // 2. Update School
+            // School
+            if (exists.School != null)
+            {
+                exists.School.Name = dto.School.Name;
+                exists.School.Address = dto.School.Address;
+                exists.School.ContactPerson = dto.School.ContactPerson;
+                exists.School.Email = dto.School.Email;
+                exists.School.ContactNumber = dto.School.ContactNumber;
+                exists.School.UpdatedAt = DateTime.UtcNow;
+            }
 
-            exists.School.Name = dto.School.Name;
-            exists.School.Address = dto.School.Address;
-            exists.School.ContactPerson = dto.School.ContactPerson;
-            exists.School.Email = dto.School.Email;
-            exists.School.ContactNumber = dto.School.ContactNumber;
+            // Internship
+            if (exists.Internship != null)
+            {
+                exists.Internship.InternshipNature = dto.Internship.InternshipNature;
+                exists.Internship.Strand = dto.Internship.Strand;
+                exists.Internship.Degree = dto.Internship.Degree;
+                exists.Internship.StartDate = dto.Internship.StartDate;
+                exists.Internship.EstimatedEndDate = dto.Internship.EstimatedEndDate;
+                exists.Internship.InternshipTotalHours = dto.Internship.InternshipTotalHours;
+                exists.Internship.UpdatedAt = DateTime.UtcNow;
+            }
 
-
-            // 3. Update Internship
-
-            exists.Internship.InternshipNature = dto.Internship.InternshipNature;
-            exists.Internship.Strand = dto.Internship.Strand;
-            exists.Internship.Degree = dto.Internship.Degree;
-            exists.Internship.StartDate = dto.Internship.StartDate;
-            exists.Internship.EstimatedEndDate = dto.Internship.EstimatedEndDate;
-            exists.Internship.InternshipTotalHours = dto.Internship.InternshipTotalHours;
-            exists.Internship.UpdatedAt = DateTime.UtcNow;
-            exists.Office.Id = existsOffice.Id;
+            if(exists.Requirements != null)
+            {
+                
+            }
             await _context.SaveChangesAsync(ct);
         }
     }

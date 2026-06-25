@@ -56,48 +56,43 @@ public static class OnBoardingEndpoint
          .ProducesValidationProblem()
          .AllowAnonymous();
 
-        group.MapPut("/details/{uuid}", async Task<IResult> (Guid uuid, OnBoardUpdateDto dto, CancellationToken ct, IOnBoadringService service) =>
-     {
+        group.MapPut("/details/{uuid}", async Task<IResult> (
+    Guid uuid, 
+    OnBoardUpdateDto dto, 
+    CancellationToken ct, 
+    IOnBoadringService service) =>
+{
+    var validator = new OnBoardUpdateDtoValidator();
+    var validationResult = await validator.ValidateAsync(dto, ct);
 
-         StudentUpdateDtoValidator studentvalidator = new();
-         SchoolUpdateDtoValidator schoolValidator = new();
-         InternshipUpdateDtoValidator internshipValidator = new();
-         RequirementsUpdateDtoValidator requirementsValidator = new();
-         OfficeUpdateDtoValidator officeValidator = new();
-         OnBoardUpdateDtoValidator validationRules = new(studentvalidator, schoolValidator, internshipValidator,requirementsValidator, officeValidator);
+    if (!validationResult.IsValid)
+    {
+        var errors = validationResult.Errors
+            .GroupBy(e => e.PropertyName)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(e => e.ErrorMessage).ToArray());
 
+        return TypedResults.ValidationProblem(errors);
+    }
 
-
-
-         var validationResult = await validationRules.ValidateAsync(dto, ct);
-
-         if (!validationResult.IsValid)
-         {
-             var errors = validationResult.Errors
-                 .GroupBy(e => e.PropertyName)
-                 .ToDictionary(
-                     g => g.Key,
-                     g => g.Select(e => e.ErrorMessage).ToArray());
-
-             return TypedResults.ValidationProblem(errors);
-         }
-
-         try
-         {
-            //  await validationRules.ValidateAndThrowAsync(dto);
-             await service.UpdatedOnBoarding(uuid, dto, ct);
-             return Results.Ok();
-         }
-         catch (Exception ex)
-         {
-             return Results.BadRequest(ex.Message);
-         }
-        ;
-     }
-     )
-      .WithName("UpdateOnBoarding")
-      .ProducesValidationProblem()
-      .RequireAuthorization();
+    try
+    {
+        await service.UpdatedOnBoarding(uuid, dto, ct);
+        return Results.Ok();
+    }
+    catch (KeyNotFoundException)
+    {
+        return Results.NotFound("Application not found");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.WithName("UpdateOnBoarding")
+.ProducesValidationProblem()
+.RequireAuthorization();
 
         return app;
     }

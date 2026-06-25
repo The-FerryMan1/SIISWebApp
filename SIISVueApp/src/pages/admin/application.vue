@@ -119,7 +119,7 @@ const table = useTemplateRef('table')
 const globalFilter = ref('');
 const pagination = ref({
     pageIndex: 0,
-    pageSize: 5
+    pageSize: 10
 })
 
 const statusFilter = ref(['Pending', 'Viewed', 'Approved', 'All'])
@@ -170,7 +170,7 @@ const statusFilterResult = computed(() => {
 
                     <div class="ms-auto flex items-center gap-2">
                         <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" />
-                        <UInput v-model="pagination.pageSize" class="max-w-sm" label="Limit" placeholder="limit"
+                        <UInput v-model.number="pagination.pageSize" class="max-w-sm" label="Limit" placeholder="limit"
                             icon="i-lucide-list-ordered" />
                     </div>
                 </div>
@@ -183,7 +183,7 @@ const statusFilterResult = computed(() => {
 
             <template #footer>
                 <div v-if="application.applications">
-                    <UPagination v-if="application.applications?.length > 10"
+                    <UPagination
                         :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
                         :items-per-page="table?.tableApi?.getState().pagination.pageSize"
                         :total="table?.tableApi?.getFilteredRowModel().rows.length"

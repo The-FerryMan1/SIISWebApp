@@ -27,10 +27,10 @@ export enum GradeLevelEnum {
 
 export enum InternshipNatureEnum {
   // 1 = ?
-  OJT = 0,
-  Apprenticeship = 1,
-  Internship = 2,
-  WorkImmersion = 3
+  OJT,
+  Apprenticeship ,
+  Internship,
+  WorkImmersion
 }
 
 export enum StrandEnum {
