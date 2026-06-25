@@ -10,6 +10,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/auth/login.vue'),
         name: 'login',
       },
+      {
+        path: 'registration',
+        component: ()=> import('../pages/onBoarding/onBoarding.vue'),
+        name: 'registration',
+
+      }
     ],
   },
   {
