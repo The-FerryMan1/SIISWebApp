@@ -126,38 +126,38 @@ export const ApplicationGetByIdResponseSchema = z.object({
 
 // ==================== UPDATE DTO SCHEMAS ====================
 export const StudentUpdateDtoSchema = z.object({
-  email: z.string().email().max(100),
-  lastName: z.string().min(1).max(50),
-  firstName: z.string().min(1).max(50),
+  email: z.email('Invalid email').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(50),
+  firstName: z.string().min(1, 'First name is required').max(50),
   middleName: z.string().max(50).default(''),
   contactNumber: z.string()
-    .min(1)
+    .min(1, 'Contact number is required')
     .max(20)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
-  address: z.string().min(1).max(200),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  gender: z.number().int().min(0).max(2),
-  gradeLevel: z.number().int().min(1).max(12),
+  address: z.string().min(1, 'Address is required').max(200),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  gender: z.number().int().min(0, 'Gender is required').max(2),
+  gradeLevel: z.number().int().min(1, 'Grade level is required').max(12),
 });
 
 export const SchoolUpdateDtoSchema = z.object({
-  name: z.string().min(1).max(100),
-  address: z.string().min(1).max(200),
-  contactPerson: z.string().min(1).max(100),
-  email: z.string().email().max(100),
+  name: z.string().min(1, 'School name is required').max(100),
+  address: z.string().min(1, 'School address is required').max(200),
+  contactPerson: z.string().min(1, 'Contact person is required').max(100),
+  email: z.email("Contact person's email is required").max(100),
   contactNumber: z.string()
-    .min(1)
+    .min(1, "Contact person's contact number is required")
     .max(20)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
 });
 
 export const InternshipUpdateDtoSchema = z.object({
-  internshipNature: z.number().int().min(0).max(3),
-  strand: z.number().int().min(0).max(4).nullable().optional(),
-  degree: z.number().int().min(0).max(11).nullable().optional(),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  internshipNature: z.number().int().min(0, 'Nature of internship is required').max(3),
+  strand: z.number().int().min(0, 'Strand is required(if grade level is Senior high)').max(4).nullable().optional(),
+  degree: z.number().int().min(0, 'Degree is required if the grade level is College').max(11).nullable().optional(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid data format'),
   estimatedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  internshipTotalHours: z.number().int().min(1).max(1000),
+  internshipTotalHours: z.number().int().min(1, 'Internship total hours is required').max(1000),
 }).refine((data) => {
   if (!data.startDate || !data.estimatedEndDate) return true;
   return new Date(data.estimatedEndDate) > new Date(data.startDate);
@@ -192,8 +192,9 @@ export const OnBoardUpdateDtoSchema = z.object({
   student: StudentUpdateDtoSchema,
   school: SchoolUpdateDtoSchema,
   internship: InternshipUpdateDtoSchema,
-  requirements: z.array(RequirementsUpdateDtoSchema),
-  office: OfficeUpdateDtoSchema,
+  requirements: z
+    .array(RequirementsUpdateDtoSchema)
+    .min(1, 'Please upload at least one file')
 });
 
 // ==================== TYPE EXPORTS ====================
