@@ -1,5 +1,7 @@
 
+using System.Text.Json;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace SIISMinimalAPI.Features.OnBoarding;
@@ -13,8 +15,10 @@ public static class OnBoardingEndpoint
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend");
 
-        group.MapPost("/", async Task<IResult> (OnBoardingDto dto, CancellationToken ct, IOnBoadringService service) =>
+        group.MapPost("/", async Task<IResult> ([FromForm]OnBoardingDto dto, CancellationToken ct, IOnBoadringService service) =>
         {
+
+           
 
             StudentRegDtoValidator studentvalidator = new();
             SchoolRegDtoValidator schoolValidator = new();
@@ -54,12 +58,13 @@ public static class OnBoardingEndpoint
         )
          .WithName("CreateOnBoarding")
          .ProducesValidationProblem()
+         .DisableAntiforgery()
          .AllowAnonymous();
 
         group.MapPut("/details/{uuid}", async Task<IResult> (
-    Guid uuid, 
-    OnBoardUpdateDto dto, 
-    CancellationToken ct, 
+    Guid uuid,
+    OnBoardUpdateDto dto,
+    CancellationToken ct,
     IOnBoadringService service) =>
 {
     var validator = new OnBoardUpdateDtoValidator();

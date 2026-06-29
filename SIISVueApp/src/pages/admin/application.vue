@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { UseAuthStore } from '../../stores/auth';
-import { computed, h, onMounted, ref, resolveComponent, useTemplateRef } from 'vue'
+import { computed, h, onMounted, ref, resolveComponent, useTemplateRef, watch } from 'vue'
 import type { TableColumn, TableRow } from '@nuxt/ui'
 import { useApplicationStore } from '../../stores/application';
 import type { Applicaton } from '../../stores/application'
-import type { Row } from '@tanstack/vue-table'
+import { getPaginationRowModel, type Row } from '@tanstack/vue-table'
 import { useRouter } from 'vue-router';
 
 //states
@@ -136,6 +136,18 @@ const statusFilterResult = computed(() => {
         }
     })
 })
+
+watch(() => pagination.value.pageSize, (size) => {
+    table.value?.tableApi?.setPageSize(size)
+    pagination.value.pageIndex = 0 // reset to first page when limit changes
+})
+
+const pageSize = ref(10)
+
+watch(pageSize, (size) => {
+    pagination.value.pageSize = size
+    pagination.value.pageIndex = 0 // reset to page 1
+})
 </script>
 
 <template>
@@ -170,7 +182,7 @@ const statusFilterResult = computed(() => {
 
                     <div class="ms-auto flex items-center gap-2">
                         <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" />
-                        <UInput v-model.number="pagination.pageSize" class="max-w-sm" label="Limit" placeholder="limit"
+                        <UInput v-model.number="pageSize" type="number" :min="1" class="max-w-sm" placeholder="Limit"
                             icon="i-lucide-list-ordered" />
                     </div>
                 </div>
@@ -178,17 +190,16 @@ const statusFilterResult = computed(() => {
 
             </template>
 
-            <UTable ref="table" sticky v-model:global-filter="globalFilter" :data="statusFilterResult ?? []"
-                :columns="columns" class="flex-1" />
+            <UTable ref="table" sticky v-model:global-filter="globalFilter" v-model:pagination="pagination"
+                :data="statusFilterResult ?? []" :columns="columns" class="flex-1" :pagination-options="{
+                    getPaginationRowModel: getPaginationRowModel()
+                }" />
 
             <template #footer>
-                <div v-if="application.applications">
-                    <UPagination
-                        :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-                        :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-                        :total="table?.tableApi?.getFilteredRowModel().rows.length"
-                        @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
-                </div>
+                <UPagination :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+                    :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+                    :total="table?.tableApi?.getFilteredRowModel().rows.length"
+                    @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
 
             </template>
         </UCard>

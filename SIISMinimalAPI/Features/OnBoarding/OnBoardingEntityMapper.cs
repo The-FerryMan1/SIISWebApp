@@ -10,12 +10,13 @@ public static class OnBoardingEntityMapper
         ArgumentNullException.ThrowIfNull(dto.Student);
         ArgumentNullException.ThrowIfNull(dto.School);
         ArgumentNullException.ThrowIfNull(dto.Internship);
-        ArgumentNullException.ThrowIfNull(dto.Requirements);
+
+      
 
         var student = dto.Student;
         var school = dto.School;
         var internship = dto.Internship;
-        var requirements = dto.Requirements;
+     
         return new StudentModel
         {
             Email = student.Email,
@@ -44,12 +45,14 @@ public static class OnBoardingEntityMapper
                  InternshipTotalHours = internship.InternshipTotalHours,
                  StartDate = internship.StartDate,
              },
-            Requirements = dto.Requirements.Select(t => new RequirementModel
-            {
-                FileName = t.FileName,
-                FilePath = t.FilePath,
-                FileType = t.FileType
-            }).ToList(),
+
+             Requirements = dto.RequirementsReg.Select(t => new RequirementModel
+             {
+                 FileName = t.FileName,
+                 FilePath = t.FilePath,
+                 FileType = t.FileType
+             }).ToList(),
+          
              Application = new ApplicationModel
              {
                  ApplicationUUID = Guid.NewGuid(),

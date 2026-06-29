@@ -131,8 +131,8 @@ export const StudentUpdateDtoSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
   middleName: z.string().max(50).default(''),
   contactNumber: z.string()
-    .min(1, 'Contact number is required')
-    .max(20)
+    .min(11, 'Contact number is required')
+    .max(11)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
   address: z.string().min(1, 'Address is required').max(200),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
@@ -154,10 +154,10 @@ export const SchoolUpdateDtoSchema = z.object({
 export const InternshipUpdateDtoSchema = z.object({
   internshipNature: z.number().int().min(0, 'Nature of internship is required').max(3),
   strand: z.number().int().min(0, 'Strand is required(if grade level is Senior high)').max(4).nullable().optional(),
-  degree: z.number().int().min(0, 'Degree is required if the grade level is College').max(11).nullable().optional(),
+  degree: z.number().int().min(0, 'Degree is required if the grade level is College').max(11).nullable().optional().default(null),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid data format'),
-  estimatedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  internshipTotalHours: z.number().int().min(1, 'Internship total hours is required').max(1000),
+  estimatedEndDate: z.coerce.date(),
+  internshipTotalHours: z.number().int().min(80, 'Internship total hours is required, min 80, max 600').max(600),
 }).refine((data) => {
   if (!data.startDate || !data.estimatedEndDate) return true;
   return new Date(data.estimatedEndDate) > new Date(data.startDate);
@@ -167,20 +167,7 @@ export const InternshipUpdateDtoSchema = z.object({
 });
 
 export const RequirementsUpdateDtoSchema = z.object({
-  fileName: z.string().min(1).max(255),
-  filePath: z.string()
-    .min(1)
-    .max(500)
-    .refine((path) => !path.includes('..') && !path.includes('<'), {
-      message: 'Invalid file path',
-    }),
-  fileType: z.string()
-    .min(1)
-    .max(50)
-    .refine((type) => {
-      const allowed = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
-      return allowed.includes(type.toLowerCase());
-    }, 'File type must be pdf, doc, docx, jpg, jpeg, or png'),
+  file: z.file()
 });
 
 export const OfficeUpdateDtoSchema = z.object({
@@ -192,9 +179,7 @@ export const OnBoardUpdateDtoSchema = z.object({
   student: StudentUpdateDtoSchema,
   school: SchoolUpdateDtoSchema,
   internship: InternshipUpdateDtoSchema,
-  requirements: z
-    .array(RequirementsUpdateDtoSchema)
-    .min(1, 'Please upload at least one file')
+   requirements: z.array(z.instanceof(File))
 });
 
 // ==================== TYPE EXPORTS ====================

@@ -24,11 +24,6 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
             .NotNull().WithMessage("Internship details are required")
             .SetValidator(internshipValidator);
 
-        RuleFor(x => x.Requirements)
-            .NotNull().WithMessage("Requirements are required")
-            .NotEmpty().WithMessage("At least one requirement document is required")    
-            .ForEach(x => x.SetValidator(requirementValidator));
-
         // Cross-entity validation
         RuleFor(x => x)
             .Must(BeWithinSchoolCapacity).WithMessage("Request exceeds school's current capacity");

@@ -13,7 +13,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
 builder.Services.AddSqlite<AppDbContext>("Data Source=siisdemo.db");
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
@@ -63,7 +62,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
-
 app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();

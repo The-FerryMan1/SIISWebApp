@@ -58,15 +58,30 @@ const statusColor = (status: ApplicationStatusEnum) => {
 const statusLabel = (status: ApplicationStatusEnum) => ApplicationStatusEnum[status] ?? 'Unknown'
 
 const genderLabel = (g: number) => ['Male', 'Female', 'Other'][g] ?? 'Unknown'
-const gradeLabel = (g: number) => ['', 'Grade 11', 'Grade 12'][g] ?? 'Unknown'
+const gradeLabel = (g: number) => {
+    const grades: Record<number, string> = {
+        1: '1st Year',
+        2: '2nd Year', 
+        3: '3rd Year',
+        4: '4th Year',
+        11: 'Grade 11',
+        12: 'Grade 12'
+    }
+    return grades[g] ?? 'Unknown'
+}
 const strandLabel = (s: number | null) => {
   const map: Record<number, string> = { 0: 'STEM', 1: 'ABM', 2: 'HUMSS', 3: 'GAS', 4: 'ICT' }
   return s ? (map[s] ?? 'Unknown') : 'N/A'
 }
 
-const degreeLabel = (s: number | null) => {
-  const map: Record<number, string> = { 0: 'BSIT', 1: 'BSCS', 2: 'BSN', 3: 'BSA', 4: 'BSBA', 5:'BSEd', 6:'BSCE', 7: 'BSEE', 8:'BSME', 9:'BSArch', 10:'BSPharma', 11:'BSPsych' }
-  return s ? (map[s] ?? 'Unknown') : 'N/A'
+const degreeLabel = (s: number | null | undefined) => {
+  const map: Record<number, string> = {
+    0: 'BSIT', 1: 'BSCS', 2: 'BSN', 3: 'BSA', 4: 'BSBA',
+    5: 'BSEd', 6: 'BSCE', 7: 'BSEE', 8: 'BSME', 9: 'BSArch',
+    10: 'BSPharma', 11: 'BSPsych'
+  }
+  
+  return s !== null && s !== undefined ? (map[s] ?? 'Unknown') : 'N/A'
 }
 
 const natureLabel = (n: number) => ({0: 'OJT', 1:'Apprenticeship', 2:'Internship', 3: 'Work Immersion' })[n] ?? 'Unknown'
@@ -230,9 +245,9 @@ const debounceGenerateEndorsement = useDebounceFn(generateEndorsement, 1000)
       </div>
       <UBadge class="sm:ml-auto capitalize" :label="statusLabel(details.application.status)"
         :color="statusColor(details.application.status)" variant="subtle" size="md">
-        <UIcon name="i-lucide-check-check" />
-        Approved
-
+        <UIcon :name="details.application.status? 'i-lucide-check':'i-lucide-circle-dashed'" />
+        {{isPending?'Pending':'Approved'}}
+       
       </UBadge>
 
     </div>

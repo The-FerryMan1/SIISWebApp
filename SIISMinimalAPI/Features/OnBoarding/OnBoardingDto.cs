@@ -8,7 +8,8 @@ public class OnBoardingDto
     public StudentRegDto Student { get; set; }
     public SchoolRegDto School { get; set; }
     public InternshipRegDto Internship { get; set; }
-    public ICollection<RequirementsRegDto> Requirements { get; set; }
+    public ICollection<RequirementsRegDto>? RequirementsReg { get; set; } = [];
+    public IFormFileCollection Files { get; set; }
 }
 
 
@@ -53,7 +54,7 @@ public class InternshipRegDto
 public class RequirementsRegDto
 {
     public string FileName { get; set; }
-    public string FilePath { get; set; }
+    public string? FilePath { get; set; }
     public string FileType { get; set; }
 }
 

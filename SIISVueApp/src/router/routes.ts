@@ -14,6 +14,11 @@ export const routes: RouteRecordRaw[] = [
         path: 'registration',
         component: ()=> import('../pages/onBoarding/onBoarding.vue'),
         name: 'registration',
+      },
+      {
+        path: 'registration-review',
+        component: ()=> import('../pages/onBoarding/onBoardingReview.vue'),
+        name: 'registration-review',
 
       }
     ],

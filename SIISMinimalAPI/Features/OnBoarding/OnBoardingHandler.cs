@@ -21,6 +21,26 @@ namespace SIISMinimalAPI.Features.OnBoarding
                     throw new DuplicateNameException("Student with this email is already registered");
                 }
 
+
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), $"uploads/{onBoardingDto.Student.LastName}");
+                Directory.CreateDirectory(uploadsPath);
+
+                List<RequirementsRegDto> req = [];
+                foreach (var file in onBoardingDto.Files)
+                {
+                    var filePath = Path.Combine(uploadsPath, file.FileName);
+                    using var stream = File.Create(filePath);
+                    await file.CopyToAsync(stream, ct);
+
+                    req.Add(new RequirementsRegDto 
+                    {
+                        FileName = file.FileName,  
+                        FilePath = filePath,
+                        FileType = file.ContentType
+                    });
+                }
+
+                onBoardingDto.RequirementsReg = req;
                 var newOnboadingUser = OnBoardingEntityMapper.ToStudentModel(onBoardingDto);
                 await _context.AddAsync(newOnboadingUser, ct);
                 await _context.SaveChangesAsync(ct);
@@ -78,9 +98,9 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 exists.Internship.UpdatedAt = DateTime.UtcNow;
             }
 
-            if(exists.Requirements != null)
+            if (exists.Requirements != null)
             {
-                
+
             }
             await _context.SaveChangesAsync(ct);
         }
