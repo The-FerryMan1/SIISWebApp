@@ -69,9 +69,13 @@ const gradeLabel = (g: number) => {
     }
     return grades[g] ?? 'Unknown'
 }
-const strandLabel = (s: number | null) => {
+  
+
+
+const strandLabel = (s: number | null | undefined) => {
   const map: Record<number, string> = { 0: 'STEM', 1: 'ABM', 2: 'HUMSS', 3: 'GAS', 4: 'ICT' }
-  return s ? (map[s] ?? 'Unknown') : 'N/A'
+  
+  return s !== null && s !== undefined ? (map[s] ?? 'Unknown') : 'N/A'
 }
 
 const degreeLabel = (s: number | null | undefined) => {

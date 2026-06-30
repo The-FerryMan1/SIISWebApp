@@ -10,13 +10,12 @@ const auth = UseAuthStore()
     <UDashboardSidebar resizable collapsible>
       <template #header="{ collapsed }">
         <h1>SIIS</h1>
-        <!-- logo here -->
       </template>
-
       <template #default="{ collapsed }">
         <AdminNavbar :collapsed="collapsed" />
       </template>
     </UDashboardSidebar>
+
     <UDashboardPanel>
       <template #header>
         <UDashboardNavbar>
@@ -25,10 +24,12 @@ const auth = UseAuthStore()
           </template>
           <template #right>
             <UColorModeSwitch />
-            <AdminAvartar />
+            <AdminAvatar />
           </template>
         </UDashboardNavbar>
       </template>
+
+      <!-- ✅ #body slot handles scrolling internally -->
       <template #body>
         <RouterView />
       </template>

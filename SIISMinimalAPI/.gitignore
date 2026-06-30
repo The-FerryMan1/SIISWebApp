@@ -502,3 +502,4 @@ appsettings.Local.json
 
 # Publish
 publish/
+uploads/

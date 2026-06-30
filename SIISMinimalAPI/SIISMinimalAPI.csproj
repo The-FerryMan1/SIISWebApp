@@ -31,6 +31,12 @@
     <Folder Include="Features\Endorsement\Create\" />
     <Folder Include="Features\Endorsement\Preview\" />
     <Folder Include="Features\Endorsement\Shared\" />
+    <Folder Include="Features\Offices\" />
+    <Folder Include="Features\Offices\GetAllOffices\" />
+    <Folder Include="Features\Offices\GetOfficeById\" />
+    <Folder Include="Features\Offices\UpdateOffice\" />
+    <Folder Include="Features\Ojt\" />
+    <Folder Include="Features\Ojt\GetAllOjt\" />
   </ItemGroup>
 
 </Project>

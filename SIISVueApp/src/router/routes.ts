@@ -12,12 +12,12 @@ export const routes: RouteRecordRaw[] = [
       },
       {
         path: 'registration',
-        component: ()=> import('../pages/onBoarding/onBoarding.vue'),
+        component: () => import('../pages/onBoarding/onBoarding.vue'),
         name: 'registration',
       },
       {
         path: 'registration-review',
-        component: ()=> import('../pages/onBoarding/onBoardingReview.vue'),
+        component: () => import('../pages/onBoarding/onBoardingReview.vue'),
         name: 'registration-review',
 
       }
@@ -39,18 +39,24 @@ export const routes: RouteRecordRaw[] = [
         name: 'application',
         meta: { isRequiresAuth: true },
       },
-       {
+      {
         path: '/application/details/:uuid',
         component: () => import('../pages/admin/applicationDetails.vue'),
         name: 'application-details',
         meta: { isRequiresAuth: true },
       },
-       {
+      {
         path: '/application/details/:uuid/edit',
         component: () => import('../pages/admin/applicationEdit.vue'),
         name: 'application-edit',
         meta: { isRequiresAuth: true },
       },
+      {
+        path: '/office',
+        component: () => import('../pages/office/office.vue'),
+        name: 'office',
+        meta: { isRequiresAuth: true },
+      }
     ],
   },
 ]

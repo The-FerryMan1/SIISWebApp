@@ -196,10 +196,13 @@ watch(pageSize, (size) => {
                 }" />
 
             <template #footer>
-                <UPagination :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+                 <div class="flex justify-end border-t border-default pt-4 px-4">
+                     <UPagination :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
                     :items-per-page="table?.tableApi?.getState().pagination.pageSize"
                     :total="table?.tableApi?.getFilteredRowModel().rows.length"
                     @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
+                 </div>
+               
 
             </template>
         </UCard>

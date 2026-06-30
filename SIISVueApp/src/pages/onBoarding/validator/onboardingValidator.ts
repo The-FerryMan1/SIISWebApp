@@ -146,8 +146,8 @@ export const SchoolUpdateDtoSchema = z.object({
   contactPerson: z.string().min(1, 'Contact person is required').max(100),
   email: z.email("Contact person's email is required").max(100),
   contactNumber: z.string()
-    .min(1, "Contact person's contact number is required")
-    .max(20)
+    .min(11, "Contact person's contact number is required")
+    .max(11)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
 });
 

@@ -6,7 +6,7 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 import type { AxiosError } from "axios";
 
 export const useOnBoardStore = defineStore('onboard', () => {
-    const errorMessage = ref<string| null>(null)
+    const errorMessage = ref<string | null>(null)
     const state = ref({
         student: {
             lastName: '',
@@ -78,31 +78,70 @@ export const useOnBoardStore = defineStore('onboard', () => {
         return formData
     }
 
-   const onSubmit = async (event: FormSubmitEvent<OnBoardUpdateDto>) => {
-    try {
-     
-      const formData = toDataForm()
-        await useAxios.post('/onboading', formData, {
-          headers: {
-            "Content-Type":"multipart/form-data"
-          }
-        })
+    const onSubmit = async (event: FormSubmitEvent<OnBoardUpdateDto>) => {
+        try {
 
-        
-    } catch (error) {
-        const erroMess = (error as AxiosError).response?.data as string
-        if(erroMess){
-            errorMessage.value = erroMess
-            
-        }       
-        console.log(erroMess)
+            const formData = toDataForm()
+            await useAxios.post('/onboading', formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            })
+
+
+        } catch (error) {
+            const erroMess = (error as AxiosError).response?.data as string
+            if (erroMess) {
+                errorMessage.value = erroMess
+
+            }
+            console.log(erroMess)
+
+            throw new Error(erroMess)
+        }
+
+       
     }
-}
+
+     const stateReset = () => {
+            state.value = {
+                student: {
+                    lastName: '',
+                    firstName: '',
+                    middleName: '',
+                    address: '',
+                    contactNumber: '',
+                    dateOfBirth: '',
+                    email: '',
+                    gender: 0,
+                    gradeLevel: 1,
+                },
+                school: {
+                    address: '',
+                    contactNumber: '',
+                    contactPerson: '',
+                    email: '',
+                    name: ''
+                },
+                internship: {
+                    degree: undefined as number | undefined,  // ✅ Properly typed
+                    strand: undefined as number | undefined,    // ✅ Properly typed
+                    estimatedEndDate: '',
+                    internshipNature: 0,
+                    internshipTotalHours: 0,
+                    startDate: ''
+                },
+                requirements: [] as File[]  // ✅ Use this for files, remove separate `files`
+            }
+
+            errorMessage.value = null
+        }
 
     return {
         state,
         errorMessage,
         toDataForm,
-        onSubmit
+        onSubmit,
+        stateReset
     }
 })

@@ -5,6 +5,7 @@ using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application;
 using SIISMinimalAPI.Features.Endorsement;
+using SIISMinimalAPI.Features.Offices;
 using SIISMinimalAPI.Features.OnBoarding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +21,12 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddApiEndpoints();
 builder.Services.AddAuthentication()
     .AddCookie();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
+    .AddPolicy("User", policy => policy.RequireRole("User"));
+
+
+    
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -49,6 +55,7 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
 builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
+builder.Services.AddScoped<IOfficeService, OfficeHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -65,6 +72,7 @@ app.UseRateLimiter();
 app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();
+app.MapToOffice();
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 
 

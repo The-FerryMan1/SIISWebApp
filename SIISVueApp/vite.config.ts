@@ -9,7 +9,13 @@ import ui from '@nuxt/ui/vite';
 export default defineConfig({
   plugins: [
     vue(),
-    ui(),
+    ui( {
+      ui:{
+        colors:{
+          primary: 'indigo'
+        }
+      }
+    }),
     vueDevTools(),
   ],
   resolve: {

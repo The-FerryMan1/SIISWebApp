@@ -34,7 +34,7 @@ public static class OnBoardingEntityMapper
                 Address = school.Address,
                 ContactNumber = school.ContactNumber,
                 ContactPerson = school.ContactPerson,
-                Email = school.ContactPerson
+                Email = school.Email
             },
              Internship = new InternshipModel
              {
