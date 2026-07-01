@@ -56,6 +56,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/office/office.vue'),
         name: 'office',
         meta: { isRequiresAuth: true },
+      },
+      {
+        path: '/ojt',
+        component: () => import('../pages/ojt/ojt.vue'),
+        name: 'ojt',
+        meta: { isRequiresAuth: true },
       }
     ],
   },

@@ -46,20 +46,24 @@ export type DegreeEnum = z.infer<typeof DegreeEnum>;
 
 // ==================== SCHEMAS ====================
 export const StudentInfoSchema = z.object({
-  id: z.number().int().positive(),
-  studentUUID: z.string().uuid(),
-  email: z.email(),
-  lastName: z.string().min(1).max(50),
-  firstName: z.string().min(1).max(50),
-  middleName: z.string().max(50).default(''),
-  contactNumber: z.string()
-    .min(1)
-    .max(20)
-    .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
-  address: z.string().min(1).max(200),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
-//   gender: z.enum(GenderEnum),
-//   gradeLevel: z.enum(GradeLevelEnum),
+    email: z.string().email('Invalid email').max(100),
+    lastName: z.string().min(1, 'Last name is required').max(50),
+    firstName: z.string().min(1, 'First name is required').max(50),
+    middleName: z.string().max(50).default(''),
+    contactNumber: z.string()
+        .min(11, 'Contact number is required')
+        .max(11)
+        .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
+    address: z.string().min(1, 'Address is required').max(200),
+    dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+    gender: z.coerce.number({ error: 'Gender is required' })
+        .int()
+        .min(0)
+        .max(2, 'Invalid gender'),
+    gradeLevel: z.coerce.number({ error: 'Grade level is required' })
+        .int()
+        .min(1)
+        .max(12, 'Invalid grade level'),
 });
 
 export const SchoolInfoSchema = z.object({
@@ -76,9 +80,13 @@ export const SchoolInfoSchema = z.object({
 
 export const InternshipInfoSchema = z.object({
   id: z.number().int().positive(),
-//   internshipNature: z.nativeEnum(InternshipNatureEnum),
-//   strand: z.nativeEnum(StrandEnum).nullable(),
-//   degree: z.nativeEnum(DegreeEnum).nullable(),
+  internshipNature: InternshipNatureEnum,
+  strand: z.coerce.number().int().min(0).max(4).nullable()
+    .transform(v => v === null ? undefined : v)
+    .optional(),
+  degree: z.coerce.number().int().min(0).max(4).nullable()
+    .transform(v => v === null ? undefined : v)
+    .optional(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   estimatedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   internshipTotalHours: z.number().int().min(1).max(1000),
@@ -105,9 +113,9 @@ export const ApplicationGetByIdResponseSchema = z.object({
     applicationUUID: z.string().uuid(),
     status: z.number().int(), // 0 = Pending, 2 = Approved
     isDeleted: z.boolean(),
-    createAt: z.string().datetime(),
-    updatedAt: z.string().datetime().nullable(),
-    deletedAt: z.string().datetime().nullable(),
+    createAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime().nullable(),
+    deletedAt: z.iso.datetime().nullable(),
   }),
   student: StudentInfoSchema,
   school: SchoolInfoSchema,
@@ -118,13 +126,13 @@ export const ApplicationGetByIdResponseSchema = z.object({
     name: z.number().int(), // OfficeNameEnum
     currentOIC: z.string().nullable(),
     isDeleted: z.boolean(),
-    createAt: z.string().datetime(),
-    updatedAt: z.string().datetime().nullable(),
-    deletedAt: z.string().datetime().nullable(),
+    createAt: z.iso.datetime().nullable(),
+    updatedAt: z.iso.datetime().nullable().nullable(),
+    deletedAt: z.iso.datetime().nullable().nullable(),
   }).nullable(),
 });
 
-// ==================== UPDATE DTO SCHEMAS ====================
+
 export const StudentUpdateDtoSchema = z.object({
   email: z.email('Invalid email').max(100),
   lastName: z.string().min(1, 'Last name is required').max(50),
@@ -136,8 +144,8 @@ export const StudentUpdateDtoSchema = z.object({
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
   address: z.string().min(1, 'Address is required').max(200),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  gender: z.number().int().min(0, 'Gender is required').max(2),
-  gradeLevel: z.number().int().min(1, 'Grade level is required').max(12),
+  gender: z.coerce.number().int().min(0, 'Gender is required').max(2),
+  gradeLevel: z.coerce.number().int().min(1, 'Grade level is required').max(12),
 });
 
 export const SchoolUpdateDtoSchema = z.object({
@@ -152,18 +160,24 @@ export const SchoolUpdateDtoSchema = z.object({
 });
 
 export const InternshipUpdateDtoSchema = z.object({
-  internshipNature: z.number().int().min(0, 'Nature of internship is required').max(3),
-  strand: z.number().int().min(0, 'Strand is required(if grade level is Senior high)').max(4).nullable().optional(),
-  degree: z.number().int().min(0, 'Degree is required if the grade level is College').max(11).nullable().optional().default(null),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid data format'),
-  estimatedEndDate: z.coerce.date(),
-  internshipTotalHours: z.number().int().min(80, 'Internship total hours is required, min 80, max 600').max(600),
+    internshipNature: z.coerce.number({ error: 'Nature of internship is required' })
+        .int()
+        .min(0)
+        .max(3),
+    strand: z.coerce.number().int().min(0).max(4).optional(),
+    degree: z.coerce.number().int().min(0).max(11).optional(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+    estimatedEndDate: z.coerce.date({ error: 'End date is required' }),
+    internshipTotalHours: z.coerce.number({ error: 'Total hours is required' })
+        .int()
+        .min(80, 'Minimum 80 hours')
+        .max(600, 'Maximum 600 hours'),
 }).refine((data) => {
-  if (!data.startDate || !data.estimatedEndDate) return true;
-  return new Date(data.estimatedEndDate) > new Date(data.startDate);
+    if (!data.startDate || !data.estimatedEndDate) return true;
+    return new Date(data.estimatedEndDate) > new Date(data.startDate);
 }, {
-  message: 'End date must be after start date',
-  path: ['estimatedEndDate'],
+    message: 'End date must be after start date',
+    path: ['estimatedEndDate'],
 });
 
 export const RequirementsUpdateDtoSchema = z.object({
@@ -179,7 +193,25 @@ export const OnBoardUpdateDtoSchema = z.object({
   student: StudentUpdateDtoSchema,
   school: SchoolUpdateDtoSchema,
   internship: InternshipUpdateDtoSchema,
-   requirements: z.array(z.instanceof(File))
+  requirements: z.array(z.instanceof(File))
+}).superRefine((data, ctx) => {
+  const gradeLevel = data.student.gradeLevel;
+  
+  if (gradeLevel >= 11 && gradeLevel <= 12 && (data.internship.strand === null || data.internship.strand === undefined)) {
+    ctx.addIssue({
+      code: "custom",  // ✅ Raw string literal
+      message: 'Degree is required for College students',
+      path: ['internship', 'strand'],
+    });
+  }
+  
+  if (gradeLevel >= 1 && gradeLevel <= 4 && (data.internship.degree === null || data.internship.degree === undefined)) {
+    ctx.addIssue({
+      code: "custom",  // ✅ Raw string literal
+      message: 'Strand is required for Senior high school students',
+      path: ['internship', 'degree'],
+    });
+  }
 });
 
 // ==================== TYPE EXPORTS ====================

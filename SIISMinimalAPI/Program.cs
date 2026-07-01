@@ -6,6 +6,7 @@ using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application;
 using SIISMinimalAPI.Features.Endorsement;
 using SIISMinimalAPI.Features.Offices;
+using SIISMinimalAPI.Features.Ojt;
 using SIISMinimalAPI.Features.OnBoarding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,9 +57,9 @@ builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
 builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
 builder.Services.AddScoped<IOfficeService, OfficeHandler>();
+builder.Services.AddScoped<IOjtService, OjtHandler>();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -73,6 +74,7 @@ app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();
 app.MapToOffice();
+app.MapToOjt();
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 
 

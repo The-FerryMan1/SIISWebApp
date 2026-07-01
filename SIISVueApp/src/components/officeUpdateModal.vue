@@ -1,48 +1,54 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import { ref } from 'vue'
 
 interface Props {
-  id: number
   title?: string
+  officeId?: number
+  oic?: string | null,
+  loading: boolean
 }
 
 const props = defineProps<Props>()
-const model = defineModel<string>()
+
 const emit = defineEmits<{
-  close: [boolean],
+  close: [value: { id: number; name: string } | null]
 }>()
 
+const schema = z.object({
+  name: z.string().min(1, 'officer-in-charge is required')
+})
 
+type Schema = z.output<typeof schema>
 
-const save = () => {
-  emit('close', true)
+const state = ref({
+  name: props.oic ?? ''
+})
+
+const form = ref()
+
+const onSubmit = (event: FormSubmitEvent<Schema>) => {
+  emit('close', { id: props.officeId!, name: event.data.name })
 }
 
-const cancel = () => {
-  emit('close', true)
-}
-
-
-
-
-
+const handleSave = () => form.value?.submit()
+const cancel = () => emit('close', null)
 </script>
 
 <template>
   <UModal :title="title">
     <template #body>
-
-      <UForm>
-        <UFormField label="Office Name">
-          <UInput v-model="model" placeholder="Enter office name" class="w-full" />
+      <UForm ref="form" :schema="schema" :state="state" @submit="onSubmit" :loading>
+        <UFormField label="Officer-in-Charge" name="name">
+          <UInput v-model="state.name" placeholder="Enter officer-in-charge" class="w-full" />
         </UFormField>
       </UForm>
-
     </template>
+
     <template #footer>
       <UButton label="Cancel" color="neutral" variant="outline" @click="cancel" />
-      <UButton label="Save" @click="save" />
+      <UButton :loading label="Save" @click="handleSave" />
     </template>
   </UModal>
 </template>

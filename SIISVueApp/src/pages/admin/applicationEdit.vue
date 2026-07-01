@@ -10,7 +10,7 @@ const toast = useToast()
 
 import { CalendarDate } from '@internationalized/date'
 import { useDebounceFn } from '@vueuse/core';
-import { OfficesArray } from './types/officeSelectValue';
+import { OfficeNameLabels, OfficesArray } from './types/officeSelectValue';
 import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './types/applicationUpdateValidator';
 import type { FormSubmitEvent } from '@nuxt/ui';
 
@@ -84,7 +84,7 @@ const onSubmit = async () => {
 }
 
 
-const save = ()=>{
+const save = () => {
     debounceOnSubmit()
 }
 
@@ -254,11 +254,13 @@ const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
                 </UFormField>
             </UPageCard>
 
-            <UPageCard v-if="details?.requirements" title="Office" description="Assigned office"
+            <UPageCard v-if="details?.office" title="Office" description="Assigned office"
                 icon="i-lucide-building">
-                <UFormField v-if="details.internship.degree" label="office" title="office" name="office">
-                    <USelect class="w-full" v-model="details.internship.degree" :items="OfficesArray" />
-                </UFormField>
+                <UForm v-if="details.office" disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <UFormField label="Office Name">
+                        <UInput :model-value="OfficeNameLabels[details.office.name]" class="w-full" variant="soft" />
+                    </UFormField>
+                </UForm>
             </UPageCard>
 
             <!-- internship details -->
@@ -286,8 +288,8 @@ const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
                     <UButton v-model="open" icon="i-lucide-save" label="Save" color="primary" variant="subtle" />
                     <template #footer>
                         <div class="flex justify-end w-full gap-3 items-center">
-                            <UButton :loading="loading" @click="save" icon="i-lucide-save" label="Save"
-                                variant="soft" color="info" />
+                            <UButton :loading="loading" @click="save" icon="i-lucide-save" label="Save" variant="soft"
+                                color="info" />
                         </div>
 
                     </template>

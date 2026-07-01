@@ -6,6 +6,7 @@ export type Applicaton = {
   id: number
   applicationUUID: string
   fullName: string
+  degreeStrand: string
   status: string
   createdAt: Date
   updatedAt: Date | null

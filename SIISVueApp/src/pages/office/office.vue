@@ -7,12 +7,15 @@ import OjtCountChart from './partials/ojtCountChart.vue';
 import OfficeUpdateModal from '../../components/officeUpdateModal.vue';
 import { resolveComponent, onMounted, h, computed, ref } from 'vue';
 import z from 'zod';
+import { useBattery, useDebounce, useDebouncedRefHistory, useDebounceFn } from '@vueuse/core';
+import { useAxios } from '../../fetch/axios.ts';
 
 
 const office = useOfficeStore()
 const UButton = resolveComponent('UButton')
+const UBadge = resolveComponent('UBadge')
 const overlay = useOverlay()
-const overlayModal = overlay.create(OfficeUpdateModal, {destroyOnClose: true})
+const overlayModal = overlay.create(OfficeUpdateModal)
 
 
 
@@ -21,6 +24,17 @@ const table = ref()
 const pagination = ref({ pageIndex: 0, pageSize: 5 })
 const globalFilter = ref('')
 const totalOffices = computed(() => office.offices?.length ?? 0)
+const loading = ref<boolean>(false)
+const toast = useToast()
+
+const schema = z.object({
+    oic: z.string().min(1)
+})
+type Schema = z.infer<typeof schema>
+const officeOIC = ref<Partial<Schema>>({
+    oic: undefined
+})
+
 
 onMounted(async () => {
     if (!office.offices) {
@@ -28,10 +42,38 @@ onMounted(async () => {
     }
 })
 
-const view = (id: number) => {
-   overlayModal.open()
+const view = async (id: number) => {
 
+  const current = office.offices?.find(o => o.id === id)
+
+
+  const result = await overlayModal.open({
+    title: 'Edit Office',
+    officeId: current?.id,
+    oic: current?.currentOIC,
+    loading: loading.value
+  })
+
+
+  if (result) {
+    await debounceSubmit(result.id, result.name)
+  }
 }
+
+const debounceSubmit = useDebounceFn(async(id: number, oic: string)=>{
+    try {
+        loading.value = true
+        await useAxios.put('/office/'+ id, {oic: oic})
+        await office.officeInit()
+        toast.add({title: 'Office Updated Successfully', color:'primary'})
+    } catch (error) {
+        console.log(error)
+         toast.add({title: 'Office update failed', color:'error'})
+    }finally{
+         loading.value = false
+    }
+       
+}, 500)
 
 const columns: TableColumn<Office>[] = [
     {
@@ -57,7 +99,7 @@ const columns: TableColumn<Office>[] = [
         header: 'OJT count',
         cell: ({ row }) => {
             const count = row.getValue('students') as [] ?? []
-            return count.length > 0 ? count.length : h('span', { class: 'text-muted italic' }, 'No OJT')
+            return count.length > 0 ? h(UBadge, { }, count.length) : h('span', { class: 'text-muted italic' }, 'No OJT')
         }
     },
     {
@@ -77,7 +119,7 @@ const columns: TableColumn<Office>[] = [
         header: 'Actions',
         cell: ({ row }) => h(UButton, {
             icon: 'i-lucide-pen',
-            color: 'neutral',
+            color: 'primary',
             variant: 'ghost',
             onClick: () => view(row.original.id)
         })
@@ -88,9 +130,28 @@ const columns: TableColumn<Office>[] = [
 
 
 
+
 const close = () =>{
 
 }
+const pageIndex = computed(() => pagination.value.pageIndex)
+const pageSize = computed(() => pagination.value.pageSize)
+
+
+const totalRows = computed(() => {
+    const data = office.offices ?? []
+    if (!globalFilter.value) return data.length
+    const f = globalFilter.value.toLowerCase()
+    return data.filter(item =>
+        Object.values(item as object).some(v => String(v).toLowerCase().includes(f))
+    ).length
+})
+
+const setPage = (p: number) => {
+    pagination.value = { ...pagination.value, pageIndex: p - 1 }
+}
+
+
 
 
 
@@ -125,10 +186,13 @@ const close = () =>{
 
             <template #footer>
                 <div class="flex justify-end border-t border-default pt-4 px-4">
-                    <UPagination :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-                        :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-                        :total="table?.tableApi?.getFilteredRowModel().rows.length"
-                        @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
+                    <!-- ✅ Uses computed refs, not inline tableApi calls -->
+                    <UPagination
+                        :page="pageIndex + 1"
+                        :items-per-page="pageSize"
+                        :total="totalRows"
+                        @update:page="setPage"
+                    />
                 </div>
             </template>
         </UCard>

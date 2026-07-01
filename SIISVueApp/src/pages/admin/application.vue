@@ -45,6 +45,11 @@ const columns: TableColumn<Applicaton>[] = [
         }
     },
     {
+        accessorKey: 'degreeStrand',
+        header: 'Degree/Strand',
+        cell: ({row}) => row.getValue('degreeStrand')
+    },
+    {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
@@ -62,13 +67,13 @@ const columns: TableColumn<Applicaton>[] = [
     {
         accessorKey: 'createdAt',
         header: 'Created At',
-        cell: ({ row }) => `${new Date(row.getValue('createdAt')).toLocaleDateString()}`
+        cell: ({ row }) => new Date(row.getValue('createdAt')).toDateString()
     },
     {
         accessorKey: 'updatedAt',
         header: 'Updated At',
         cell: ({ row }) => {
-            return row.getValue('updatedAt') ? new Date(row.getValue('updatedAt')) : h('span', { class: 'italic' }, 'Not updated')
+            return row.getValue('updatedAt') ? new Date(row.getValue('updatedAt')).toDateString() : h('span', { class: 'italic' }, 'Not updated')
         }
     },
     {
@@ -112,8 +117,14 @@ const cards = computed(() => [
         color: 'bg-yellow-400'
 
     },
-])
+    {
+        title: "New",
+        icon: "i-lucide-file-plus-corner",
+        text: application.applications?.filter(t => Date.now() < new Date(t.createdAt).getTime() + 86400000).length,
+        color: 'bg-green-400'
 
+    },
+])
 
 const table = useTemplateRef('table')
 const globalFilter = ref('');
@@ -159,7 +170,7 @@ watch(pageSize, (size) => {
     </div>
 
     <div class="px-10 py-2">
-        <UPageGrid class="mb-5" :ui="{}">
+        <UPageGrid class="mb-5" :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }">
             <UPageCard spotlight variant="outline" orientation="horizontal" reverse v-for="card in cards"
                 :title="card.title">
                 <UContainer>

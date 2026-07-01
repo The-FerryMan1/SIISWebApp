@@ -25,7 +25,8 @@ const items = computed<NavigationMenuItem[]>(() => [
   {
     label: 'OJTs',
     icon: 'i-lucide-user',
-    active: route.name == '',
+    active: route.name == 'ojt',
+     to: { name: 'ojt' },
   },
   {
     label: 'Offices',

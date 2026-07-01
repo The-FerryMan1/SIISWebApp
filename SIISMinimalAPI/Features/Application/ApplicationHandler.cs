@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application.AssignAndApprove;
 using SIISMinimalAPI.Features.Application.GetById;
@@ -24,7 +25,7 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
             ?? throw new KeyNotFoundException("No office found");
 
 
-        exists.Office = office;
+        exists.OfficeId = office.Id;
 
         exists.Application.Status = Shared.Enums.ApplicationStatusEnum.Approved;
         exists.Application.UpdatedAt = DateTime.Now;
@@ -35,17 +36,24 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
     public async Task<ICollection<ApplicationDto>> GetAllAsync(CancellationToken ct)
     {
         var applications = await _context.Students
-        .Include(t => t.Application).AsSplitQuery()
+        .Include(t => t.Application).Include(t => t.Internship).AsSplitQuery()
         .AsNoTracking().OrderByDescending(t => t.CreateAt).ToListAsync(cancellationToken: ct);
 
-        return [.. applications.Select(t => new ApplicationDto
+        return [.. applications.Select(t => {
+            
+           var degreeStrand = t.Internship.Degree?.ToString() 
+                ?? t.Internship.Strand?.ToString();
+
+            return new ApplicationDto
         {
             Id = t.Application.Id,
             ApplicationUUID = t.Application.ApplicationUUID,
             FullName = $"{t.LastName}, {t.FirstName} {t.MiddleName}".Trim(),
             Status = t.Application.Status.ToString(),
+            DegreeStrand = degreeStrand,
             CreatedAt = t.Application.CreateAt,
             UpdatedAt = t.Application.UpdatedAt
+        };
         })];
     }
 

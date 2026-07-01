@@ -35,7 +35,7 @@ const estimatedEndDate = computed(() => {
 const genderItems = [
   { value: 0, label: 'Male' },
   { value: 1, label: 'Female' },
-  { value: 2, label: 'Others' }
+  { value: 2, label: 'Others' },
 ]
 
 const gradeLevelItems = [
@@ -109,7 +109,7 @@ const onReview = (payload: FormSubmitEvent<OnBoardUpdateDto>) => {
 // Step 2: User confirms in modal → actually submit
 const onConfirm = useDebounceFn(async () => {
   if (!reviewPayload.value) return
-
+  
   try {
     isSubmitting.value = true
     await onaboard.onSubmit(reviewPayload.value)

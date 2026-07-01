@@ -2,7 +2,6 @@
 import { RouterView } from 'vue-router'
 import AdminNavbar from '../components/adminNavbar.vue'
 import { UseAuthStore } from '../stores/auth.ts'
-const auth = UseAuthStore()
 </script>
 
 <template>
@@ -24,12 +23,11 @@ const auth = UseAuthStore()
           </template>
           <template #right>
             <UColorModeSwitch />
-            <AdminAvatar />
+            <AdminAvartar/>
           </template>
         </UDashboardNavbar>
       </template>
 
-      <!-- ✅ #body slot handles scrolling internally -->
       <template #body>
         <RouterView />
       </template>

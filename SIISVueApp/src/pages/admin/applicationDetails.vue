@@ -150,7 +150,7 @@ const submitOffice = async (payload: FormSubmitEvent<OfficeSchema>) => {
       body: 'Loading..'
     })
     loading.value = true
-    await useAxios.post('/application/details/' + route.params.uuid, payload)
+    await useAxios.post('/application/details/' + route.params.uuid, {office:payload.data.office })
     toast.add({ title: 'Approved and Assign office: success', color: 'success' })
 
 
