@@ -8,7 +8,6 @@ import ui from '@nuxt/ui/vue-plugin'
 
 import VueECharts from 'vue-echarts'
 
-
 const app = createApp(App)
 
 app.use(createPinia())

@@ -3,6 +3,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Endorsement.Bulk;
 using SIISMinimalAPI.Features.Endorsement.Create;
 
 namespace SIISMinimalAPI.Features.Endorsement;
@@ -11,16 +12,16 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Document?> GenerateEndorsement(Guid uuid, CancellationToken ct)
+    public async Task<Document?> GenerateEndorsement(EndorsementBulkDto dto, CancellationToken ct)
     {
         var stud = await _context.Students
-            .Include(t => t.School)     
-            .Include(t => t.Internship) 
-            .Include(t => t.Application) 
-            .Include(t => t.Office)       
+            .Include(t => t.School)
+            .Include(t => t.Internship)
+            .Include(t => t.Application)
+            .Include(t => t.Office)
             .AsSplitQuery()
             .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
+            .FirstOrDefaultAsync(t => dto.UUIDS.Contains(t.StudentUUID), ct)
             ?? throw new KeyNotFoundException("Application not found");
 
         // Guard against null Office
@@ -28,32 +29,35 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
             throw new InvalidOperationException("Student has no office assigned.");
 
         QuestPDF.Settings.License = LicenseType.Community; // or Evaluation
-
+        var basePath = Directory.GetCurrentDirectory(); // or Directory.GetCurrentDirectory()
+        var imagePath = Path.Combine(basePath, "Features", "Endorsement", "Shared", "logo.png");
         var docs = Document.Create(container =>
         {
             container.Page(page =>
             {
-                page.Size(PageSizes.Letter);
-                page.Margin(72);
+                page.Size(PageSizes.A4);
+                page.Margin(50);
 
-                page.Content().Column(content =>
+                page.Header().Column(c =>
                 {
                     // Header
-                    content.Item().AlignLeft().Text("Republic of the Philippines").FontSize(12);
+                    c.Item().AlignCenter().PaddingBottom(5).Width(50).Height(50).Image(imagePath);
+                    c.Item().AlignCenter().Text("Republic of the Philippines").FontSize(12);
 
-                    content.Item().AlignRight().PaddingTop(-16).Text("Province of Cavite").FontSize(12);
+                    c.Item().AlignCenter().Text("Province of Cavite").FontSize(12);
 
-                    content.Item().AlignCenter().PaddingTop(8).Text("OFFICE OF THE PROVINCIAL GOVERNOR")
+                    c.Item().AlignCenter().Text("OFFICE OF THE PROVINCIAL GOVERNOR")
                         .FontSize(14).Bold();
 
-                    content.Item().AlignCenter().Text("Trece Martires City").FontSize(12);
-
-                    content.Item().PaddingVertical(40);
-
+                    c.Item().AlignCenter().Text("Trece Martires City").FontSize(12);
+                });
+                page.Content().Column(content =>
+                {
+                    content.Item().PaddingVertical(20);
                     // Date
                     content.Item().AlignLeft().Text(DateTime.Now.ToString("MMMM dd, yyyy")).FontSize(12);
 
-                    content.Item().PaddingVertical(16);
+                    content.Item().PaddingVertical(0);
 
                     // Recipient block
                     content.Item().AlignLeft().Column(recipient =>
@@ -63,17 +67,17 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
                         recipient.Item().Text("Trece Martires City").FontSize(12);
                     });
 
-                    content.Item().PaddingVertical(16);
+                    content.Item().PaddingVertical(0);
 
                     // Salutation
                     content.Item().AlignLeft().Text($"Dear {stud.Office.CurrentOIC ?? "Sir/Madam"}").FontSize(12);
 
-                    content.Item().PaddingVertical(8);
+                    content.Item().PaddingVertical(0);
 
                     // Greetings
                     content.Item().AlignLeft().Text("Greetings").FontSize(12);
 
-                    content.Item().PaddingVertical(16);
+                    content.Item().PaddingVertical(0);
 
                     // Body
                     content.Item().AlignLeft().Text(text =>
@@ -83,34 +87,36 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
                         text.Span($", to conduct his/her on-the-job training ({stud.Internship?.InternshipTotalHours ?? 486} hours) in your office:").FontSize(12);
                     });
 
-                    content.Item().PaddingVertical(16);
+                    content.Item().PaddingVertical(0);
 
                     // Student name
-                    content.Item().PaddingLeft(24).Text($"1. {stud.LastName}, {stud.FirstName} {stud.MiddleName}")
+
+                
+                    content.Item().PaddingLeft(0).Text($"1. {stud.LastName}, {stud.FirstName} {stud.MiddleName}")
                         .FontSize(12).Bold();
 
-                    content.Item().PaddingVertical(16);
+                    content.Item().PaddingVertical(0);
 
                     // Attachment note
                     content.Item().AlignLeft().Text("Attached is the resume of the student for your reference.").FontSize(12);
 
-                    content.Item().PaddingVertical(16);
+                    content.Item().PaddingVertical(0);
 
                     // Thank you
                     content.Item().AlignLeft().Text("Thank you very much.").FontSize(12);
 
-                    content.Item().PaddingVertical(24);
+                    content.Item().PaddingVertical(0);
 
                     // Closing
                     content.Item().AlignLeft().Text("Very truly yours,").FontSize(12);
 
-                    content.Item().PaddingVertical(40);
+                    content.Item().PaddingVertical(0);
 
                     // Staff name from DTO or default
                     content.Item().AlignLeft().Text(stud.Office.CurrentOIC ?? "Staff Name").FontSize(12).Bold();
 
                     // Footer
-                    content.Item().PaddingTop(60).AlignCenter()
+                    content.Item().PaddingTop(0).AlignCenter()
                         .Text("New Provincial Government Center, Trece Martires City, Cavite")
                         .FontSize(10).Italic();
                 });

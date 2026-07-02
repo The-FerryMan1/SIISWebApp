@@ -23,7 +23,7 @@ import { UseAuthStore } from '../stores/auth.ts'
           </template>
           <template #right>
             <UColorModeSwitch />
-            <AdminAvartar/>
+            <AdminAvartar />
           </template>
         </UDashboardNavbar>
       </template>

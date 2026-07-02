@@ -1,7 +1,6 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import { useAxios } from "../fetch/axios";
-
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { useAxios } from '../fetch/axios'
 
 // {
 //     "id": 1,
@@ -12,29 +11,28 @@ import { useAxios } from "../fetch/axios";
 //   },
 
 export type Office = {
-    id: number,
-    name: number,
-    currentOIC: string | null,
-    students: []
-    createAt: string,
-    updatedAt: string | null
+  id: number
+  name: number
+  currentOIC: string | null
+  students: []
+  createAt: string
+  updatedAt: string | null
 }
 
-export const useOfficeStore = defineStore('office', ()=>{
-    const offices = ref<Office[] | null>(null)
+export const useOfficeStore = defineStore('office', () => {
+  const offices = ref<Office[] | null>(null)
 
-    const officeInit = async()=>{
-        try {
-            const {data} = await useAxios.get('/office')
-            offices.value = data
-        } catch (error) {
-            console.log(error)
-        }
+  const officeInit = async () => {
+    try {
+      const { data } = await useAxios.get('/office')
+      offices.value = data
+    } catch (error) {
+      console.log(error)
     }
+  }
 
-
-    return {
-        offices,
-        officeInit
-    }
+  return {
+    offices,
+    officeInit,
+  }
 })

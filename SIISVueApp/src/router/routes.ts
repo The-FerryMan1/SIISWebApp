@@ -19,8 +19,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'registration-review',
         component: () => import('../pages/onBoarding/onBoardingReview.vue'),
         name: 'registration-review',
-
-      }
+      },
     ],
   },
   {
@@ -62,7 +61,13 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/ojt/ojt.vue'),
         name: 'ojt',
         meta: { isRequiresAuth: true },
-      }
+      },
+       {
+        path: '/endorsement',
+        component: () => import('../pages/endorsement/endorsement.vue'),
+        name: 'endorsement',
+        meta: { isRequiresAuth: true },
+      },
     ],
   },
 ]

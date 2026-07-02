@@ -6,7 +6,7 @@ import { ref } from 'vue'
 interface Props {
   title?: string
   officeId?: number
-  oic?: string | null,
+  oic?: string | null
   loading: boolean
 }
 
@@ -17,13 +17,13 @@ const emit = defineEmits<{
 }>()
 
 const schema = z.object({
-  name: z.string().min(1, 'officer-in-charge is required')
+  name: z.string().min(1, 'officer-in-charge is required'),
 })
 
 type Schema = z.output<typeof schema>
 
 const state = ref({
-  name: props.oic ?? ''
+  name: props.oic ?? '',
 })
 
 const form = ref()

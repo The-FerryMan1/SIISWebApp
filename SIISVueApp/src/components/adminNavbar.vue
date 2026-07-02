@@ -26,13 +26,19 @@ const items = computed<NavigationMenuItem[]>(() => [
     label: 'OJTs',
     icon: 'i-lucide-user',
     active: route.name == 'ojt',
-     to: { name: 'ojt' },
+    to: { name: 'ojt' },
+  },
+  {
+    label: 'Endorsement',
+    icon: 'i-lucide-file',
+    active: route.name == 'endorsement',
+    to: { name: 'endorsement' },
   },
   {
     label: 'Offices',
     icon: 'i-lucide-building',
     active: route.name == 'office',
-    to: {name: 'office'}
+    to: { name: 'office' },
   },
   {
     label: 'Admin',

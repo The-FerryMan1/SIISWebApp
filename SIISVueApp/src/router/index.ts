@@ -12,7 +12,6 @@ router.beforeEach(async (to, from) => {
   const requiresAuth = to.meta.isRequiresAuth
   const isAuth = auth.authInit()
 
-
   document.title = `SIIS - ${to.name?.toString().toLocaleUpperCase()}`
 
   if (isAuth && to.path == '/') {

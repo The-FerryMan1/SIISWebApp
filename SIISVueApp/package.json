@@ -12,6 +12,7 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@embedpdf/vue-pdf-viewer": "^2.14.4",
     "@nuxt/ui": "^4.8.2",
     "@vueuse/core": "^14.3.0",
     "axios": "^1.18.0",
