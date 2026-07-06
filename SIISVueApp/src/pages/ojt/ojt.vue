@@ -124,10 +124,10 @@ const columns: TableColumn<Ojt>[] = [
         : h('span', { class: 'italic' }, 'Not updated')
     },
   },
-    {
+  {
     header: 'Actions',
     cell: ({ row }) => {
-      const uuid = row.original.ojtUUID as string;
+      const uuid = row.original.ojtUUID as string
 
       return h('div', { class: 'flex items-center gap-2' }, [
         h(UButton, {
@@ -135,20 +135,22 @@ const columns: TableColumn<Ojt>[] = [
           size: 'xs',
           variant: 'ghost',
           color: 'primary',
-          onClick: () => router.push({
-            name: 'application-details',
-            params: { uuid },
-          }),
+          onClick: () =>
+            router.push({
+              name: 'application-details',
+              params: { uuid },
+            }),
         }),
         h(UButton, {
           icon: 'i-lucide-pen',
           size: 'xs',
           variant: 'ghost',
           color: 'info',
-          onClick: () => router.push({
-            name: 'application-edit',
-            params: { uuid },
-          }),
+          onClick: () =>
+            router.push({
+              name: 'application-edit',
+              params: { uuid },
+            }),
         }),
         h(UButton, {
           icon: 'i-lucide-trash',
@@ -157,7 +159,7 @@ const columns: TableColumn<Ojt>[] = [
           color: 'error',
           onClick: () => console.log(uuid),
         }),
-      ]);
+      ])
     },
   },
 ]
@@ -171,9 +173,7 @@ function getRowItems(row: Row<Ojt>) {
     },
     {
       label: 'View details',
-      onSelect() {
-          
-      },
+      onSelect() {},
     },
     {
       type: 'separator',

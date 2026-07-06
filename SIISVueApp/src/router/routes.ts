@@ -62,7 +62,7 @@ export const routes: RouteRecordRaw[] = [
         name: 'ojt',
         meta: { isRequiresAuth: true },
       },
-       {
+      {
         path: '/endorsement',
         component: () => import('../pages/endorsement/endorsement.vue'),
         name: 'endorsement',

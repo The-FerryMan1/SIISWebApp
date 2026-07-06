@@ -19,16 +19,16 @@ const items = computed<DropdownMenuItem[]>(() => [
     label: 'Logout',
     icon: 'i-lucide-log-out',
     onSelect: async () => {
-     deboundLogout()
-    }
+      deboundLogout()
+    },
   },
 ])
 
 const deboundLogout = useDebounceFn(async () => {
   try {
-    await useAxios.post("/logout")
+    await useAxios.post('/logout')
     toast.add({ title: 'Logout Success', color: 'primary' })
-    router.push({name: 'login'})
+    router.push({ name: 'login' })
   } catch (error) {
     console.log(error)
   }
