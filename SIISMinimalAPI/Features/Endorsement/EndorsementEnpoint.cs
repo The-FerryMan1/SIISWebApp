@@ -2,6 +2,7 @@ using System;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using QuestPDF.Fluent;
+using SIISMinimalAPI.Features.Endorsement.Bulk;
 using SIISMinimalAPI.Features.Endorsement.Create;
 
 namespace SIISMinimalAPI.Features.Endorsement;
@@ -15,7 +16,7 @@ public static class EndorsementEnpoint
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend");
 
-        group.MapGet("/{uuid}",  async Task<IResult>([FromRoute]Guid uuid, CancellationToken ct, IEndorsementService service) =>
+        group.MapGet("/{uuid}",  async Task<IResult>(Guid uuid, CancellationToken ct, IEndorsementService service) =>
         {   
             try
             {

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection.Metadata.Ecma335;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SIISMinimalAPI.Features.Application.AssignAndApprove;
 
@@ -14,15 +15,16 @@ public static class  ApplicationEndpoint
         var group = app.MapGroup("/application")
         .WithTags("Application")
         .RequireRateLimiting("standard")
-        .RequireCors("AllowFrontend");
+        .RequireCors("AllowFrontend")
+        .RequireAuthorization();
 
-        group.MapGet("/", async Task<IResult> (IApplicationService service, CancellationToken ct) =>
+        group.MapGet("/",[Authorize(Roles = "Admin")] async Task<IResult> (IApplicationService service, CancellationToken ct) =>
         {
             var applications =  await service.GetAllAsync(ct);
            return TypedResults.Ok(applications);
-        });
+        }).RequireAuthorization("Admin");
 
-        group.MapGet("/{uuid}", async Task<IResult> (Guid uuid, IApplicationService service, CancellationToken ct) =>
+        group.MapGet("/{uuid}",[Authorize(Roles = "Admin")] async Task<IResult> (Guid uuid, IApplicationService service, CancellationToken ct) =>
         {   
 
            
@@ -41,9 +43,9 @@ public static class  ApplicationEndpoint
             {
                 return TypedResults.InternalServerError(ex.Message);
             }
-        });
+        }).RequireAuthorization("Admin");
 
-        group.MapPost("/details/{uuid}", async Task<IResult> (Guid uuid, RequestDto requestDto,  IApplicationService service, CancellationToken ct) =>
+        group.MapPost("/details/{uuid}", [Authorize(Roles = "Admin")] async Task<IResult> (Guid uuid, RequestDto requestDto,  IApplicationService service, CancellationToken ct) =>
         {
 
             Validator validationRules = new();
@@ -76,9 +78,9 @@ public static class  ApplicationEndpoint
             {
                 return TypedResults.InternalServerError(ex.Message);
             }
-        });
+        }).RequireAuthorization("Admin");
 
-        group.MapPut("/trash/{uuid}", async Task<IResult>([FromRoute]Guid uuid, IApplicationService service , CancellationToken ct) =>
+        group.MapPut("/trash/{uuid}", [Authorize(Roles = "Admin")] async Task<IResult>([FromRoute]Guid uuid, IApplicationService service , CancellationToken ct) =>
         {
             try
             {
@@ -90,7 +92,7 @@ public static class  ApplicationEndpoint
                 
                  return TypedResults.NotFound(ex.Message);
             }
-        });
+        }).RequireAuthorization("Admin");
 
         return app;
     }

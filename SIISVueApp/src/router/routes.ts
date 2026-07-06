@@ -6,7 +6,7 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('../layouts/GuestLayout.vue'),
     children: [
       {
-        path: '',
+        path: 'login',
         component: () => import('../pages/auth/login.vue'),
         name: 'login',
       },

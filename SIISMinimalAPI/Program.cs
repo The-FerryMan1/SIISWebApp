@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application;
+using SIISMinimalAPI.Features.Auth.Logout;
 using SIISMinimalAPI.Features.Endorsement;
 using SIISMinimalAPI.Features.Offices;
 using SIISMinimalAPI.Features.Ojt;
@@ -75,6 +76,7 @@ app.MapToApplication();
 app.MapToEndorsement();
 app.MapToOffice();
 app.MapToOjt();
+app.MapToAuth();
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 
 

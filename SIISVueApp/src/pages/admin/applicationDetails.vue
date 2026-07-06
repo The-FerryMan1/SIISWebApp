@@ -581,7 +581,7 @@ const goToEdit = () => {
             @click="debounceDownloadEndorsement"
           />
           <UButton
-            icon="1-lucide-circle-x"
+            icon="i-lucide-x"
             variant="soft"
             label="Close preview"
             @click="debounceClosePreview"

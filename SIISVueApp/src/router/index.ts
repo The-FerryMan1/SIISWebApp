@@ -19,7 +19,7 @@ router.beforeEach(async (to, from) => {
   }
 
   if (requiresAuth && !isAuth) {
-    return { path: '/' }
+    return { path: '/login' }
   }
 })
 

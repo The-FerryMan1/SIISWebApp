@@ -41,16 +41,6 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: { name: 'office' },
   },
   {
-    label: 'Admin',
-    icon: 'i-lucide-shield-user',
-    active: route.name == '',
-  },
-  {
-    label: 'Trash',
-    icon: 'i-lucide-trash',
-    active: route.name == '',
-  },
-  {
     label: 'Logs',
     icon: 'i-lucide-logs',
     active: route.name == '',

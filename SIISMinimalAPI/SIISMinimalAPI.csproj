@@ -27,6 +27,8 @@
     <Folder Include="Features\Application\GetById\" />
     <Folder Include="Features\Application\SoftDelete\" />
     <Folder Include="Features\Application\Update\" />
+    <Folder Include="Features\Auth\" />
+    <Folder Include="Features\Auth\Logout\" />
     <Folder Include="Features\Endorsement\" />
     <Folder Include="Features\Endorsement\Bulk\" />
     <Folder Include="Features\Endorsement\Create\" />

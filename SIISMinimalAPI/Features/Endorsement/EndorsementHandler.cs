@@ -12,7 +12,7 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Document?> GenerateEndorsement(EndorsementBulkDto dto, CancellationToken ct)
+    public async Task<Document?> GenerateEndorsement(Guid uuid, CancellationToken ct)
     {
         var stud = await _context.Students
             .Include(t => t.School)
@@ -21,7 +21,7 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
             .Include(t => t.Office)
             .AsSplitQuery()
             .AsNoTracking()
-            .FirstOrDefaultAsync(t => dto.UUIDS.Contains(t.StudentUUID), ct)
+            .FirstOrDefaultAsync(t =>t.Application.ApplicationUUID == uuid, ct)
             ?? throw new KeyNotFoundException("Application not found");
 
         // Guard against null Office
@@ -51,13 +51,14 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
 
                     c.Item().AlignCenter().Text("Trece Martires City").FontSize(12);
                 });
+                
                 page.Content().Column(content =>
                 {
                     content.Item().PaddingVertical(20);
                     // Date
                     content.Item().AlignLeft().Text(DateTime.Now.ToString("MMMM dd, yyyy")).FontSize(12);
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Recipient block
                     content.Item().AlignLeft().Column(recipient =>
@@ -67,17 +68,17 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
                         recipient.Item().Text("Trece Martires City").FontSize(12);
                     });
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Salutation
                     content.Item().AlignLeft().Text($"Dear {stud.Office.CurrentOIC ?? "Sir/Madam"}").FontSize(12);
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Greetings
                     content.Item().AlignLeft().Text("Greetings").FontSize(12);
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Body
                     content.Item().AlignLeft().Text(text =>
@@ -87,42 +88,48 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
                         text.Span($", to conduct his/her on-the-job training ({stud.Internship?.InternshipTotalHours ?? 486} hours) in your office:").FontSize(12);
                     });
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Student name
 
                 
-                    content.Item().PaddingLeft(0).Text($"1. {stud.LastName}, {stud.FirstName} {stud.MiddleName}")
-                        .FontSize(12).Bold();
+                    content.Item().Text($"1. {stud.LastName}, {stud.FirstName} {stud.MiddleName}")
+                        .FontSize(12);
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Attachment note
                     content.Item().AlignLeft().Text("Attached is the resume of the student for your reference.").FontSize(12);
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Thank you
                     content.Item().AlignLeft().Text("Thank you very much.").FontSize(12);
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Closing
                     content.Item().AlignLeft().Text("Very truly yours,").FontSize(12);
 
-                    content.Item().PaddingVertical(0);
+                    content.Item().PaddingVertical(5);
 
                     // Staff name from DTO or default
                     content.Item().AlignLeft().Text(stud.Office.CurrentOIC ?? "Staff Name").FontSize(12).Bold();
+                     content.Item().AlignLeft().Text("Executive Assistant IV").FontSize(12).SemiBold();
 
                     // Footer
-                    content.Item().PaddingTop(0).AlignCenter()
-                        .Text("New Provincial Government Center, Trece Martires City, Cavite")
-                        .FontSize(10).Italic();
+                    // content.Item().PaddingTop(0).AlignCenter()
+                    //     .Text("New Provincial Government Center, Trece Martires City, Cavite")
+                    //     .FontSize(10).Italic();
                 });
             });
         });
 
         return docs;
+    }
+
+    public Task<Document?> MultiOjtEndorsement(EndorsementBulkDto dto, CancellationToken ct)
+    {
+        throw new NotImplementedException();
     }
 }

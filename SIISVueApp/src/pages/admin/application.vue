@@ -22,31 +22,6 @@ onMounted(async () => {
 
 //table column
 const columns: TableColumn<Applicaton>[] = [
-    {
-    id: 'select',
-    header: ({ table }) =>
-      h(UCheckbox, {
-        modelValue: table.getIsSomePageRowsSelected()
-          ? 'indeterminate'
-          : table.getIsAllPageRowsSelected(),
-        'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
-          table.toggleAllPageRowsSelected(!!value),
-        'aria-label': 'Select all'
-      }),
-    cell: ({ row }) =>
-      h(UCheckbox, {
-        modelValue: row.getIsSelected(),
-        'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
-        'aria-label': 'Select row'
-      })
-  },
-  {
-    accessorKey: 'applicationUUID',
-    header: '#',
-    cell: ({ row }) => {
-      return h('span', { class: ' text-xs ' }, `#${row.getValue('applicationUUID')}`)
-    },
-  },
   {
     accessorKey: 'fullName',
     header: 'Applicant',
@@ -100,14 +75,37 @@ const columns: TableColumn<Applicaton>[] = [
   {
     header: 'Actions',
     cell: ({ row }) => {
-      return h(UButton, {
-        icon: 'i-lucide-eye',
-        onClick: () =>
-          router.push({
+      const uuid = row.original.applicationUUID as string;
+
+      return h('div', { class: 'flex items-center gap-2' }, [
+        h(UButton, {
+          icon: 'i-lucide-eye',
+          size: 'xs',
+          variant: 'ghost',
+          color: 'primary',
+          onClick: () => router.push({
             name: 'application-details',
-            params: { uuid: row.getValue('applicationUUID') },
+            params: { uuid },
           }),
-      })
+        }),
+        h(UButton, {
+          icon: 'i-lucide-pen',
+          size: 'xs',
+          variant: 'ghost',
+          color: 'info',
+          onClick: () => router.push({
+            name: 'application-edit',
+            params: { uuid },
+          }),
+        }),
+        h(UButton, {
+          icon: 'i-lucide-trash',
+          size: 'xs',
+          variant: 'ghost',
+          color: 'error',
+          onClick: () => console.log(uuid),
+        }),
+      ]);
     },
   },
 ]
@@ -154,7 +152,7 @@ const pagination = ref({
   pageSize: 10,
 })
 
-const statusFilter = ref(['Pending', 'Viewed', 'Approved', 'All'])
+const statusFilter = ref(['Pending', 'Approved', 'All'])
 const statusSelectedFIlter = ref('All')
 const statusFilterResult = computed(() => {
   return application.applications?.filter((t) => {
@@ -191,18 +189,8 @@ watch(pageSize, (size) => {
   </div>
 
   <div class="px-10 py-2">
-    <UPageGrid
-      class="mb-5"
-      :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }"
-    >
-      <UPageCard
-        spotlight
-        variant="outline"
-        orientation="horizontal"
-        reverse
-        v-for="card in cards"
-        :title="card.title"
-      >
+    <UPageGrid class="mb-5" :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }">
+      <UPageCard spotlight variant="outline" orientation="horizontal" reverse v-for="card in cards" :title="card.title">
         <UContainer>
           <div class="flex items-center gap-10">
             <UIcon :name="card.icon" class="size-10" />
@@ -217,48 +205,28 @@ watch(pageSize, (size) => {
     <UCard>
       <template #header>
         <div class="w-full flex items-center mb-4 gap-2 md:flex-nowrap flex-wrap">
-          <UInput
-            v-model="globalFilter"
-            class="w-full shrink-0 sm:shrink"
-            placeholder="Filter..."
-            icon="i-lucide-search"
-          />
+          <UInput v-model="globalFilter" class="w-full shrink-0 sm:shrink" placeholder="Filter..."
+            icon="i-lucide-search" />
 
           <div class="ms-auto flex items-center gap-2">
             <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" />
-            <UInput
-              v-model.number="pageSize"
-              type="number"
-              :min="1"
-              class="max-w-sm"
-              placeholder="Limit"
-              icon="i-lucide-list-ordered"
-            />
+            <UInput v-model.number="pageSize" type="number" :min="1" class="max-w-sm" placeholder="Limit"
+              icon="i-lucide-list-ordered" />
           </div>
         </div>
       </template>
 
-      <UTable
-        ref="table"
-        sticky
-        v-model:global-filter="globalFilter"
-        v-model:pagination="pagination"
-        :data="statusFilterResult ?? []"
-        :columns="columns"
-        class="flex-1"
-        :pagination-options="{
+      <UTable ref="table" sticky v-model:global-filter="globalFilter" v-model:pagination="pagination"
+        :data="statusFilterResult ?? []" :columns="columns" class="flex-1" :pagination-options="{
           getPaginationRowModel: getPaginationRowModel(),
-        }"
-      />
+        }" />
 
       <template #footer>
         <div class="flex justify-end border-t border-default pt-4 px-4">
-          <UPagination
-            :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+          <UPagination :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
             :items-per-page="table?.tableApi?.getState().pagination.pageSize"
             :total="table?.tableApi?.getFilteredRowModel().rows.length"
-            @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
-          />
+            @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
         </div>
       </template>
     </UCard>

@@ -7,5 +7,6 @@ namespace SIISMinimalAPI.Features.Endorsement;
 
 public interface IEndorsementService
 {
-    Task<Document?> GenerateEndorsement(EndorsementBulkDto request, CancellationToken ct);
+    Task<Document?> GenerateEndorsement(Guid uuid, CancellationToken ct);
+    Task<Document?> MultiOjtEndorsement(EndorsementBulkDto dto, CancellationToken ct);
 }

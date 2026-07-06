@@ -6,6 +6,7 @@ import { computed, h, ref, resolveComponent, useTemplateRef, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useOJtStore, type Ojt } from '../../stores/ojt';
 import type { TableColumn } from '@nuxt/ui';
+import { useAxios } from '../../fetch/axios';
 
 type Payload = {
     office: OfficeNameEnum,
@@ -187,6 +188,12 @@ const generate = async()=>{
     payload.value = {
         office: selectedOffice.value.office,
         uuids: selectedShit.value
+    }
+
+    try{
+        await useAxios.post("/endorsement", payload)
+    }catch(error){
+      console.log(error)
     }
 
     console.log(payload.value)

@@ -35,13 +35,6 @@ onMounted(async () => {
 //table column
 const columns: TableColumn<Ojt>[] = [
   {
-    accessorKey: 'ojtUUID',
-    header: '#',
-    cell: ({ row }) => {
-      return h('span', { class: ' text-xs ' }, `#${row.getValue('ojtUUID')}`)
-    },
-  },
-  {
     accessorKey: 'lastName',
     header: 'Lastname',
     cell: ({ row }) => {
@@ -131,27 +124,40 @@ const columns: TableColumn<Ojt>[] = [
         : h('span', { class: 'italic' }, 'Not updated')
     },
   },
-  {
-    id: 'actions',
-    header: 'Action',
+    {
+    header: 'Actions',
     cell: ({ row }) => {
-      return h(
-        UDropdownMenu,
-        {
-          content: {
-            align: 'end',
-          },
-          items: getRowItems(row),
-          'aria-label': 'Actions dropdown',
-        },
-        () =>
-          h(UButton, {
-            icon: 'i-lucide-table-of-contents',
-            color: 'neutral',
-            variant: 'ghost',
-            'aria-label': 'Actions dropdown',
+      const uuid = row.original.ojtUUID as string;
+
+      return h('div', { class: 'flex items-center gap-2' }, [
+        h(UButton, {
+          icon: 'i-lucide-eye',
+          size: 'xs',
+          variant: 'ghost',
+          color: 'primary',
+          onClick: () => router.push({
+            name: 'application-details',
+            params: { uuid },
           }),
-      )
+        }),
+        h(UButton, {
+          icon: 'i-lucide-pen',
+          size: 'xs',
+          variant: 'ghost',
+          color: 'info',
+          onClick: () => router.push({
+            name: 'application-edit',
+            params: { uuid },
+          }),
+        }),
+        h(UButton, {
+          icon: 'i-lucide-trash',
+          size: 'xs',
+          variant: 'ghost',
+          color: 'error',
+          onClick: () => console.log(uuid),
+        }),
+      ]);
     },
   },
 ]
@@ -165,7 +171,9 @@ function getRowItems(row: Row<Ojt>) {
     },
     {
       label: 'View details',
-      onSelect() {},
+      onSelect() {
+          
+      },
     },
     {
       type: 'separator',
