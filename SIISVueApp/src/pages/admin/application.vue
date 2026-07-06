@@ -6,6 +6,9 @@ import { useApplicationStore } from '../../stores/application'
 import type { Applicaton } from '../../stores/application'
 import { getPaginationRowModel, type Row } from '@tanstack/vue-table'
 import { useRouter } from 'vue-router'
+import { useDebounceFn } from '@vueuse/core'
+import ConfirmationModal from '../../components/confirmationModal.vue'
+import { useAxios } from '../../fetch/axios'
 
 //states
 const auth = UseAuthStore()
@@ -15,6 +18,10 @@ const UChip = resolveComponent('UChip')
 const UButton = resolveComponent('UButton')
 const UCheckbox = resolveComponent('UCheckbox')
 const router = useRouter()
+
+const toast = useToast()
+const overlay = useOverlay()
+const confirmModal = overlay.create(ConfirmationModal)
 
 onMounted(async () => {
   await application.applicationInit()
@@ -103,12 +110,30 @@ const columns: TableColumn<Applicaton>[] = [
           size: 'xs',
           variant: 'ghost',
           color: 'error',
-          onClick: () => console.log(uuid),
+          onClick: () => debounceDelete(uuid),
         }),
       ]);
     },
   },
 ]
+
+
+const debounceDelete = useDebounceFn(async(uuid: string) =>{
+    const instance = confirmModal.open()
+
+    if(await instance){
+      try{
+        await useAxios.delete("/application/delete/" + uuid)
+        
+        toast.add({title: 'Delete successful', color: 'success'})
+
+        await application.applicationInit()
+      }catch(error){
+         toast.add({title: 'Delete failed', color: 'error'})
+      }
+    }
+}, 500)
+
 
 //row actions
 const rowActions = (row: Row<Applicaton>) => {

@@ -33,6 +33,28 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         await _context.SaveChangesAsync(ct);
     }
 
+    public async Task DeleteAsync(Guid uuid, CancellationToken ct)
+    {
+        var application = await _context.Students
+        .Include(t => t.Application)
+        .Include(t => t.Requirements)
+        .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
+        ?? throw new KeyNotFoundException("Application not found");
+
+
+        foreach (var req in application.Requirements)
+        {
+            if (!string.IsNullOrEmpty(req.FilePath) && File.Exists(req.FilePath))
+            {
+                File.Delete(req.FilePath);
+            }
+        }
+
+        _context.Remove(application);
+        await _context.SaveChangesAsync(ct);
+
+    }
+
     public async Task<ICollection<ApplicationDto>> GetAllAsync(CancellationToken ct)
     {
         var applications = await _context.Students
@@ -40,8 +62,8 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         .AsNoTracking().OrderByDescending(t => t.CreateAt).ToListAsync(cancellationToken: ct);
 
         return [.. applications.Select(t => {
-            
-           var degreeStrand = t.Internship.Degree?.ToString() 
+
+           var degreeStrand = t.Internship.Degree?.ToString()
                 ?? t.Internship.Strand?.ToString();
 
             return new ApplicationDto

@@ -94,6 +94,23 @@ public static class  ApplicationEndpoint
             }
         }).RequireAuthorization("Admin");
 
+        group.MapDelete("/delete/{uuid}",  async Task<IResult> (Guid uuid, IApplicationService service, CancellationToken ct) =>
+        {
+            try
+            {
+                await service.DeleteAsync(uuid, ct);
+                return TypedResults.Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                
+                return TypedResults.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                 return TypedResults.InternalServerError(ex.Message);
+            }
+        });
         return app;
     }
 }
