@@ -2,13 +2,14 @@
 import { RouterView } from 'vue-router'
 import AdminNavbar from '../components/adminNavbar.vue'
 import { UseAuthStore } from '../stores/auth.ts'
+import Logo from '../components/logo.vue';
 </script>
 
 <template>
   <UDashboardGroup>
     <UDashboardSidebar resizable collapsible>
       <template #header="{ collapsed }">
-        <h1>SIIS</h1>
+       <Logo :collapesed="collapsed"/>
       </template>
       <template #default="{ collapsed }">
         <AdminNavbar :collapsed="collapsed" />
