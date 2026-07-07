@@ -87,6 +87,13 @@ const columns: TableColumn<Ojt>[] = [
     },
   },
   {
+    accessorKey: 'universitySchool',
+    header: 'University/School',
+    cell: ({ row }) => {
+      return `${row.getValue('universitySchool')}`
+    },
+  },
+  {
     accessorKey: 'dateOfBirth',
     header: 'Age',
     cell: ({ row }) => {
@@ -241,6 +248,7 @@ watch(pageSize, (size) => {
   pagination.value.pageSize = size
   pagination.value.pageIndex = 0 // reset to page 1
 })
+
 </script>
 
 <template>

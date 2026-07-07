@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -5,15 +6,21 @@ using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Endorsement.Bulk;
 using SIISMinimalAPI.Features.Endorsement.Create;
+using SIISMinimalAPI.Features.Shared.Enums;
 
 namespace SIISMinimalAPI.Features.Endorsement;
 
-public class EndorsementHandler(AppDbContext context) : IEndorsementService
+public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> userManager) : IEndorsementService
 {
     private readonly AppDbContext _context = context;
-
-    public async Task<Document?> GenerateEndorsement(Guid uuid, CancellationToken ct)
+    private readonly UserManager<IdentityUser> _userManager = userManager;
+    public async Task<Document?> GenerateEndorsement(Guid uuid, string currentUserId, CancellationToken ct)
     {
+
+        var user = await _userManager.FindByIdAsync(currentUserId)
+        ?? throw new KeyNotFoundException("No user found");
+
+
         var stud = await _context.Students
             .Include(t => t.School)
             .Include(t => t.Internship)
@@ -21,7 +28,7 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
             .Include(t => t.Office)
             .AsSplitQuery()
             .AsNoTracking()
-            .FirstOrDefaultAsync(t =>t.Application.ApplicationUUID == uuid, ct)
+            .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
             ?? throw new KeyNotFoundException("Application not found");
 
         // Guard against null Office
@@ -31,6 +38,7 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
         QuestPDF.Settings.License = LicenseType.Community; // or Evaluation
         var basePath = Directory.GetCurrentDirectory(); // or Directory.GetCurrentDirectory()
         var imagePath = Path.Combine(basePath, "Features", "Endorsement", "Shared", "logo.png");
+         var officeEnum = stud.Office.Name;
         var docs = Document.Create(container =>
         {
             container.Page(page =>
@@ -51,7 +59,7 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
 
                     c.Item().AlignCenter().Text("Trece Martires City").FontSize(12);
                 });
-                
+
                 page.Content().Column(content =>
                 {
                     content.Item().PaddingVertical(20);
@@ -64,7 +72,7 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
                     content.Item().AlignLeft().Column(recipient =>
                     {
                         recipient.Item().Text(stud.Office.CurrentOIC ?? "The Officer in Charge").Bold().FontSize(12);
-                        recipient.Item().Text($"OIC, {stud.Office.Name}").FontSize(12);
+                        recipient.Item().Text($"OIC, {OfficeEnumLabels.GetLabel(officeEnum)}").FontSize(12);
                         recipient.Item().Text("Trece Martires City").FontSize(12);
                     });
 
@@ -88,11 +96,11 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
                         text.Span($", to conduct his/her on-the-job training ({stud.Internship?.InternshipTotalHours ?? 486} hours) in your office:").FontSize(12);
                     });
 
-                    content.Item().PaddingVertical(5);
+                    content.Item().PaddingVertical(10);
 
                     // Student name
 
-                
+
                     content.Item().Text($"1. {stud.LastName}, {stud.FirstName} {stud.MiddleName}")
                         .FontSize(12);
 
@@ -114,8 +122,8 @@ public class EndorsementHandler(AppDbContext context) : IEndorsementService
                     content.Item().PaddingVertical(5);
 
                     // Staff name from DTO or default
-                    content.Item().AlignLeft().Text(stud.Office.CurrentOIC ?? "Staff Name").FontSize(12).Bold();
-                     content.Item().AlignLeft().Text("Executive Assistant IV").FontSize(12).SemiBold();
+                    content.Item().AlignLeft().Text(user.UserName?? "Staff Name").FontSize(12).Bold();
+                    content.Item().AlignLeft().Text("Executive Assistant IV").FontSize(12).SemiBold();
 
                     // Footer
                     // content.Item().PaddingTop(0).AlignCenter()

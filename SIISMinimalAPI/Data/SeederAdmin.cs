@@ -16,6 +16,7 @@ namespace SIISMinimalAPI.Data
 
             string role = "Admin";
             string email = "admin@gmail.com";
+            string username = "admin";
             string password = "Admin123!";
 
 
@@ -28,7 +29,7 @@ namespace SIISMinimalAPI.Data
             var defaultAdmin = new IdentityUser
             {
                 Email = email,
-                UserName = email,
+                UserName = username,
                 EmailConfirmed = true
             };
             var result = await userManager.CreateAsync(defaultAdmin, password);

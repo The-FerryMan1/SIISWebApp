@@ -9,6 +9,7 @@ export interface Ojt {
   firstName: string
   middleName: string
   gender: number
+  universitySchool: string
   dateOfBirth: string | Date
   createdAt: string
   updatedAt: string | null

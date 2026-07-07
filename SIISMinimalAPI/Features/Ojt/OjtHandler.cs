@@ -13,6 +13,7 @@ public class OjtHandler(AppDbContext context) : IOjtService
         var ojts = await _context.Students
         .Include(t => t.Application)
         .Include(t => t.Internship)
+        .Include(t => t.School)
         .Include(t => t.Office)
         .Where(t => t.Application.Status == Shared.Enums.ApplicationStatusEnum.Approved)
         .AsNoTracking()
@@ -27,6 +28,7 @@ public class OjtHandler(AppDbContext context) : IOjtService
             MiddleName = t.MiddleName,
             OfficeName = t.Office.Name,
             DateOfBirth = t.DateOfBirth,
+            UniversitySchool = t.School.Name,
             EstimatedEndDate = t.Internship.EstimatedEndDate,
             StartDate = t.Internship.StartDate,
             Gender = t.Gender,

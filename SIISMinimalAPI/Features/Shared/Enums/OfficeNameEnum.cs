@@ -2,7 +2,7 @@
 {
     public enum OfficeNameEnum
     {
-       OfficeOfTheProvincialGovernor,
+    OfficeOfTheProvincialGovernor,
     OfficeOfTheProvincialViceGovernor,
     OfficeOfTheProvincialAdministrator,
     OpgRoadSafetyDivision,
@@ -41,3 +41,5 @@
     OfficeOfTheProvincialHumanResourceManagementOfficer
     }
 }
+
+

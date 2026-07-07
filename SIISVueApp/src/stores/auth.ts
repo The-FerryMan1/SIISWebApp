@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAxios } from '../fetch/axios'
 import type { AxiosError } from 'axios'
+import { email } from 'zod'
 
 export const UseAuthStore = defineStore('auth', () => {
   const user = ref<string | null>(null)
@@ -22,9 +23,9 @@ export const UseAuthStore = defineStore('auth', () => {
   }
 
   //login
-  const useLogin = async (credential: { email: string; password: string }) => {
+  const useLogin = async (credential: { username: string; password: string }) => {
     try {
-      const { data } = await useAxios.post('/login', credential, {
+      const { data } = await useAxios.post('/login', {email: credential.username, password: credential.password }, {
         params: {
           useCookies: true,
         },
