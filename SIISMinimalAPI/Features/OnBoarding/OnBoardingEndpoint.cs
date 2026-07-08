@@ -17,8 +17,10 @@ public static class OnBoardingEndpoint
 
         group.MapPost("/", async Task<IResult> ([FromForm]OnBoardingDto dto, CancellationToken ct, IOnBoadringService service) =>
         {
-
-           
+            if (dto.Student is null || dto.School is null || dto.Internship is null)
+            {
+                return Results.BadRequest("Student, school, and internship details are required.");
+            }
 
             StudentRegDtoValidator studentvalidator = new();
             SchoolRegDtoValidator schoolValidator = new();

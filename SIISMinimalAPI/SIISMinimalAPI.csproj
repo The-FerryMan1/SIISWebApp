@@ -42,5 +42,12 @@
     <Folder Include="Features\Ojt\" />
     <Folder Include="Features\Ojt\GetAllOjt\" />
   </ItemGroup>
+ <ItemGroup>
+    <Content Remove="wwwroot\**" />
+  </ItemGroup>
 
+  <Target Name="BuildVue" BeforeTargets="Build;Publish">
+    <Message Importance="high" Text="Building Vue frontend for the .NET host..." />
+    <Exec Command="npm run build" WorkingDirectory="..\SIISVueApp" />
+  </Target>
 </Project>

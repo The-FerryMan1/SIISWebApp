@@ -22,12 +22,42 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders()
     .AddApiEndpoints();
-builder.Services.AddAuthentication()
-    .AddCookie();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        var isApiRequest = context.Request.Path.StartsWithSegments("/api") ||
+                           context.Request.Path.StartsWithSegments("/user") ||
+                            context.Request.Path.StartsWithSegments("/register") ||
+                           context.Request.Path.StartsWithSegments("/auth") ||
+                           context.Request.Path.StartsWithSegments("/application") ||
+                           context.Request.Path.StartsWithSegments("/onboading") ||
+                           context.Request.Path.StartsWithSegments("/office") ||
+                           context.Request.Path.StartsWithSegments("/endorsement") ||
+                           context.Request.Path.StartsWithSegments("/ojt") ||
+                           context.Request.Headers.Accept.Any(header => header.Contains("application/json", StringComparison.OrdinalIgnoreCase));
+
+        if (isApiRequest)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
     .AddPolicy("User", policy => policy.RequireRole("User"));
 
+builder.Services.AddControllers();
 
     
 builder.Services.AddCors(options =>
@@ -68,11 +98,14 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();
@@ -89,4 +122,6 @@ using (var scope = app.Services.CreateScope())
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
     await SeederAdmin.InitOffices(scope.ServiceProvider);
 }
+
+app.MapFallbackToFile("index.html");
 app.Run();

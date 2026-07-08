@@ -5,11 +5,11 @@ namespace SIISMinimalAPI.Features.OnBoarding;
 
 public class OnBoardingDto
 {
-    public StudentRegDto Student { get; set; }
-    public SchoolRegDto School { get; set; }
-    public InternshipRegDto Internship { get; set; }
+    public StudentRegDto? Student { get; set; }
+    public SchoolRegDto? School { get; set; }
+    public InternshipRegDto? Internship { get; set; }
     public ICollection<RequirementsRegDto>? RequirementsReg { get; set; } = [];
-    public IFormFileCollection Files { get; set; }
+    public IFormFileCollection? Files { get; set; }
 }
 
 

@@ -1,0 +1,1 @@
+import{F as e,d as t,z as n}from"./vue.runtime.esm-bundler-DJqCEXys.js";var r=(e,t)=>{let n=e.__vccOpts||e;for(let[e,r]of t)n[e]=r;return n},i={};function a(r,i){let a=n(`RouterView`);return e(),t(a)}var o=r(i,[[`render`,a]]);export{o as default};

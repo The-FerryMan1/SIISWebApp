@@ -74,10 +74,10 @@ export const useOnBoardStore = defineStore('onboard', () => {
     formData.append('internship.startDate', state.value.internship.startDate?.toString() ?? '')
 
     // --- Files ---
-    // ✅ Append files with the field name your backend expects
+    // Use the DTO property name so the backend can bind the uploaded files correctly.
     if (state.value.requirements && state.value.requirements.length > 0) {
       state.value.requirements.forEach((file) => {
-        formData.append('requirements', file) // Same name as backend parameter
+        formData.append('files', file)
       })
     }
 

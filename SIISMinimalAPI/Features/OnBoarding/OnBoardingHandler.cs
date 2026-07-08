@@ -12,32 +12,39 @@ namespace SIISMinimalAPI.Features.OnBoarding
         {
             try
             {
+                if (onBoardingDto.Student is null)
+                {
+                    throw new ArgumentException("Student information is required");
+                }
+
                 var existingStud = await _context.Students.AsNoTracking()
-                .FirstOrDefaultAsync(
-                    t => t.Email.ToLower() == onBoardingDto.Student.Email.ToLower(),
-                    ct);
+                    .FirstOrDefaultAsync(
+                        t => t.Email.ToLower() == onBoardingDto.Student.Email.ToLower(),
+                        ct);
                 if (existingStud is not null)
                 {
                     throw new DuplicateNameException("Student with this email is already registered");
                 }
 
-
-                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), $"uploads/{onBoardingDto.Student.LastName}");
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", onBoardingDto.Student.LastName);
                 Directory.CreateDirectory(uploadsPath);
 
-                List<RequirementsRegDto> req = [];
-                foreach (var file in onBoardingDto.Files)
+                var req = new List<RequirementsRegDto>();
+                if (onBoardingDto.Files is not null)
                 {
-                    var filePath = Path.Combine(uploadsPath, file.FileName);
-                    using var stream = File.Create(filePath);
-                    await file.CopyToAsync(stream, ct);
-
-                    req.Add(new RequirementsRegDto 
+                    foreach (var file in onBoardingDto.Files)
                     {
-                        FileName = file.FileName,  
-                        FilePath = filePath,
-                        FileType = file.ContentType
-                    });
+                        var filePath = Path.Combine(uploadsPath, file.FileName);
+                        await using var stream = File.Create(filePath);
+                        await file.CopyToAsync(stream, ct);
+
+                        req.Add(new RequirementsRegDto
+                        {
+                            FileName = file.FileName,
+                            FilePath = filePath,
+                            FileType = file.ContentType
+                        });
+                    }
                 }
 
                 onBoardingDto.RequirementsReg = req;
