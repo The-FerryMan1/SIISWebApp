@@ -206,14 +206,14 @@ watch(pageSize, (size) => {
 </script>
 
 <template>
-  <div class="px-10 py-2 my-10">
+  <div class="py-2 my-10">
     <div>
       <h2 class="text-4xl font-black text-primary">Application</h2>
       <p class="text-muted text-sm">Manage and review submitted applications</p>
     </div>
   </div>
 
-  <div class="px-10 py-2">
+  <div class="py-2">
     <UPageGrid
       class="mb-5"
       :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }"
@@ -236,7 +236,7 @@ watch(pageSize, (size) => {
     </UPageGrid>
   </div>
 
-  <div class="px-10 py-2">
+  <div class="py-2">
     <UCard>
       <template #header>
         <div class="w-full flex items-center mb-4 gap-2 md:flex-nowrap flex-wrap">
