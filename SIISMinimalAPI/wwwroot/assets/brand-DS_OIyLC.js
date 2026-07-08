@@ -1,1 +1,0 @@
-var e=`/assets/brand-5SXCuwm0.png`;export{e as t};

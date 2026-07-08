@@ -503,3 +503,4 @@ appsettings.Local.json
 # Publish
 publish/
 uploads/
+wwwroot/
