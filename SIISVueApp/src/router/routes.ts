@@ -20,6 +20,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/onBoarding/onBoardingReview.vue'),
         name: 'registration-review',
       },
+      {
+        path: '',
+        component: () => import('../pages/home/home.vue'),
+        name: 'home',
+      },
     ],
   },
   {

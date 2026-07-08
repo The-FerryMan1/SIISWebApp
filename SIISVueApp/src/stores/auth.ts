@@ -59,11 +59,9 @@ export const UseAuthStore = defineStore('auth', () => {
         isEmailVerified: data.isEmailVerified
       }
       authenticate(user)
-
     } catch (error) {
       unauthenticate()
       const errorMessage = error as AxiosError
-      router.push('/login')
       throw new Error(errorMessage.message)
     }
   }
