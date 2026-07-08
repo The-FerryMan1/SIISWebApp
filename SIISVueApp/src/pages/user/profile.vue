@@ -4,10 +4,11 @@ import { UseAuthStore } from '../../stores/auth';
 import { storeToRefs } from 'pinia';
 import z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 import ConfirmationModal from '../../components/confirmationModal.vue';
 import { useAxios } from '../../fetch/axios.ts';
+import type { AxiosError } from 'axios';
 
 const router = useRouter()
 const auth = UseAuthStore()
@@ -63,15 +64,17 @@ const profileSubmit = async (event: FormSubmitEvent<ProfileSchema>) => {
 
 const profileRequest = useDebounceFn(async (payload: ProfileSchema) => {
     await useAxios.put("/user", payload)
+    await auth.useVerify()
 })
 
 
 //change password
+const changePassForm = useTemplateRef('changePassForm')
 const changePassSchema = z.object({
     currentPassword: z.string('Invalid password'),
     newPassword: z.string('Invalid password').min(8, 'Enter alteast 8 characters'),
     confirm: z.string('Invalid password').min(8, 'Enter alteast 8 characters'),
-}).refine((data) => data.newPassword == data.currentPassword, {
+}).refine((data) => data.newPassword == data.confirm, {
     path: ['confirm'],
     error: "Password don't match"
 })
@@ -94,10 +97,23 @@ const changePassSubmit = async (event: FormSubmitEvent<ChangePassSchema>) => {
         try {
             changePassLoading.value = true
             await changePassRequest(event.data)
+            toast.add({title: "Password changed successfully", color: "success"})
         } catch (error) {
+            const status = error as AxiosError
+            if(status.status == 401){
+                 toast.add({title: "Operation Failed, wrong current password", color: "error"})
+            }else{
+                toast.add({title: "Operation Failed", color: "error"})
+            }
             console.log(error)
+             
         } finally {
             profileSubmitLoading.value = false
+            changePassState.value = {
+                confirm: undefined,
+                currentPassword: undefined,
+                newPassword: undefined
+            }
         }
     }
 
@@ -105,7 +121,8 @@ const changePassSubmit = async (event: FormSubmitEvent<ChangePassSchema>) => {
 }
 
 const changePassRequest = useDebounceFn(async (payload: ChangePassSchema) => {
-    console.log(payload)
+    await useAxios.put("/user/change-password", {currentPassword: payload.currentPassword, newPassword: payload.newPassword})
+    await auth.useVerify()
 }, 500)
 </script>
 
@@ -135,11 +152,11 @@ const changePassRequest = useDebounceFn(async (payload: ChangePassSchema) => {
         </UCard>
 
         <UCard title="Change Password">
-            <UForm :state="changePassState" :schema="changePassSchema" @submit="changePassSubmit"
+            <UForm ref="changePassForm" :state="changePassState" :schema="changePassSchema" @submit="changePassSubmit"
                 :loading="changePassLoading" class="space-y-4" @error="(err) => console.log(err)">
                 <UFormField name="currentPassword" label="Current Password" required>
                     <UInput type="password" v-model="changePassState.currentPassword"
-                        placeholder="Enter current password" class="w-full" />
+                        placeholder="Enter current password" class="w-full"  />
                 </UFormField>
                 <UFormField name="newPassword" label="New Password" required>
                     <UInput type="password" v-model="changePassState.newPassword" placeholder="Enter new password"

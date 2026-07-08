@@ -15,3 +15,9 @@ public class UserUpdateDto
     public string? Email { get; set; } = string.Empty;
     public string? Username {get; set;} = string.Empty;
 }
+
+public class UserChangePass
+{
+    public string? CurrentPassword { get; set; } = string.Empty;
+    public string? NewPassword { get; set; } = string.Empty;
+}

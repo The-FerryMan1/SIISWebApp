@@ -6,4 +6,5 @@ public interface IUserService
 {
     Task<UserDto>? UserGetInfo(string userId);
     Task UserChangeInfo(string userId, UserUpdateDto userUpdateDto);
+    Task UserChangePassword(string userId, UserChangePass userChangePass);
 }

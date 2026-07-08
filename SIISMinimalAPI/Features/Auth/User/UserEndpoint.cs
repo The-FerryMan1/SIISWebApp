@@ -45,6 +45,24 @@ public static class UserEndpoint
             }
         });
 
+        group.MapPut("/change-password", [Authorize] async Task<IResult> (ClaimsPrincipal user, UserChangePass userChangePass, IUserService service) =>
+        {
+            try
+            {
+                var currUser = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                await service.UserChangePassword(currUser, userChangePass);
+                return TypedResults.Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return TypedResults.Unauthorized();
+            }
+             catch (InvalidOperationException ex)
+            {
+                return TypedResults.Unauthorized();
+            }
+        });
+
         return app;
     }
 }

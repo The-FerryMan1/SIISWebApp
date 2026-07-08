@@ -73,7 +73,7 @@ const onSubmit = async () => {
     loading.value = true
     console.log(loading.value)
     await useAxios.put('/onboading/details/' + route.params.uuid, details.value)
-    toast.add({ title: 'Update success', color: 'success' })
+    toast.add({ title: 'Application updated successfully', color: 'success' })
   } catch (error) {
     console.log(error)
     toast.add({ title: 'Update failed', color: 'error' })
