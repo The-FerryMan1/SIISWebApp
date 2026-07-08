@@ -42,7 +42,7 @@ const deboundLogout = useDebounceFn(async () => {
   <UDropdownMenu v-if="auth.user" :items="items" class="ms-3">
     <UButton variant="ghost">
       <template #default>
-        <UUser v-if="auth.user" :name="auth.user.split('@gmail.com')[0]" description="Admin" />
+        <UUser v-if="auth.user" :name="auth.user.username" description="Admin" />
       </template>
     </UButton>
   </UDropdownMenu>

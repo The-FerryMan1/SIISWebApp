@@ -1,4 +1,9 @@
 <script setup lang="ts">
+
+const props = defineProps<{
+  title?: string | 'Confirmation',
+  description?: string | 'This action cannot be undone'
+}>()
 const emit = defineEmits<{ close: [boolean] }>()
 
 const close = (state: boolean) => {
@@ -7,7 +12,7 @@ const close = (state: boolean) => {
 </script>
 
 <template>
-  <UModal title="Confirmtion" description="This action cannot be undone">
+  <UModal :title="title" description="This action cannot be undone">
     <template #footer>
       <UButton @click="close(true)" label="Delete" color="error" />
       <UButton @click="close(false)" label="Cancel" color="neutral" />

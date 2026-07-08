@@ -5,6 +5,7 @@ using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application;
 using SIISMinimalAPI.Features.Auth.Logout;
+using SIISMinimalAPI.Features.Auth.User;
 using SIISMinimalAPI.Features.Endorsement;
 using SIISMinimalAPI.Features.Offices;
 using SIISMinimalAPI.Features.Ojt;
@@ -59,6 +60,7 @@ builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
 builder.Services.AddScoped<IOfficeService, OfficeHandler>();
 builder.Services.AddScoped<IOjtService, OjtHandler>();
+builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -77,6 +79,7 @@ app.MapToEndorsement();
 app.MapToOffice();
 app.MapToOjt();
 app.MapToAuth();
+app.MapToUser();
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 
 
