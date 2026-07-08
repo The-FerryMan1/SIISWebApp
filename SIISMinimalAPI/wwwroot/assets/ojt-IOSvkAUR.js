@@ -1,1 +1,0 @@
-import{lt as e}from"./vue.runtime.esm-bundler-DJqCEXys.js";import{t}from"./axios-BgSpWh8I.js";import{oo as n}from"./index-gccOB1QK.js";var r=n(`ojt`,()=>{let n=e([]);return{ojtInit:async()=>{try{let{data:e}=await t.get(`/ojt`);n.value=e}catch(e){console.log(e.message)}},ojts:n}});export{r as t};

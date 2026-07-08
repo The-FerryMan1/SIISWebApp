@@ -1,0 +1,1 @@
+import{lt as e}from"./vue.runtime.esm-bundler-DJqCEXys.js";import{t}from"./axios-BgSpWh8I.js";import{oo as n}from"./index-CzXMrYKD.js";var r=n(`applicaton`,()=>{let n=e([]),r=async()=>{await i()},i=async()=>{try{let{data:e}=await t.get(`/application`);n.value=e}catch(e){console.log(e)}};return{applications:n,applicationInit:r,getAllAsync:i}});export{r as t};

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAxios } from '../fetch/axios'
 import type { AxiosError } from 'axios'
+import { useRouter } from 'vue-router'
 
 
 interface User {
@@ -13,6 +14,7 @@ interface User {
 
 export const UseAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
+  const router = useRouter()
 
   //helper func for auth state
   const authenticate = (cred: User) => {
@@ -57,9 +59,11 @@ export const UseAuthStore = defineStore('auth', () => {
         isEmailVerified: data.isEmailVerified
       }
       authenticate(user)
+
     } catch (error) {
       unauthenticate()
       const errorMessage = error as AxiosError
+      router.push('/login')
       throw new Error(errorMessage.message)
     }
   }
