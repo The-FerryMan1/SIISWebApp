@@ -21,8 +21,6 @@ const officeStore = useOfficeStore()
 const ojtStore = useOJtStore()
 const applicationStore = useApplicationStore()
 
-const welcomeName = computed(() => auth.user?.split('@')[0] || 'Admin')
-
 const offices = computed(() => officeStore.offices ?? [])
 const ojts = computed(() => ojtStore.ojts ?? [])
 const applications = computed(() => applicationStore.applications ?? [])
@@ -208,18 +206,16 @@ onMounted(async () => {
     </div>
 
     <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-      <UCard title="Office participation">
-        <VChart :option="officeChartOption" autoresize style="height: 320px; width: 100%" />
-      </UCard>
-
       <UCard title="Application status">
         <VChart :option="applicationChartOption" autoresize style="height: 320px; width: 100%" />
       </UCard>
-    </div>
 
-    <UCard title="Application submissions trend">
+      <UCard title="Application submissions trend">
       <VChart :option="applicationTrendOption" autoresize style="height: 320px; width: 100%" />
     </UCard>
+    </div>
+
+    
 
     <UCard title="Recent OJT participants">
       <UTable :data="recentOjts" :columns="tableColumns" />
