@@ -14,7 +14,7 @@ public static class EndorsementEnpoint
 {
     public static IEndpointRouteBuilder MapToEndorsement(this IEndpointRouteBuilder app)
     {
-         var group = app.MapGroup("/endorsement")
+         var group = app.MapGroup("/api/endorsement")
         .WithTags("Endorsement")
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend");

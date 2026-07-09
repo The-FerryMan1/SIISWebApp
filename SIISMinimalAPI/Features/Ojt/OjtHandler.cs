@@ -8,6 +8,16 @@ namespace SIISMinimalAPI.Features.Ojt;
 public class OjtHandler(AppDbContext context) : IOjtService
 {
     private readonly AppDbContext _context = context;
+
+    public async Task DeleteOjt(Guid guid, CancellationToken ct)
+    {
+       var ojt = await _context.Students.FirstOrDefaultAsync(t => t.StudentUUID == guid, ct)
+       ?? throw new KeyNotFoundException("Student not found");
+
+       _context.Remove(ojt);
+       await _context.SaveChangesAsync(ct);
+    }
+
     public async Task<ICollection<OjtDto>>? GetAllOjtAsync(CancellationToken ct)
     {
         var ojts = await _context.Students
@@ -37,5 +47,26 @@ public class OjtHandler(AppDbContext context) : IOjtService
         }).ToList();
 
 
+    }
+
+    public async Task<GetOjtById.GetOjtById>? GetOjtById(Guid guid, CancellationToken ct)
+    {
+        var ojt = await _context.Students.Include(t => t.Office).FirstOrDefaultAsync(t => t.StudentUUID == guid, ct)
+        ?? throw new KeyNotFoundException("User not found");
+
+        return new GetOjtById.GetOjtById
+        {
+          StudentUUID = ojt.StudentUUID,
+          Address = ojt.Address,
+          ContactNumber = ojt.ContactNumber,
+          DateOfBirth = ojt.DateOfBirth,
+          Email = ojt.Email,
+          FirstName = ojt.FirstName,
+          Gender = ojt.Gender,
+          GradeLevel = ojt.GradeLevel,
+          LastName = ojt.LastName,
+          MiddleName = ojt.MiddleName,
+          Office = ojt.Office.Name
+        };
     }
 }

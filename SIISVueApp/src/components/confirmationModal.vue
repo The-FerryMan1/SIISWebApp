@@ -1,7 +1,6 @@
 <script setup lang="ts">
-
 const props = defineProps<{
-  title?: string | 'Confirmation',
+  title?: string | 'Confirmation'
   description?: string | 'This action cannot be undone'
 }>()
 const emit = defineEmits<{ close: [boolean] }>()

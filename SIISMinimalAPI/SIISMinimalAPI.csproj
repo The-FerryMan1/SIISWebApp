@@ -41,6 +41,7 @@
     <Folder Include="Features\Offices\UpdateOffice\" />
     <Folder Include="Features\Ojt\" />
     <Folder Include="Features\Ojt\GetAllOjt\" />
+    <Folder Include="Features\Ojt\GetOjtById\" />
   </ItemGroup>
  <ItemGroup>
     <Content Remove="wwwroot\**" />

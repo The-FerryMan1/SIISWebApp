@@ -142,11 +142,7 @@ const columns: TableColumn<Ojt>[] = [
           size: 'xs',
           variant: 'ghost',
           color: 'primary',
-          onClick: () =>
-            router.push({
-              name: 'application-details',
-              params: { uuid },
-            }),
+          onClick: () => viewActions(uuid),
         }),
         h(UButton, {
           icon: 'i-lucide-pen',
@@ -171,24 +167,8 @@ const columns: TableColumn<Ojt>[] = [
   },
 ]
 
-//row actions
-function getRowItems(row: Row<Ojt>) {
-  return [
-    {
-      type: 'label',
-      label: 'Actions',
-    },
-    {
-      label: 'View details',
-      onSelect() {},
-    },
-    {
-      type: 'separator',
-    },
-    {
-      label: 'Change office',
-    },
-  ]
+const viewActions = (uuid: string) => {
+  router.push({ name: 'ojt-details', params: { uuid: uuid } })
 }
 
 const getAge = (birthDate: string | Date): number => {
@@ -248,7 +228,6 @@ watch(pageSize, (size) => {
   pagination.value.pageSize = size
   pagination.value.pageIndex = 0 // reset to page 1
 })
-
 </script>
 
 <template>

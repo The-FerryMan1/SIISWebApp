@@ -51,21 +51,39 @@ const debounceSubmit = useDebounceFn(onSubmit, 1000)
 <template>
   <UPageSection>
     <template #header>
-      <UColorModeSwitch/>
+      <UColorModeSwitch />
     </template>
     <template #body>
       <UPageCard orientation="horizontal" :reverse="true" variant="outline">
-        <UAuthForm :schema :fields icon="i-lucide-lock" title="Login"
-          description="Enter your credentials to access your account." loading-auto @submit="debounceSubmit">
+        <UAuthForm
+          :schema
+          :fields
+          icon="i-lucide-lock"
+          title="Login"
+          description="Enter your credentials to access your account."
+          loading-auto
+          @submit="debounceSubmit"
+        >
         </UAuthForm>
-        <div class="w-full h-125 flex justify-center items-start relative">\
+        <div class="w-full h-125 flex justify-center items-start relative">
+          \
           <div class="absolute p-20">
-            <img src="../../assets/img/brand.png" alt="Illustration"
-              class="w-full rounded-lg object-contain size-35 z-1 " loading="lazy" />
-            <h1 class=" text-nowrap text-xl font-black p-5">Student Internship Information System</h1>
+            <img
+              src="../../assets/img/brand.png"
+              alt="Illustration"
+              class="w-full rounded-lg object-contain size-35 z-1"
+              loading="lazy"
+            />
+            <h1 class="text-nowrap text-xl font-black p-5">
+              Student Internship Information System
+            </h1>
           </div>
-          <img src="../../assets/img/cover-bg.png" alt="Illustration"
-            class="w-full rounded-lg object-cover h-full z-0 absolute" loading="lazy" />
+          <img
+            src="../../assets/img/cover-bg.png"
+            alt="Illustration"
+            class="w-full rounded-lg object-cover h-full z-0 absolute"
+            loading="lazy"
+          />
         </div>
       </UPageCard>
     </template>

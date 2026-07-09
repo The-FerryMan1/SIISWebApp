@@ -29,8 +29,12 @@ const totalOffices = computed(() => offices.value.length)
 const totalOjts = computed(() => ojts.value.length)
 const maleCount = computed(() => ojts.value.filter((ojt) => ojt.gender === 0).length)
 const femaleCount = computed(() => ojts.value.filter((ojt) => ojt.gender === 1).length)
-const pendingApplications = computed(() => applications.value.filter((app) => app.status === 'Pending').length)
-const approvedApplications = computed(() => applications.value.filter((app) => app.status === 'Approved').length)
+const pendingApplications = computed(
+  () => applications.value.filter((app) => app.status === 'Pending').length,
+)
+const approvedApplications = computed(
+  () => applications.value.filter((app) => app.status === 'Approved').length,
+)
 
 const officeChartData = computed(() => {
   return offices.value.map((office) => ({
@@ -166,18 +170,24 @@ const recentOjts = computed<RecentOjtRow[]>(() =>
 )
 
 onMounted(async () => {
-  await Promise.all([officeStore.officeInit(), ojtStore.ojtInit(), applicationStore.applicationInit()])
+  await Promise.all([
+    officeStore.officeInit(),
+    ojtStore.ojtInit(),
+    applicationStore.applicationInit(),
+  ])
 })
 </script>
 
 <template>
   <div class="space-y-6">
     <div class="px-1 py-2 my-10">
-    <div>
-      <h2 class="text-4xl font-black text-primary">Dashboard</h2>
-      <p class="text-muted text-sm"> Overview of office placements, participant demographics, and recent activity.</p>
+      <div>
+        <h2 class="text-4xl font-black text-primary">Dashboard</h2>
+        <p class="text-muted text-sm">
+          Overview of office placements, participant demographics, and recent activity.
+        </p>
+      </div>
     </div>
-  </div>
 
     <UPageGrid>
       <UPageCard title="Total Offices" icon="i-lucide-building" orientation="horizontal">
@@ -195,7 +205,11 @@ onMounted(async () => {
       <UPageCard title="Pending Applications" icon="i-lucide-clock-3" orientation="horizontal">
         <h2 class="text-3xl font-bold text-amber-500">{{ pendingApplications }}</h2>
       </UPageCard>
-      <UPageCard title="Approved Applications" icon="i-lucide-circle-check" orientation="horizontal">
+      <UPageCard
+        title="Approved Applications"
+        icon="i-lucide-circle-check"
+        orientation="horizontal"
+      >
         <h2 class="text-3xl font-bold text-emerald-500">{{ approvedApplications }}</h2>
       </UPageCard>
     </UPageGrid>
@@ -211,11 +225,9 @@ onMounted(async () => {
       </UCard>
 
       <UCard title="Application submissions trend">
-      <VChart :option="applicationTrendOption" autoresize style="height: 320px; width: 100%" />
-    </UCard>
+        <VChart :option="applicationTrendOption" autoresize style="height: 320px; width: 100%" />
+      </UCard>
     </div>
-
-    
 
     <UCard title="Recent OJT participants">
       <UTable :data="recentOjts" :columns="tableColumns" />

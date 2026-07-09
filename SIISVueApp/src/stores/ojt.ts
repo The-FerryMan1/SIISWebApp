@@ -18,8 +18,23 @@ export interface Ojt {
   startDate: string
 }
 
+export interface OjtDetails {
+  studentUUID: string
+  email: string
+  lastName: string
+  firstName: string
+  middleName: string
+  contactNumber: string
+  address: string
+  office: number
+  dateOfBirth: string
+  gender: number
+  gradeLevel: number
+}
+
 export const useOJtStore = defineStore('ojt', () => {
   const ojts = ref<Ojt[]>([])
+  const ojtDetails = ref<OjtDetails | null>(null)
 
   const ojtInit = async () => {
     try {
@@ -31,8 +46,30 @@ export const useOJtStore = defineStore('ojt', () => {
     }
   }
 
+  const ojtDetailsInit = async (uuid: string) => {
+    try {
+      const { data } = await useAxios.get('ojt/' + uuid)
+      ojtDetails.value = data
+    } catch (error) {
+      const err = error as AxiosError
+      console.log(err.message)
+    }
+  }
+
+  const deleteRequest = async (uuid: string) =>{
+    try {
+      await useAxios.delete('ojt/' + uuid)
+    } catch (error) {
+      const err = error as AxiosError
+      console.log(err.message)
+    }
+  }
+
   return {
     ojtInit,
     ojts,
+    ojtDetailsInit,
+    ojtDetails,
+    deleteRequest
   }
 })

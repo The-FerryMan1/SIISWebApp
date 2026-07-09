@@ -14,9 +14,9 @@ const items = computed<DropdownMenuItem[]>(() => [
   {
     label: 'Profile',
     icon: 'i-lucide-user-pen',
-    onSelect: ()=>{
+    onSelect: () => {
       router.push('/profile')
-    }
+    },
   },
   {
     label: 'Logout',

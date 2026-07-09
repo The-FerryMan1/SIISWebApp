@@ -4,11 +4,10 @@ import { useAxios } from '../fetch/axios'
 import type { AxiosError } from 'axios'
 import { useRouter } from 'vue-router'
 
-
 interface User {
-  userId: string,
-  email: string,
-  username: string,
+  userId: string
+  email: string
+  username: string
   isEmailVerified: boolean
 }
 
@@ -34,11 +33,15 @@ export const UseAuthStore = defineStore('auth', () => {
   //login
   const useLogin = async (credential: { username: string; password: string }) => {
     try {
-      const { data } = await useAxios.post('/login', {email: credential.username, password: credential.password }, {
-        params: {
-          useCookies: true,
+      const { data } = await useAxios.post(
+        '/login',
+        { email: credential.username, password: credential.password },
+        {
+          params: {
+            useCookies: true,
+          },
         },
-      })
+      )
       await useVerify()
     } catch (error) {
       unauthenticate()
@@ -52,11 +55,11 @@ export const UseAuthStore = defineStore('auth', () => {
     try {
       const { data } = await useAxios.get('user')
 
-      const user:User = {
+      const user: User = {
         userId: data.userId,
         email: data.email,
         username: data.username,
-        isEmailVerified: data.isEmailVerified
+        isEmailVerified: data.isEmailVerified,
       }
       authenticate(user)
     } catch (error) {

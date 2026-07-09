@@ -9,7 +9,7 @@ public static class UserEndpoint
     public static IEndpointRouteBuilder MapToUser(this IEndpointRouteBuilder app)
     {
 
-        var group = app.MapGroup("/user")
+        var group = app.MapGroup("/api/user")
         .WithTags("User")
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend")

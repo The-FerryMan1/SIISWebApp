@@ -28,12 +28,12 @@ const items = computed<NavigationMenuItem[]>(() => [
     active: route.name == 'ojt',
     to: { name: 'ojt' },
   },
-  {
-    label: 'Endorsement',
-    icon: 'i-lucide-file',
-    active: route.name == 'endorsement',
-    to: { name: 'endorsement' },
-  },
+  // {
+  //   label: 'Endorsement',
+  //   icon: 'i-lucide-file',
+  //   active: route.name == 'endorsement',
+  //   to: { name: 'endorsement' },
+  // },
   {
     label: 'Offices',
     icon: 'i-lucide-building',

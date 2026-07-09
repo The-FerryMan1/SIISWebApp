@@ -98,14 +98,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
-
-app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
-app.UseDefaultFiles();
-app.UseStaticFiles();
 app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();

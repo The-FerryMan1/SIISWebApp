@@ -9,7 +9,7 @@ public static class LogoutEndpoint
 {
     public static IEndpointRouteBuilder MapToAuth(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/auth")
+        var group = app.MapGroup("/api/auth")
         .WithTags("Auth")
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend")

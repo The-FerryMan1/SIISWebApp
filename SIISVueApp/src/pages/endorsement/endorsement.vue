@@ -24,7 +24,7 @@ const UCheckbox = resolveComponent('UCheckbox')
 const selectedOffice = ref<Partial<OfficeSchema>>({
   office: undefined,
 })
-const selectedUniv = ref<string>();
+const selectedUniv = ref<string>()
 const selectedRow = ref()
 const table = useTemplateRef('table')
 const payload = ref<Partial<Payload>>({
@@ -37,7 +37,7 @@ watch(
   async () => {
     try {
       await ojt.ojtInit()
-    } catch (error) { }
+    } catch (error) {}
   },
   { immediate: true },
 )
@@ -201,8 +201,10 @@ const generate = async () => {
   console.log(payload.value)
 }
 
-const univ = computed(() => officeFilter.value.map(t => t.universitySchool))
-const doubleFilter = computed(() => ojts.value.filter(t => t.universitySchool == selectedUniv.value))
+const univ = computed(() => officeFilter.value.map((t) => t.universitySchool))
+const doubleFilter = computed(() =>
+  ojts.value.filter((t) => t.universitySchool == selectedUniv.value),
+)
 
 watch(officeFilter, () => {
   selectedUniv.value = undefined
@@ -221,22 +223,29 @@ watch(officeFilter, () => {
         <p class="text-muted text-sm">Multiple/Bulk endorsement letter generation</p>
       </div>
     </div>
-    <UPageCard >
+    <UPageCard>
       <template #header>
-        <div class="flex gap-4 items-end w-125 ">
+        <div class="flex gap-4 items-end w-125">
           <UFormField name="selected.office" label="Select Office" required class="w-full">
-
-            <USelect icon="i-lucide-building" v-model="selectedOffice.office" placeholder="Select office"
-              :items="OfficesArray" class="w-full" />
-
+            <USelect
+              icon="i-lucide-building"
+              v-model="selectedOffice.office"
+              placeholder="Select office"
+              :items="OfficesArray"
+              class="w-full"
+            />
           </UFormField>
           <UFormField v-if="selectedOffice.office != undefined" label="Select School" required>
-            <USelect v-model="selectedUniv" icon="i-lucide-building" placeholder="Select School" :items="univ"
-              class="w-full" />
+            <USelect
+              v-model="selectedUniv"
+              icon="i-lucide-building"
+              placeholder="Select School"
+              :items="univ"
+              class="w-full"
+            />
           </UFormField>
-            <UButton @click="generate" label="Generate selected rows" />
+          <UButton @click="generate" label="Generate selected rows" />
         </div>
-      
       </template>
       <UTable ref="table" v-model:row-selection="selectedRow" :data="doubleFilter ?? []" :columns />
     </UPageCard>

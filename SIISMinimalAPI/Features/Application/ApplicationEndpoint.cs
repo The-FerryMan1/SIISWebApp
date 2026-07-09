@@ -12,7 +12,7 @@ public static class  ApplicationEndpoint
     public static IEndpointRouteBuilder MapToApplication(this IEndpointRouteBuilder app)
     {
 
-        var group = app.MapGroup("/application")
+        var group = app.MapGroup("/api/application")
         .WithTags("Application")
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend")

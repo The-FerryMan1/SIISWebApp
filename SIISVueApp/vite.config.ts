@@ -19,7 +19,6 @@ export default defineConfig({
     }),
     vueDevTools(),
   ],
-  
   base: '/',
   resolve: {
     alias: {

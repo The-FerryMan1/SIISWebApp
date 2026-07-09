@@ -10,7 +10,7 @@ public static class OfficeEndpoint
 {
     public static IEndpointRouteBuilder MapToOffice(this IEndpointRouteBuilder app)
     {   
-        var group = app.MapGroup("/office")
+        var group = app.MapGroup("/api/office")
         .WithTags("Office")
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend")

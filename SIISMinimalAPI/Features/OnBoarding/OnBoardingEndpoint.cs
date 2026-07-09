@@ -10,7 +10,7 @@ public static class OnBoardingEndpoint
 {
     public static IEndpointRouteBuilder MapOnBoardingEnpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/onboading")
+        var group = app.MapGroup("/api/onboading")
         .WithTags("OnBoarding")
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend");

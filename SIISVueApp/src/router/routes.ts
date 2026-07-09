@@ -68,12 +68,18 @@ export const routes: RouteRecordRaw[] = [
         meta: { isRequiresAuth: true },
       },
       {
+        path: '/ojt/:uuid',
+        component: () => import('../pages/ojt/ojtview/ojtview.vue'),
+        name: 'ojt-details',
+        meta: { isRequiresAuth: true },
+      },
+      {
         path: '/endorsement',
         component: () => import('../pages/endorsement/endorsement.vue'),
         name: 'endorsement',
         meta: { isRequiresAuth: true },
       },
-       {
+      {
         path: '/profile',
         component: () => import('../pages/user/profile.vue'),
         name: 'profile',
@@ -81,5 +87,9 @@ export const routes: RouteRecordRaw[] = [
       },
     ],
   },
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: ()=> import('../pages/notFound/notfound.vue') },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../pages/notFound/notfound.vue'),
+  },
 ]
