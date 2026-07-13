@@ -37,7 +37,7 @@ type Schema = z.infer<typeof schema>
 
 const onSubmit = async (paylaod: FormSubmitEvent<Schema>) => {
   try {
-    await auth.useLogin(paylaod.data)
+    await auth. (paylaod.data)
     toast.add({ description: 'You logged in successfully', color: 'success' })
     router.push({ name: 'dashboard' })
   } catch (error) {
