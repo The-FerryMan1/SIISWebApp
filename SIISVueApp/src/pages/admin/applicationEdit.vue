@@ -7,12 +7,13 @@ import { useAxios } from '../../fetch/axios'
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
-
+const onaboard = useOnBoardStore()
 import { CalendarDate } from '@internationalized/date'
 import { useDebounceFn } from '@vueuse/core'
 import { OfficeNameLabels, OfficesArray } from './types/officeSelectValue'
 import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './types/applicationUpdateValidator'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import { useOnBoardStore } from '../../stores/onaboard'
 
 const loading = ref<boolean>(false)
 const error = ref()
@@ -21,7 +22,9 @@ const details = ref<ApplicationGetByIdResponse | null>(null)
 const form = useTemplateRef('form')
 
 const state = ref<Partial<OnBoardUpdateDto>>()
-
+const editState = computed(()=>{
+  
+})
 watch(
   () => route.params.uuid,
   async () => {

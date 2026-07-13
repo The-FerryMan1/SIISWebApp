@@ -10,6 +10,5 @@ public interface IApplicationService
     Task<ApplicationGetByIdDto> GetByIdAsync(Guid uuid, CancellationToken ct);
     Task AssignAndApprove(Guid uuid, RequestDto requestDto, CancellationToken ct);
     Task Trash(Guid uuid, CancellationToken ct);
-
     Task DeleteAsync(Guid uuid, CancellationToken ct);
 }

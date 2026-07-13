@@ -12,15 +12,14 @@ public static class LogoutEndpoint
         var group = app.MapGroup("/api/auth")
         .WithTags("Auth")
         .RequireRateLimiting("standard")
-        .RequireCors("AllowFrontend")
-        .RequireAuthorization("Admin");
+        .RequireCors("AllowFrontend");
 
 
-        app.MapPost("/logout", [Authorize(Roles = "Admin")] async (HttpContext context) =>
+        app.MapPost("/logout", [Authorize] async (HttpContext context) =>
         {
             await context.SignOutAsync(IdentityConstants.ApplicationScheme);
             return Results.Ok();
-        }).RequireAuthorization("Admin");
+        });
 
         return app;
     }

@@ -5,6 +5,7 @@ import { UseAuthStore } from '../stores/auth'
 import { useAxios } from '../fetch/axios'
 import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
+import axios from 'axios'
 
 const auth = UseAuthStore()
 const toast = useToast()
@@ -29,7 +30,7 @@ const items = computed<DropdownMenuItem[]>(() => [
 
 const deboundLogout = useDebounceFn(async () => {
   try {
-    await useAxios.post('/logout')
+    await axios.post('/logout')
     toast.add({ title: 'You logged out successfully', color: 'primary' })
     router.push({ name: 'login' })
   } catch (error) {

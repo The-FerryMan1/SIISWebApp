@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useAxios } from '../fetch/axios'
 import type { AxiosError } from 'axios'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 interface User {
   userId: string
@@ -33,7 +34,7 @@ export const UseAuthStore = defineStore('auth', () => {
   //login
   const useLogin = async (credential: { username: string; password: string }) => {
     try {
-      const { data } = await useAxios.post(
+      const { data } = await axios.post(
         '/login',
         { email: credential.username, password: credential.password },
         {

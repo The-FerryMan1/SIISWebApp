@@ -23,7 +23,7 @@ public class OnBoardUpdateDtoValidator : AbstractValidator<OnBoardUpdateDto>
             .SetValidator(new RequirementsUpdateDtoValidator());
 
         RuleFor(x => x.Office)
-            .NotNull()
+            .Null()
             .SetValidator(new OfficeUpdateDtoValidator());
     }
 }
