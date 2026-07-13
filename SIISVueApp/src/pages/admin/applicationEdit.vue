@@ -406,7 +406,14 @@ watch(fileUploaded, (value)=>{
               {{ getRequirementName(requirements) }}
             </p>
 
-            <UButton icon="i-lucide-download" size="sm" variant="ghost" />
+            <UButton
+              v-if="requirements.id"
+              icon="i-lucide-download"
+              size="sm"
+              variant="ghost"
+              :href="'/api/application/requirements/download/' + requirements.id"
+              target="_blank"
+            />
           </div>
 
           <UFileUpload v-model="fileUploaded" multiple  label="Drop your files here" class="min-h-48" />

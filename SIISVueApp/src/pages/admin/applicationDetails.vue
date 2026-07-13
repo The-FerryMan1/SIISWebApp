@@ -117,14 +117,14 @@ const requirementColumns: TableColumn<any>[] = [
     accessorKey: 'filePath',
     header: 'Action',
     cell: ({ row }) => {
-      const path = row.getValue('filePath') as string
+      const id = row.original.id
       return h(resolveComponent('UButton'), {
         size: 'xs',
         variant: 'ghost',
         color: 'primary',
         icon: 'i-lucide-download',
         label: 'Download',
-        to: path,
+        href: '/api/application/requirements/download/' + id,
         target: '_blank',
       })
     },

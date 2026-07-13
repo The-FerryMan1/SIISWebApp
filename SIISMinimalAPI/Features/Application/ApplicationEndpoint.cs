@@ -3,6 +3,7 @@ using System.Reflection.Metadata.Ecma335;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application.AssignAndApprove;
 
 namespace SIISMinimalAPI.Features.Application;
@@ -111,6 +112,23 @@ public static class  ApplicationEndpoint
                  return TypedResults.InternalServerError(ex.Message);
             }
         });
+
+        group.MapGet("/requirements/download/{id:long}", [Authorize(Roles = "Admin")] async Task<IResult> (long id, AppDbContext context) =>
+        {
+            var requirement = await context.Requirements.FindAsync(id);
+            if (requirement is null || requirement.IsDeleted)
+            {
+                return Results.NotFound("Requirement not found");
+            }
+
+            if (!System.IO.File.Exists(requirement.FilePath))
+            {
+                return Results.NotFound("File not found on server");
+            }
+
+            return Results.File(requirement.FilePath, requirement.FileType, requirement.FileName);
+        }).RequireAuthorization("Admin");
+
         return app;
     }
 }
