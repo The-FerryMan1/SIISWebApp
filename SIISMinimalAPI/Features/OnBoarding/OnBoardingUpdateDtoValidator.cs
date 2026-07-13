@@ -208,8 +208,10 @@ public class RequirementsUpdateDtoValidator : AbstractValidator<RequirementsUpda
 
     private static bool BeAllowedFileType(string fileType)
     {
+        if (string.IsNullOrEmpty(fileType)) return false;
+        var lower = fileType.ToLower();
         var allowed = new[] { "application/pdf", "applicaton/doc", "applicaton/docx", "applicaton/jpg", "applicaton/jpeg", "applicaton/png" };
-        return allowed.Contains(fileType.ToLower());
+        return allowed.Contains(lower) || lower.StartsWith("image/") || lower.StartsWith("application/");
     }
 }
 

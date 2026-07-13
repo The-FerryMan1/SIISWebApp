@@ -105,6 +105,9 @@ const save = () => {
 
 const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
 
+const getRequirementName = (req: any): string => {
+  return req.fileName || req.name || ''
+}
 
 watch(fileUploaded, (value)=>{
   bstate.value.requirements.push(...value)
@@ -400,7 +403,7 @@ watch(fileUploaded, (value)=>{
           >
             <UIcon name="i-lucide-file" />
             <p class="italic">
-              {{ requirements.fileName }}
+              {{ getRequirementName(requirements) }}
             </p>
 
             <UButton icon="i-lucide-download" size="sm" variant="ghost" />

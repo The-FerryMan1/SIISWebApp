@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.Data.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -152,6 +152,28 @@ namespace SIISMinimalAPI.Features.OnBoarding
                             FileType = reqDto.FileType,
                         });
                     }
+                }
+            }
+
+            // Save new uploaded files
+            if (dto.Files is not null && dto.Files.Count > 0)
+            {
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", exists.LastName);
+                Directory.CreateDirectory(uploadsPath);
+
+                foreach (var file in dto.Files)
+                {
+                    var filePath = Path.Combine(uploadsPath, file.FileName);
+                    await using var stream = File.Create(filePath);
+                    await file.CopyToAsync(stream, ct);
+
+                    exists.Requirements.Add(new Shared.Models.RequirementModel
+                    {
+                        FileName = file.FileName,
+                        FilePath = filePath,
+                        FileType = file.ContentType,
+                        CreateAt = DateTime.Now
+                    });
                 }
             }
 

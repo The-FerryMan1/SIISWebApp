@@ -34,7 +34,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
       internshipTotalHours: 0,
       startDate: '',
     },
-    requirements: [] as File[], // ✅ Use this for files, remove separate `files`
+    requirements: [] as any[], // ✅ Use this for files, remove separate `files`
   })
 
   const toDataForm = (): FormData => {
@@ -73,11 +73,26 @@ export const useOnBoardStore = defineStore('onboard', () => {
     )
     formData.append('internship.startDate', state.value.internship.startDate?.toString() ?? '')
 
-    // --- Files ---
+    // --- Requirements (Existing) ---
+    let reqIndex = 0
+    if (state.value.requirements && state.value.requirements.length > 0) {
+      state.value.requirements.forEach((req: any) => {
+        if (!(req instanceof File)) {
+          formData.append(`requirements[${reqIndex}].fileName`, req.fileName || '')
+          formData.append(`requirements[${reqIndex}].filePath`, req.filePath || '')
+          formData.append(`requirements[${reqIndex}].fileType`, req.fileType || '')
+          reqIndex++
+        }
+      })
+    }
+
+    // --- Files (New) ---
     // Use the DTO property name so the backend can bind the uploaded files correctly.
     if (state.value.requirements && state.value.requirements.length > 0) {
       state.value.requirements.forEach((file) => {
-        formData.append('files', file)
+        if (file instanceof File) {
+          formData.append('files', file)
+        }
       })
     }
 
@@ -131,7 +146,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
         internshipTotalHours: 0,
         startDate: '',
       },
-      requirements: [] as File[], // ✅ Use this for files, remove separate `files`
+      requirements: [] as any[], // ✅ Use this for files, remove separate `files`
     }
 
     errorMessage.value = null
