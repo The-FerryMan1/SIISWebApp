@@ -1,5 +1,21 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@theme static {
+  --color-brand-50: #eef2fb;
+  --color-brand-100: #dce5f7;
+  --color-brand-200: #b3c5ec;
+  --color-brand-300: #87a4e0;
+  --color-brand-400: #5981d0;
+  --color-brand-500: #2f5cba;
+  --color-brand-600: #1c4499;
+  --color-brand-700: #15357c;
+  --color-brand-800: #102e6c;
+  --color-brand-900: #0c2455;
+  --color-brand-950: #071638;
+}
+
+
 html,
 body {
   height: 100%;

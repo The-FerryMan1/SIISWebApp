@@ -15,7 +15,7 @@ public static class OnBoardingEndpoint
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend");
 
-        group.MapPost("/", async Task<IResult> ([FromForm]OnBoardingDto dto, CancellationToken ct, IOnBoadringService service) =>
+        group.MapPost("/", async Task<IResult> ([FromForm] OnBoardingDto dto, CancellationToken ct, IOnBoadringService service) =>
         {
             if (dto.Student is null || dto.School is null || dto.Internship is null)
             {
@@ -65,7 +65,7 @@ public static class OnBoardingEndpoint
 
         group.MapPut("/details/{uuid}", async Task<IResult> (
     Guid uuid,
-    OnBoardUpdateDto dto,
+    [FromForm] OnBoardUpdateDto dto,
     CancellationToken ct,
     IOnBoadringService service) =>
 {
@@ -99,6 +99,7 @@ public static class OnBoardingEndpoint
 })
 .WithName("UpdateOnBoarding")
 .ProducesValidationProblem()
+ .DisableAntiforgery()
 .RequireAuthorization();
 
         return app;

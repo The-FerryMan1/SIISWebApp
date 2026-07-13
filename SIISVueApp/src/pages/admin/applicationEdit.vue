@@ -14,17 +14,21 @@ import { OfficeNameLabels, OfficesArray } from './types/officeSelectValue'
 import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './types/applicationUpdateValidator'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useOnBoardStore } from '../../stores/onaboard'
+import { storeToRefs } from 'pinia'
+import axios from 'axios'
+const onboard = useOnBoardStore()
+const {state:bstate} = storeToRefs(onboard)
 
 const loading = ref<boolean>(false)
 const error = ref()
 const open = ref<boolean>(false)
 const details = ref<ApplicationGetByIdResponse | null>(null)
 const form = useTemplateRef('form')
+const fileUploaded = ref<File[]>([])
+
 
 const state = ref<Partial<OnBoardUpdateDto>>()
-const editState = computed(()=>{
-  
-})
+
 watch(
   () => route.params.uuid,
   async () => {
@@ -41,6 +45,10 @@ watch(
   },
   { immediate: true, once: true },
 )
+
+watch(details, (value)=>{
+  bstate.value = value as any
+})
 
 function goBack() {
   router.back()
@@ -72,10 +80,14 @@ watch(
 )
 
 const onSubmit = async () => {
+
   try {
     loading.value = true
-    console.log(loading.value)
-    await useAxios.put('/onboading/details/' + route.params.uuid, details.value)
+    await axios.put('/api/onboading/details/' + route.params.uuid, onboard.toDataForm(), {
+       headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+    })
     toast.add({ title: 'Application updated successfully', color: 'success' })
   } catch (error) {
     console.log(error)
@@ -92,6 +104,11 @@ const save = () => {
 }
 
 const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
+
+
+watch(fileUploaded, (value)=>{
+  bstate.value.requirements.push(...value)
+})
 </script>
 
 <template>
@@ -389,7 +406,7 @@ const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
             <UButton icon="i-lucide-download" size="sm" variant="ghost" />
           </div>
 
-          <UFileUpload label="Drop your files here" class="min-h-48" />
+          <UFileUpload v-model="fileUploaded" multiple  label="Drop your files here" class="min-h-48" />
         </UPageList>
       </UPageCard>
 

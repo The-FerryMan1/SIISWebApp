@@ -10,6 +10,7 @@ public class OnBoardUpdateDto
     public InternshipUpdateDto? Internship { get; set; }
     public ICollection<RequirementsUpdateDto>? Requirements { get; set; }
     public OfficeUpdateDto? Office { get; set; }
+     public IFormFileCollection? Files { get; set; }
 }
 
 

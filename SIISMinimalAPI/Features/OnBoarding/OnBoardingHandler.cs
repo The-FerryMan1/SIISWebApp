@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Data.Common;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
 
@@ -71,19 +72,22 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 ?? throw new KeyNotFoundException("Application not found");
 
             // Student
-            exists.FirstName = dto.Student.FirstName;
-            exists.LastName = dto.Student.LastName;
-            exists.MiddleName = dto.Student.MiddleName;
-            exists.Email = dto.Student.Email;
-            exists.ContactNumber = dto.Student.ContactNumber;
-            exists.Address = dto.Student.Address;
-            exists.DateOfBirth = dto.Student.DateOfBirth;
-            exists.Gender = dto.Student.Gender;
-            exists.GradeLevel = dto.Student.GradeLevel;
-            exists.UpdatedAt = DateTime.UtcNow;
+            if (dto.Student is not null)
+            {
+                exists.FirstName = dto.Student.FirstName;
+                exists.LastName = dto.Student.LastName;
+                exists.MiddleName = dto.Student.MiddleName;
+                exists.Email = dto.Student.Email;
+                exists.ContactNumber = dto.Student.ContactNumber;
+                exists.Address = dto.Student.Address;
+                exists.DateOfBirth = dto.Student.DateOfBirth;
+                exists.Gender = dto.Student.Gender;
+                exists.GradeLevel = dto.Student.GradeLevel;
+                exists.UpdatedAt = DateTime.UtcNow;
+            }
 
             // School
-            if (exists.School != null)
+            if (dto.School is not null && exists.School is not null)
             {
                 exists.School.Name = dto.School.Name;
                 exists.School.Address = dto.School.Address;
@@ -94,7 +98,7 @@ namespace SIISMinimalAPI.Features.OnBoarding
             }
 
             // Internship
-            if (exists.Internship != null)
+            if (dto.Internship is not null && exists.Internship is not null)
             {
                 exists.Internship.InternshipNature = dto.Internship.InternshipNature;
                 exists.Internship.Strand = dto.Internship.Strand;
@@ -105,10 +109,52 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 exists.Internship.UpdatedAt = DateTime.UtcNow;
             }
 
-            if (exists.Requirements != null)
+            // Office (optional reassignment)
+            if (dto.Office is not null && exists.Office is not null)
             {
-
+                exists.Office.Name = dto.Office.Name;
             }
+
+            // Requirements sync (add / update / remove by FilePath)
+            if (dto.Requirements is not null)
+            {
+                var incomingPaths = dto.Requirements
+                    .Where(r => r.FilePath is not null)
+                    .Select(r => r.FilePath)
+                    .ToHashSet();
+
+                var toRemove = exists.Requirements
+                    .Where(r => !incomingPaths.Contains(r.FilePath))
+                    .ToList();
+
+                foreach (var requirement in toRemove)
+                {
+                    exists.Requirements.Remove(requirement);
+                    _context.Requirements.Remove(requirement); // adjust DbSet name if different
+                }
+
+                foreach (var reqDto in dto.Requirements)
+                {
+                    var match = exists.Requirements
+                        .FirstOrDefault(r => r.FilePath == reqDto.FilePath);
+
+                    if (match is not null)
+                    {
+                        match.FileName = reqDto.FileName;
+                        match.FileType = reqDto.FileType;
+                    }
+                    else
+                    {
+                        exists.Requirements.Add(new Shared.Models.RequirementModel // adjust entity type name
+                        {
+                            FileName = reqDto.FileName,
+                            FilePath = reqDto.FilePath,
+                            FileType = reqDto.FileType,
+                        });
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync(ct);
         }
     }
