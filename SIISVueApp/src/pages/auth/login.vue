@@ -18,6 +18,7 @@ const fields: AuthFormField[] = [
     label: 'Username',
     placeholder: 'Enter your username',
     required: true,
+    variant: 'outline'
   },
   {
     name: 'password',
@@ -25,6 +26,7 @@ const fields: AuthFormField[] = [
     label: 'Password',
     placeholder: 'Enter your password',
     required: true,
+    variant: 'outline'
   },
 ]
 
@@ -37,7 +39,7 @@ type Schema = z.infer<typeof schema>
 
 const onSubmit = async (paylaod: FormSubmitEvent<Schema>) => {
   try {
-    await auth. (paylaod.data)
+    await auth.useLogin(paylaod.data)
     toast.add({ description: 'You logged in successfully', color: 'success' })
     router.push({ name: 'dashboard' })
   } catch (error) {
@@ -49,24 +51,40 @@ const debounceSubmit = useDebounceFn(onSubmit, 1000)
 </script>
 
 <template>
-  <UPageSection>
-    <template #header>
-      <UColorModeSwitch />
-    </template>
-    <template #body>
-      <UPageCard orientation="horizontal" :reverse="true" variant="outline">
-        <UAuthForm
-          :schema
-          :fields
-          icon="i-lucide-lock"
-          title="Login"
-          description="Enter your credentials to access your account."
-          loading-auto
-          @submit="debounceSubmit"
+  <UMain class="bg-[url('/images/cover-bg.png')] bg-cover bg-center min-h-screen flex flex-col items-center justify-center">
+    <UPageCard orientation="vertical" :reverse="true" variant="outline" class="w-full max-w-md p-2">
+      <UAuthForm
+        :schema
+        :fields
+        icon="i-lucide-lock"
+        title="Login"
+        description="Enter your credentials to access your account."
+        loading-auto
+        @submit="debounceSubmit"
+      >
+        <template #header>
+          <div class="flex flex-col items-center gap-4 pb-4 text-center">
+            <img
+              src="../../assets/img/brand.png"
+              alt="Illustration"
+              class="h-24 w-auto object-contain"
+              loading="lazy"
+            />
+            <h1 class="text-xl font-black">Student Internship Information System</h1>
+          </div>
+        </template>
+      </UAuthForm>
+    </UPageCard>
+  </UMain>
+
+  <!-- <div
+          class="w-full h-125 flex justify-center items-start relative"
+          :style="{
+            backgroundImage: 'url(../../assets/img/cover-bg.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }"
         >
-        </UAuthForm>
-        <div class="w-full h-125 flex justify-center items-start relative">
-          \
           <div class="absolute p-20">
             <img
               src="../../assets/img/brand.png"
@@ -78,14 +96,5 @@ const debounceSubmit = useDebounceFn(onSubmit, 1000)
               Student Internship Information System
             </h1>
           </div>
-          <img
-            src="../../assets/img/cover-bg.png"
-            alt="Illustration"
-            class="w-full rounded-lg object-cover h-full z-0 absolute"
-            loading="lazy"
-          />
-        </div>
-      </UPageCard>
-    </template>
-  </UPageSection>
+        </div> -->
 </template>
