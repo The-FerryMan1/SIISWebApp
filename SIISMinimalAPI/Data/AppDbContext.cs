@@ -13,6 +13,7 @@ namespace SIISMinimalAPI.Data
         public DbSet<RequirementModel> Requirements { get; set; }
         public DbSet<ApplicationModel> Applications { get; set; }
         public DbSet<OfficeModel> Offices { get; set; }
+        public DbSet<RegistrationTokenModel> RegistrationTokens { get; set; }
         // DbSet<LogsModel> Logs {get; set;}
 
 
@@ -86,6 +87,12 @@ namespace SIISMinimalAPI.Data
             builder.Entity<ApplicationModel>(req =>
             {
                 req.HasQueryFilter(r => !r.IsDeleted);
+            });
+
+            //registrationtoken
+            builder.Entity<RegistrationTokenModel>(req =>
+            {
+                req.HasIndex(r => r.Token); 
             });
 
 

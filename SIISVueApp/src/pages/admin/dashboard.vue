@@ -190,7 +190,7 @@ onMounted(async () => {
     </div>
 
     <UPageGrid>
-      <UPageCard title="Total Offices" icon="i-lucide-building" orientation="horizontal">
+      <UPageCard title="Total Offices"  icon="i-lucide-building" orientation="horizontal">
         <h2 class="text-3xl font-bold text-primary">{{ totalOffices }}</h2>
       </UPageCard>
       <UPageCard title="Total OJTs" icon="i-lucide-users" orientation="horizontal">

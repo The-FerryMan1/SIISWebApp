@@ -99,10 +99,10 @@ export const useOnBoardStore = defineStore('onboard', () => {
     return formData
   }
 
-  const onSubmit = async (event: FormSubmitEvent<OnBoardUpdateDto>) => {
+  const onSubmit = async (event: FormSubmitEvent<OnBoardUpdateDto>, token: string) => {
     try {
       const formData = toDataForm()
-      await useAxios.post('/onboading', formData, {
+      await useAxios.post('/onboading/' + token, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

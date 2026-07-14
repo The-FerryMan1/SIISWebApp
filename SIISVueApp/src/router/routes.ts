@@ -11,7 +11,7 @@ export const routes: RouteRecordRaw[] = [
         name: 'login',
       },
       {
-        path: 'registration',
+        path: 'registration/:token',
         component: () => import('../pages/onBoarding/onBoarding.vue'),
         name: 'registration',
       },

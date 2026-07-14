@@ -5,6 +5,9 @@ import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './validator/onboa
 import { useOnBoardStore } from '../../stores/onaboard'
 import { storeToRefs } from 'pinia'
 import { useDebounceFn } from '@vueuse/core'
+import { useRoute } from 'vue-router'
+import { useAxios } from '../../fetch/axios'
+import PageExpired from '../../components/pageExpired.vue'
 
 const toast = useToast()
 const onaboard = useOnBoardStore()
@@ -14,6 +17,8 @@ const uploadedReq = ref<File[]>([])
 const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const form = useTemplateRef('form')
+const route = useRoute();
+const isTokenValid = ref<boolean>(false)
 
 // Store the validated payload from form submit
 const reviewPayload = ref<FormSubmitEvent<OnBoardUpdateDto> | null>(null)
@@ -31,6 +36,15 @@ const estimatedEndDate = computed(() => {
   end.setDate(start.getDate() + totalDays)
   return end.toISOString().split('T')[0]
 })
+
+watch(()=>route.params.token, async(value)=>{
+    try{
+      await useAxios.get('/registrationtoken/verify/' + value)
+      isTokenValid.value = true
+    }catch(e){
+      isTokenValid.value = false
+    }
+}, {immediate: true})
 
 const genderItems = [
   { value: 0, label: 'Male' },
@@ -118,7 +132,7 @@ const onConfirm = useDebounceFn(async () => {
 
   try {
     isSubmitting.value = true
-    await onaboard.onSubmit(reviewPayload.value)
+    await onaboard.onSubmit(reviewPayload.value, route.params.token as string)
     isOpen.value = false
     isSuccess.value = true
 
@@ -151,7 +165,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
 </script>
 
 <template>
-  <UPage class="p-5">
+  <UPage v-if="isTokenValid" class="p-5">
     <UContainer class="flex flex-col items-center my-10">
       <!-- Header -->
       <div class="flex flex-col text-center justify-center items-center p-3 my-3 gap-2">
@@ -501,4 +515,6 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
       </UModal>
     </UContainer>
   </UPage>
+
+  <PageExpired v-else/>
 </template>

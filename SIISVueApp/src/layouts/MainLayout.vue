@@ -3,6 +3,7 @@ import { RouterView } from 'vue-router'
 import AdminNavbar from '../components/adminNavbar.vue'
 import { UseAuthStore } from '../stores/auth.ts'
 import Logo from '../components/logo.vue'
+import Clocker from '../components/clocker.vue'
 </script>
 
 <template>
@@ -18,10 +19,12 @@ import Logo from '../components/logo.vue'
 
     <UDashboardPanel>
       <template #header>
-        <UDashboardNavbar>
+        <UDashboardNavbar class="bg-primary">
           <template #leading>
             <UDashboardSidebarCollapse variant="subtle" />
           </template>
+
+         
           <template #right>
             <UColorModeSwitch />
             <AdminAvartar />

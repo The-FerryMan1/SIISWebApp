@@ -1,6 +1,7 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore.Internal;
 using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application;
@@ -10,6 +11,7 @@ using SIISMinimalAPI.Features.Endorsement;
 using SIISMinimalAPI.Features.Offices;
 using SIISMinimalAPI.Features.Ojt;
 using SIISMinimalAPI.Features.OnBoarding;
+using SIISMinimalAPI.Features.RegistrationToken;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,6 +93,7 @@ builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
 builder.Services.AddScoped<IOfficeService, OfficeHandler>();
 builder.Services.AddScoped<IOjtService, OjtHandler>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRegistrationTokenService, RegistrationTokenHandler>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -112,6 +115,8 @@ app.MapToOffice();
 app.MapToOjt();
 app.MapToAuth();
 app.MapToUser();
+app.MapToRegistrationEndpoint();
+
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 
 

@@ -2,6 +2,8 @@
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Internal;
+using SIISMinimalAPI.Features.RegistrationToken;
 
 
 namespace SIISMinimalAPI.Features.OnBoarding;
@@ -15,8 +17,12 @@ public static class OnBoardingEndpoint
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend");
 
-        group.MapPost("/", async Task<IResult> ([FromForm] OnBoardingDto dto, CancellationToken ct, IOnBoadringService service) =>
+        group.MapPost("/{token}", async Task<IResult> (Guid token, [FromForm] OnBoardingDto dto, CancellationToken ct, IOnBoadringService service, IRegistrationTokenService regservice) =>
         {
+
+            var result = await regservice.VerifyRegistrationToken(token, ct);
+            if(!result) return TypedResults.Forbid();
+
             if (dto.Student is null || dto.School is null || dto.Internship is null)
             {
                 return Results.BadRequest("Student, school, and internship details are required.");

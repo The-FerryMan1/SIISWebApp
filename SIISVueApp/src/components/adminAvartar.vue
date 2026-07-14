@@ -40,10 +40,10 @@ const deboundLogout = useDebounceFn(async () => {
 </script>
 
 <template>
-  <UDropdownMenu v-if="auth.user" :items="items" class="ms-3">
-    <UButton variant="ghost">
+  <UDropdownMenu v-if="auth.user"  :items="items" class="ms-3 bg-white">
+    <UButton variant="outline">
       <template #default>
-        <UUser v-if="auth.user" :name="auth.user.username" description="Admin" />
+        <UUser v-if="auth.user" :name="auth.user.username" description="Admin" class="text-white" />
       </template>
     </UButton>
   </UDropdownMenu>
