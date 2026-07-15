@@ -85,6 +85,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'profile',
         meta: { isRequiresAuth: true },
       },
+      {
+        path: '/registration-token-generator',
+        component: () => import('../pages/registration/registrationtoken.vue'),
+        name: 'registration-generator',
+        meta: { isRequiresAuth: true },
+      }
     ],
   },
   {
