@@ -85,6 +85,19 @@ public static class RegistrationTokenEndpoint
                  return TypedResults.Forbid();
             }            
         });
+
+          group.MapPut("/extend/{id}", [Authorize] async Task<IResult> (long id, ExtendRegistrationTokenDto dto, IRegistrationTokenService services, CancellationToken ct) =>
+        {
+            try
+            {
+               await services.ExtendRegistrationToken(id, dto, ct);
+                return TypedResults.Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return TypedResults.NotFound(ex.Message);
+            }
+        }).RequireAuthorization();
         return app;
     }
 }

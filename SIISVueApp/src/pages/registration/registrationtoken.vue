@@ -2,18 +2,24 @@
 import type { TableColumn } from '@nuxt/ui/runtime/components/Table.vue.js';
 import { useRegistrationToken, type RegistrationToken } from '../../stores/registrationToken';
 import { storeToRefs } from 'pinia';
-import { onMounted, useTemplateRef, ref, resolveComponent, h } from 'vue';
-import { useRouter } from 'vue-router';
+import { onMounted, useTemplateRef, ref, resolveComponent, h, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useDebounceFn } from '@vueuse/core';
 import z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import Qrcodeview from '../../components/qrcodeview.vue';
 
 const regsToken = useRegistrationToken()
 const { registrationTokenError, tokens } = storeToRefs(regsToken)
 const router = useRouter()
+const route = useRoute()
 const table = useTemplateRef('table')
 const UButton = resolveComponent('UButton')
 const isOpen = ref<boolean>(false)
+const isExtendOpen = ref<boolean>(false)
+const overlay = useOverlay()
+const qrModal = overlay.create(Qrcodeview)
+
 
 const expirySchema = z.object({
     expDate: z.string()
@@ -52,7 +58,7 @@ const columns: TableColumn<RegistrationToken>[] = [
                     label: 'QR',
                     size: 'xs',
                     variant: 'outline',
-                    onClick: async () => console.log('QR clicked', row.original)
+                    onClick: () => openQr(row.original.uuid)
                 }),
                 // Update Button
                 h(UButton, {
@@ -61,7 +67,7 @@ const columns: TableColumn<RegistrationToken>[] = [
                     size: 'xs',
                     color: 'primary',
                     variant: 'soft',
-                    onClick: () => console.log('Update clicked', row.original)
+                    onClick: () => isExtendOpen.value = !isExtendOpen.value
                 }),
                 // Delete Button
                 h(UButton, {
@@ -76,6 +82,11 @@ const columns: TableColumn<RegistrationToken>[] = [
         }
     }
 ]
+
+
+const openQr = (qrstring: string) => {
+    qrModal.open({ url: `http://100.10.1.201:5233/registration/${qrstring}` })
+}
 
 onMounted(async () => {
     await regsToken.GetAllTokens()
@@ -98,6 +109,9 @@ const onSubmit = async (event: FormSubmitEvent<ExpirySchema>) => {
 
 const submitDebounce = useDebounceFn(onSubmit, 500)
 
+
+const minDate = computed(() => new Date().toISOString().split('T')[0])
+
 </script>
 
 <template>
@@ -119,10 +133,27 @@ const submitDebounce = useDebounceFn(onSubmit, 500)
                             <UForm @error="(r) => console.log(r)" @submit="submitDebounce" :state="state"
                                 :schema="expirySchema" class="p-4 w-full">
                                 <UFormField name="expDate" label="Expiration date">
-                                    <UInput v-model="state.expDate" type="date" class="w-full" />
+                                    <UInput v-model="state.expDate" type="date" class="w-full" :min="minDate" />
                                 </UFormField>
                                 <UButton type="submit" label="Submit" />
                             </UForm>
+                        </template>
+
+                    </UModal>
+
+
+
+                    <UModal v-model:open="isExtendOpen" class="" title="Add expiration date">
+
+                        <template #content>
+                            <div>ratbu</div>
+                            <!-- <UForm @error="(r) => console.log(r)" @submit="submitDebounce" :state="state"
+                                :schema="expirySchema" class="p-4 w-full">
+                                <UFormField name="expDate" label="Expiration date">
+                                    <UInput v-model="state.expDate" type="date" class="w-full" :min="minDate"/>
+                                </UFormField>
+                                <UButton type="submit" label="Submit" />
+                            </UForm> -->
                         </template>
 
                     </UModal>

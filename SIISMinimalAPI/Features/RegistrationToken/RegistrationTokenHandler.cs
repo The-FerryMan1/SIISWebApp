@@ -36,12 +36,12 @@ public class RegistrationTokenHandler(AppDbContext context) : IRegistrationToken
     }
 
     //extend registration token
-    public async Task ExtendRegistrationToken(long id, GenerateRegistrationTokenDto dot, CancellationToken ct)
+    public async Task ExtendRegistrationToken(long id, ExtendRegistrationTokenDto dot, CancellationToken ct)
     {
         var registrationToken = await _context.RegistrationTokens.FirstOrDefaultAsync(t => t.Id == id)
         ?? throw new KeyNotFoundException("Registration Token not found");
 
-        registrationToken.ExpDate = dot.ExpDate;
+        registrationToken.ExpDate = dot.ExtendedDate;
 
         await _context.SaveChangesAsync(ct);
     }

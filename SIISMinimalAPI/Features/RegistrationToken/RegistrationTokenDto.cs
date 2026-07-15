@@ -14,3 +14,8 @@ public class GenerateRegistrationTokenDto
 {
     public DateTime ExpDate { get; set; }
 }
+
+public class ExtendRegistrationTokenDto
+{
+    public DateTime ExtendedDate { get; set; }
+}
