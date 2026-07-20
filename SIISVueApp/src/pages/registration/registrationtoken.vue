@@ -8,6 +8,9 @@ import { useDebounceFn } from '@vueuse/core';
 import z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import Qrcodeview from '../../components/qrcodeview.vue';
+import { getPaginationRowModel } from '@tanstack/vue-table'
+import ConfirmationModal from '../../components/confirmationModal.vue';
+import { useAxios } from '../../fetch/axios.ts';
 
 const regsToken = useRegistrationToken()
 const { registrationTokenError, tokens } = storeToRefs(regsToken)
@@ -15,11 +18,17 @@ const router = useRouter()
 const route = useRoute()
 const table = useTemplateRef('table')
 const UButton = resolveComponent('UButton')
+const UBadge = resolveComponent('UBadge')
 const isOpen = ref<boolean>(false)
 const isExtendOpen = ref<boolean>(false)
 const overlay = useOverlay()
 const qrModal = overlay.create(Qrcodeview)
+const confirmModal = overlay.create(ConfirmationModal)
+const toast = useToast()
 
+// Extend form state
+const extendTokenId = ref<number | null>(null)
+const extendCurrentDate = ref<string>('')
 
 const expirySchema = z.object({
     expDate: z.string()
@@ -36,6 +45,15 @@ const columns: TableColumn<RegistrationToken>[] = [
         accessorKey: 'uuid',
         header: 'Token',
         cell: ({ row }) => `${row.getValue('uuid')}`
+    },
+    {
+        accessorKey: 'expDate',
+        header:'Status',
+        cell: ({ row }) => {
+            const date = new Date(row.getValue('expDate'))
+            const status = date > new Date()? h(UBadge, {label:'Active', color:'success'}):h(UBadge, {label:'Expired', color:'warning'})
+            return status
+        }
     },
     {
         accessorKey: 'expDate',
@@ -60,14 +78,14 @@ const columns: TableColumn<RegistrationToken>[] = [
                     variant: 'outline',
                     onClick: () => openQr(row.original.uuid)
                 }),
-                // Update Button
+                // Extend Button
                 h(UButton, {
                     icon: 'i-lucide-pencil',
                     label: 'Extend',
                     size: 'xs',
                     color: 'primary',
                     variant: 'soft',
-                    onClick: () => isExtendOpen.value = !isExtendOpen.value
+                    onClick: () => openExtend(row.original.id, row.original.expDate)
                 }),
                 // Delete Button
                 h(UButton, {
@@ -76,24 +94,22 @@ const columns: TableColumn<RegistrationToken>[] = [
                     size: 'xs',
                     color: 'error',
                     variant: 'soft',
-                    onClick: () => console.log('Delete clicked', row.original)
+                    onClick: () => onDelete(row.original.id)
                 })
             ])
         }
     }
 ]
 
-
-const openQr = (qrstring: string) => {
-    qrModal.open({ url: `http://100.10.1.201:5233/registration/${qrstring}` })
+const openQr = async (qrstring: string) => {
+    const instance = qrModal.open({ url: `http://100.10.1.201:5233/registration/${qrstring}`})
 }
 
-onMounted(async () => {
-    await regsToken.GetAllTokens()
-})
-
-const back = () => {
-    router.back()
+const openExtend = (id: number, currentExpDate: string) => {
+    extendTokenId.value = id
+    extendCurrentDate.value = new Date(currentExpDate).toISOString().split('T')[0]??''
+    state.value.expDate = undefined
+    isExtendOpen.value = true
 }
 
 const onSubmit = async (event: FormSubmitEvent<ExpirySchema>) => {
@@ -107,10 +123,82 @@ const onSubmit = async (event: FormSubmitEvent<ExpirySchema>) => {
     }
 }
 
+const onExtendSubmit = async (event: FormSubmitEvent<ExpirySchema>) => {
+    if (!extendTokenId.value) return
+    
+    try {
+        await regsToken.extendRegistrationToken({
+            id: extendTokenId.value,
+            expDate: event.data.expDate
+        })
+        toast.add({
+            title: "Success",
+            description: 'Token expiry extended successfully',
+            color: 'success'
+        })
+        await regsToken.GetAllTokens()
+    } catch (error) {
+        toast.add({
+            title: "Error",
+            description: 'Failed to extend token expiry',
+            color: 'error'
+        })
+    } finally {
+        isExtendOpen.value = false
+        extendTokenId.value = null
+        state.value.expDate = undefined
+    }
+}
+
+const onDelete = async(id: number)=>{
+     const modal = confirmModal.open()
+     const result = await modal.result
+
+     if(!result) {
+        confirmModal.close()
+     }
+
+    try {
+       await regsToken.deleteRegistrationToken(id)
+       toast.add({title: "Action", description: 'Registration token deleted successfully', color: 'success'})
+       regsToken.GetAllTokens()
+    } catch (error) {
+          toast.add({title: "Action", description: 'Failed to delete registration token', color: 'error'})
+    }
+}
+
 const submitDebounce = useDebounceFn(onSubmit, 500)
-
-
+const extendDebounce = useDebounceFn(onExtendSubmit, 500)
+const filterItem = ref(['Active', 'Expired', 'All'])
+const selectedFilter = ref('All')
+const globalFilter = ref('')
 const minDate = computed(() => new Date().toISOString().split('T')[0])
+const extendMinDate = computed(() => extendCurrentDate.value || minDate.value)
+const pagination = ref({ pageIndex: 0, pageSize: 5 })
+
+const filterResult = computed(()=> tokens.value?.filter((t)=> {
+    switch (selectedFilter.value) {
+        case 'Active':
+            return new Date() < new Date(t.expDate)
+            break;
+        case 'Expired':
+            return new Date() > new Date(t.expDate)
+            break;
+        case 'All':
+            return t
+            break;
+        default:
+            break;
+    }
+}))
+
+onMounted(async () => {
+    await regsToken.GetAllTokens()
+})
+
+const back = () => {
+    router.back()
+}
 
 </script>
 
@@ -119,15 +207,21 @@ const minDate = computed(() => new Date().toISOString().split('T')[0])
         <div>
             <UButton @click="back" label="Back" icon="i-lucide-arrow-left" variant="ghost" />
         </div>
-        <div>
+        <div class="my-3">
             <h1 class="text-2xl font-bold text-primary">Registration Token</h1>
         </div>
-        <UPageCard>
-
-
+        <UCard>
             <template #header>
-                <div class="w-full flex justify-end items-center">
-                    <UModal v-model:open="isOpen" class="" title="Add expiration date">
+                <div class="w-full flex justify-start items-center">
+                    <UInput v-model="globalFilter" class="max-w-sm " placeholder="Filter..." />
+
+                    <USelect
+                        class=""
+                        v-model="selectedFilter" :items="filterItem"
+                    />
+
+                    <!-- Create Token Modal -->
+                    <UModal class="ms-auto" v-model:open="isOpen" title="Add expiration date">
                         <UButton label="Generate registration token" />
                         <template #content>
                             <UForm @error="(r) => console.log(r)" @submit="submitDebounce" :state="state"
@@ -138,34 +232,63 @@ const minDate = computed(() => new Date().toISOString().split('T')[0])
                                 <UButton type="submit" label="Submit" />
                             </UForm>
                         </template>
-
                     </UModal>
 
-
-
-                    <UModal v-model:open="isExtendOpen" class="" title="Add expiration date">
-
+                    <!-- Extend Token Modal -->
+                    <UModal v-model:open="isExtendOpen" title="Extend expiration date">
                         <template #content>
-                            <div>ratbu</div>
-                            <!-- <UForm @error="(r) => console.log(r)" @submit="submitDebounce" :state="state"
-                                :schema="expirySchema" class="p-4 w-full">
-                                <UFormField name="expDate" label="Expiration date">
-                                    <UInput v-model="state.expDate" type="date" class="w-full" :min="minDate"/>
+                            <UForm 
+                                @error="(r) => console.log(r)" 
+                                @submit="extendDebounce" 
+                                :state="state"
+                                :schema="expirySchema" 
+                                class="p-4 w-full"
+                            >
+                                <p class="text-sm text-neutral-500 mb-4">
+                                    Current expiry: {{ new Date(extendCurrentDate).toLocaleDateString() }}
+                                </p>
+                                <UFormField name="expDate" label="New expiration date">
+                                    <UInput 
+                                        v-model="state.expDate" 
+                                        type="date" 
+                                        class="w-full" 
+                                        :min="extendMinDate" 
+                                    />
                                 </UFormField>
-                                <UButton type="submit" label="Submit" />
-                            </UForm> -->
+                                <div class="flex justify-end gap-2 mt-4">
+                                    <UButton 
+                                        color="neutral" 
+                                        label="Cancel" 
+                                        @click="isExtendOpen = false" 
+                                    />
+                                    <UButton type="submit" label="Extend" />
+                                </div>
+                            </UForm>
                         </template>
-
                     </UModal>
                 </div>
-
             </template>
-
-
-            <UTable ref="table" :data="tokens ?? []" :columns="columns" class="w-full max-h-96 flex-1" />
-
-
-        </UPageCard>
-
+            
+            <UTable 
+                ref="table" 
+                v-model:pagination="pagination"
+                :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" 
+                :data="filterResult ?? []"
+                :columns="columns" 
+                class="flex-1"  
+                v-model:global-filter="globalFilter"
+            />
+            
+            <template #footer>
+                <div class="w-full flex justify-end items-center">
+                    <UPagination 
+                        :default-page="(pagination.pageIndex || 0) + 1" 
+                        :items-per-page="pagination.pageSize"
+                        :total="tokens?.length ?? 0" 
+                        @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" 
+                    />
+                </div>
+            </template>
+        </UCard>
     </UMain>
 </template>

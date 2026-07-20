@@ -49,15 +49,15 @@ public class RegistrationTokenHandler(AppDbContext context) : IRegistrationToken
     //get all registration token
     public async Task<ICollection<RegistrationTokenDto>>? GetAllRegistrationToken(CancellationToken ct)
     {
-        var registrationTokens = await _context.RegistrationTokens.ToListAsync(ct);
+        var registrationTokens = await _context.RegistrationTokens.OrderByDescending(t => t.CreateAt).ToListAsync(ct);
 
-        return registrationTokens.Select(t => new RegistrationTokenDto
+        return [.. registrationTokens.Select(t => new RegistrationTokenDto
         {
              Id = t.Id,
              Uuid = t.Token,
              ExpDate = t.ExpDate,
              CreatedAt = t.CreateAt
-        }).ToList();
+        })];
     }
 
     // get one registration by id

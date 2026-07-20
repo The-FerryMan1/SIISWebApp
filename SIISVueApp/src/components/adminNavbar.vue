@@ -29,7 +29,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: { name: 'ojt' },
   },
   {
-    label: 'Registration Generator',
+    label: 'Registration',
     icon: 'i-lucide-file',
     active: route.name == 'registration-generator',
     to: { name: 'registration-generator' },

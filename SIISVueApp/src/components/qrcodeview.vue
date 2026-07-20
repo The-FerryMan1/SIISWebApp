@@ -1,33 +1,44 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
-import { ref } from 'vue';
 
 const props = defineProps<{
-    url: string,
+    url: string
 }>()
 
-const emit = defineEmits<{close: [boolean]}>()
+const emit = defineEmits<{ close: [boolean] }>()
 
 const qrcode = useQRCode(props.url)
 
-const isOpen = ref<boolean>(false)
+// Controlled from the parent via v-model:open="showQr"
+const isOpen = defineModel<boolean>('open', { default: false })
 
+const handleClose = (printed: boolean) => {
+    isOpen.value = false
+    emit('close', printed)
+}
+
+const handlePrint = () => {
+    window.addEventListener('afterprint', () => {
+        handleClose(true)
+    }, { once: true })
+
+    window.print()
+}
 </script>
 
 <template>
-    <UModal v-model:open="isOpen">
-        <template #header>
-
-        </template>
-        <template #content>
-            <img :src="qrcode" alt="" lazy>
+    <UModal v-model:open="isOpen" title="QR Code">
+        <template #body>
+            <div class="w-full print-area">
+                <img :src="qrcode" alt="QR Code" loading="lazy" class="object-contain w-full h-full">
+            </div>
         </template>
 
         <template #footer>
-      <div class="flex gap-2">
-        <UButton color="neutral" label="Dismiss" @click="emit('close', false)" />
-        <UButton label="Success" @click="emit('close', true)" />
-      </div>
-    </template>
+            <div class="flex justify-end items-center gap-2 w-full">
+                <UButton color="neutral" label="Close" @click="handleClose(false)" />
+                <UButton label="Print" @click="handlePrint" />
+            </div>
+        </template>
     </UModal>
 </template>

@@ -12,23 +12,23 @@ export interface RegistrationToken {
 }
 
 export const useRegistrationToken = defineStore('registration-token', () => {
-    
+
     const tokens = ref<RegistrationToken[]>()
-    
+
     const registrationTokenError = ref()
-    
-    const GetAllTokens = async()=>{
+
+    const GetAllTokens = async () => {
         try {
-            const {data} = await useAxios('/registrationtoken')
+            const { data } = await useAxios('/registrationtoken')
             tokens.value = data
         } catch (error) {
             const err = error as AxiosError
             registrationTokenError.value = err
             console.log(err)
-        }    
+        }
     }
 
-    const createRegistrationToken = async (expDate: {expDate: string}) =>{
+    const createRegistrationToken = async (expDate: { expDate: string }) => {
         try {
             await useAxios.post("/registrationtoken", expDate)
         } catch (error) {
@@ -38,11 +38,35 @@ export const useRegistrationToken = defineStore('registration-token', () => {
         }
     }
 
+    const deleteRegistrationToken = async (id: number) => {
+        try {
+            await useAxios.delete("/registrationtoken/" + id)
+        } catch (error) {
+            const err = error as AxiosError
+            registrationTokenError.value = err
+            console.log(err)
+        }
+    }
+
+    const extendRegistrationToken = async(payload: {id: number,  expDate: string}) =>{
+        try {
+            const {data} = await useAxios.put('/registrationtoken/extend/' + payload.id, {extendedDate: payload.expDate})
+        } catch (error) {
+             const err = error as AxiosError
+            registrationTokenError.value = err
+            console.log(err)
+        }
+    }
+
+   
+
     return {
         tokens,
         registrationTokenError,
         GetAllTokens,
-        createRegistrationToken
+        createRegistrationToken,
+        deleteRegistrationToken,
+        extendRegistrationToken
     }
 
 })
