@@ -178,6 +178,25 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         };
     }
 
+    public async Task RejectApplication(Guid uuid, CancellationToken ct)
+    {
+        var application = await _context.Students
+        .Include(t => t.Application)
+        .Include(t => t.Requirements)
+        .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
+        ?? throw new KeyNotFoundException("Application not found");
+
+
+        if(application.Application.Status == Shared.Enums.ApplicationStatusEnum.Approved)
+        {
+            throw new Exception("Approved application cannot be rejected");
+        }
+
+        application.Application.Status = Shared.Enums.ApplicationStatusEnum.Rejected;
+        _context.SaveChanges();
+
+    }
+
     public async Task Trash(Guid uuid, CancellationToken ct)
     {
         var application = await _context.Students

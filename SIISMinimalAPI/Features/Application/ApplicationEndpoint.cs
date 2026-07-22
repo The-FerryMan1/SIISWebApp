@@ -129,6 +129,19 @@ public static class  ApplicationEndpoint
             return Results.File(requirement.FilePath, requirement.FileType, requirement.FileName);
         }).RequireAuthorization("Admin");
 
+        group.MapPut("/details/reject/{uuid}", [Authorize] async Task<IResult>(Guid uuid, IApplicationService service, CancellationToken ct) =>
+        {
+            try
+            {
+                await service.RejectApplication(uuid, ct);
+                return TypedResults.Ok();
+            }
+            catch (System.Exception ex)
+            {
+                
+                return TypedResults.BadRequest(ex);
+            }
+        });
         return app;
     }
 }

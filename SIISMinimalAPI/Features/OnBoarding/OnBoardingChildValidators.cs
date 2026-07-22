@@ -92,17 +92,6 @@ public class InternshipRegDtoValidator : AbstractValidator<InternshipRegDto>
             RuleFor(x => x.Degree)
                 .Null().WithMessage("Degree should not be set for Senior High School");
         });
-
-        When(x => x.InternshipNature == InternshipNatureEnum.OJT, () =>
-        {
-            RuleFor(x => x.Degree)
-                .NotNull().WithMessage("Degree is required for College internships")
-                .IsInEnum().WithMessage("Invalid degree value");
-
-            RuleFor(x => x.Strand)
-                .Null().WithMessage("Strand should not be set for College internships");
-        });
-
         RuleFor(x => x.StartDate)
             .NotEmpty().WithMessage("Start date is required")
             .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today.AddDays(7)))

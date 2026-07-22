@@ -48,14 +48,14 @@ const view = async (id: number) => {
   })
 
   if (result) {
-    await debounceSubmit(result.id, result.name)
+    await debounceSubmit(result.id, result.name, result.honorific)
   }
 }
 
-const debounceSubmit = useDebounceFn(async (id: number, oic: string) => {
+const debounceSubmit = useDebounceFn(async (id: number, oic: string, honorific: string) => {
   try {
     loading.value = true
-    await useAxios.put('/office/' + id, { oic: oic })
+    await useAxios.put('/office/' + id, { oic: oic, honorific: honorific })
     await office.officeInit()
     toast.add({ title: 'Office Updated Successfully', color: 'primary' })
   } catch (error) {
@@ -79,6 +79,11 @@ const columns: TableColumn<Office>[] = [
       const officeValue = row.getValue('name') as OfficeNameEnum
       return OfficeNameLabels[officeValue] ?? 'Unknown'
     },
+  },
+   {
+    accessorKey: 'honorific',
+    header: 'Honorific',
+    cell: ({ row }) => row.getValue('honorific') || 'None',
   },
   {
     accessorKey: 'currentOIC',

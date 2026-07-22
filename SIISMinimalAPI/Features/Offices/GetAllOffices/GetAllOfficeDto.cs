@@ -9,6 +9,7 @@ public class GetAllOfficeDto
     public long Id { get; set; }
     public OfficeNameEnum Name { get; set; }
     public string? CurrentOIC { get; set; }
+    public string?  Honorific { get; set; }
     public DateTime CreateAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
     public List<StudentCount> Students { get; set; } = [];

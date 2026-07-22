@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import ConfirmationModal from '../../components/confirmationModal.vue'
 import { useAxios } from '../../fetch/axios'
+import { ApplicationStatusEnum } from './types/applicationType.ts'
 
 //states
 const auth = UseAuthStore()
@@ -56,7 +57,7 @@ const columns: TableColumn<Applicaton>[] = [
     cell: ({ row }) => {
       const color = {
         Pending: 'warning' as const,
-        Viewed: 'info' as const,
+        Rejected: 'error' as const,
         Approved: 'success' as const,
       }[row.getValue('status') as string]
 
@@ -161,10 +162,10 @@ const cards = computed(() => [
     color: 'bg-yellow-400',
   },
   {
-    title: 'New',
+    title: 'Rejected',
     icon: 'i-lucide-file-plus-corner',
     text: application.applications?.filter(
-      (t) => Date.now() < new Date(t.createdAt).getTime() + 86400000,
+      (t) => t.status == "Rejected"
     ).length,
     color: 'bg-green-400',
   },

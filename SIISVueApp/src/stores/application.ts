@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAxios } from '../fetch/axios'
+import type { Axios, AxiosError } from 'axios'
 
 export type Applicaton = {
   id: number
@@ -14,7 +15,7 @@ export type Applicaton = {
 
 export const useApplicationStore = defineStore('applicaton', () => {
   const applications = ref<Applicaton[] | null>([])
-
+  const applicationError = ref()
   const applicationInit = async () => {
     await getAllAsync()
   }
@@ -28,9 +29,20 @@ export const useApplicationStore = defineStore('applicaton', () => {
     }
   }
 
+  const rejectApplication = async(uuid: string)=>{
+    try {
+      await useAxios.put('/application/details/reject/' + uuid)
+    } catch (error) {
+      const err = error as AxiosError
+      applicationError.value = err
+      console.log(error)
+    }
+  }
+
   return {
     applications,
     applicationInit,
     getAllAsync,
+    rejectApplication
   }
 })

@@ -11,6 +11,7 @@ namespace SIISMinimalAPI.Features.Shared.Models
 
         [StringLength(255)]
         public string? CurrentOIC { get; set; }
+        public string? Honorific {get; set;}
 
         public bool IsDeleted { get; set; } = false;
         public DateTime CreateAt { get; set; } = DateTime.Now;

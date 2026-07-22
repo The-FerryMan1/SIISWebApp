@@ -13,36 +13,94 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  close: [value: { id: number; name: string } | null]
+  close: [value: { id: number; name: string; honorific: string } | null]
 }>()
 
 const schema = z.object({
   name: z.string().min(1, 'officer-in-charge is required'),
+  honorific: z.string()
 })
 
 type Schema = z.output<typeof schema>
 
 const state = ref({
   name: props.oic ?? '',
+  honorific: undefined
 })
 
 const form = ref()
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
-  emit('close', { id: props.officeId!, name: event.data.name })
+  emit('close', { id: props.officeId!, name:event.data.name, honorific: event.data.honorific })
 }
 
 const handleSave = () => form.value?.submit()
 const cancel = () => emit('close', null)
+
+
+
+const honorificItems = ref([
+  "Mr.",
+  "Mrs.",
+  "Ms.",
+  "Miss",
+  "Mx.",
+  "Master",
+  "Dr.",
+  "Prof.",
+  "Rev.",
+  "Fr.",
+  "Sr.",
+  "Br.",
+  "Pastor",
+  "Rabbi",
+  "Imam",
+  "Sheikh",
+  "Hon.",
+  "Pres.",
+  "Gov.",
+  "Sen.",
+  "Rep.",
+  "Ambassador",
+  "Justice",
+  "Judge",
+  "Sir",
+  "Dame",
+  "Lord",
+  "Lady",
+  "Duke",
+  "Duchess",
+  "Prince",
+  "Princess",
+  "King",
+  "Queen",
+  "Capt.",
+  "Maj.",
+  "Col.",
+  "Gen.",
+  "Adm.",
+  "Sgt."
+])
 </script>
 
 <template>
   <UModal :title="title">
     <template #body>
       <UForm ref="form" :schema="schema" :state="state" @submit="onSubmit" :loading>
+
+        <UFormField label="Honorific" name="honorific">
+          <USelect v-model="state.honorific" :items="honorificItems" placeholder="Select proper honorific"/>
+        </UFormField>
+
+
+
+
         <UFormField label="Officer-in-Charge" name="name">
           <UInput v-model="state.name" placeholder="Enter officer-in-charge" class="w-full" />
         </UFormField>
+
+
+        
       </UForm>
     </template>
 

@@ -8,6 +8,8 @@ import { useAxios } from '../../fetch/axios'
 import { OfficeNameLabels, OfficesArray, OfficeNameEnum } from './types/officeSelectValue'
 import z from 'zod'
 import { PDFViewer } from '@embedpdf/vue-pdf-viewer'
+import ConfirmationModal from '../../components/confirmationModal.vue'
+import { useApplicationStore } from '../../stores/application.ts'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +17,7 @@ const toast = useToast()
 const overlay = useOverlay()
 const UModal = resolveComponent('UModal')
 const modalOverlay = overlay.create(h(UModal))
+const cModal = overlay.create(ConfirmationModal)
 const { copy } = useClipboard()
 const formRef = useTemplateRef('form')
 const modalRef = useTemplateRef('modal')
@@ -25,6 +28,7 @@ const isDisabled = ref<boolean>(true)
 const isPending = computed(
   () => details.value?.application?.status === ApplicationStatusEnum.Pending,
 )
+const application = useApplicationStore()
 const pdfSource = ref<string>('')
 
 // --- Data Fetching ---
@@ -57,8 +61,8 @@ const goBack = () => router.back()
 // --- Helpers ---
 const statusColor = (status: ApplicationStatusEnum) => {
   switch (status) {
-    case ApplicationStatusEnum.Pending:
-      return 'warning'
+    case ApplicationStatusEnum.Rejected:
+      return 'error'
     case ApplicationStatusEnum.Approved:
       return 'success'
     default:
@@ -243,10 +247,29 @@ onBeforeUnmount(() => {
 const debounceGenerateEndorsement = useDebounceFn(generateEndorsement, 1000)
 const debounceDownloadEndorsement = useDebounceFn(downloadPdf, 1000)
 const debounceClosePreview = useDebounceFn(closePreview, 500)
+const debouncedRejectApi = useDebounceFn((uuid: string) => {
+  application.rejectApplication(uuid)
+}, 500)
 
 const goToEdit = () => {
   router.push({ name: 'application-edit', params: { uuid: route.params.uuid } })
 }
+
+const rejectApplication = async (uuid: string) => {
+  const cmodal = cModal.open({ 
+    title: 'Reject application', 
+    description: 'Are you sure you want to reject this application?' 
+  })
+
+  const instance = await cmodal.result
+
+  if (instance) { // Checked positive confirmation
+    debouncedRejectApi(uuid) // Call the debounced handler
+  }
+}
+
+const isRejected = computed(()=>details.value?.application.status === ApplicationStatusEnum.Rejected)
+const isApproved = computed(()=>details.value?.application.status === ApplicationStatusEnum.Approved)
 </script>
 
 <template>
@@ -283,41 +306,23 @@ const goToEdit = () => {
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-2">
             <h1 class="text-2xl font-black text-highlighted">Application Details</h1>
-            <UBadge
-              :label="statusLabel(details.application.status)"
-              :color="statusColor(details.application.status)"
-              variant="outline"
-              size="md"
-              class="capitalize"
-            >
-              <UIcon :name="isPending ? 'i-lucide-circle-dashed' : 'i-lucide-check'" />
-              {{ isPending ? 'Pending' : 'Approved' }}
+            <UBadge :label="statusLabel(details.application.status)" :color="statusColor(details.application.status)"
+              variant="outline" size="md" class="capitalize">
+              {{ statusLabel(details.application.status).toString() }}
             </UBadge>
           </div>
 
           <div class="flex items-center gap-2 text-muted">
             <span class="text-sm font-mono">UUID: {{ details.application.applicationUUID }}</span>
-            <UButton
-              size="xs"
-              variant="ghost"
-              color="neutral"
-              icon="i-lucide-copy"
-              @click="copyId(details.application.applicationUUID)"
-              aria-label="Copy UUID"
-            />
+            <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-copy"
+              @click="copyId(details.application.applicationUUID)" aria-label="Copy UUID" />
           </div>
         </div>
 
         <!-- Right: Actions -->
         <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-          <UButton
-            v-if="!isPending"
-            @click="debounceGenerateEndorsement"
-            color="neutral"
-            icon="i-lucide-file-text"
-            size="sm"
-            variant="solid"
-          >
+          <UButton v-if="isApproved" @click="debounceGenerateEndorsement" color="neutral" icon="i-lucide-file-text"
+            size="sm" variant="solid">
             Endorsement
           </UButton>
 
@@ -325,7 +330,7 @@ const goToEdit = () => {
             Edit
           </UButton>
 
-          <UButton v-if="isPending" color="error" variant="outline" icon="i-lucide-x" size="sm">
+          <UButton @click="rejectApplication(details.application.applicationUUID)" v-if="isPending" color="error" variant="solid" icon="i-lucide-x" size="sm">
             Reject
           </UButton>
 
@@ -338,25 +343,16 @@ const goToEdit = () => {
       <USeparator class="my-4" />
 
       <!-- Tabs -->
-      <UTabs
-        :items="[
-          { label: 'Student', icon: 'i-lucide-user', slot: 'student' },
-          { label: 'School', icon: 'i-lucide-school', slot: 'school' },
-          { label: 'Internship', icon: 'i-lucide-briefcase', slot: 'internship' },
-          { label: 'Requirements', icon: 'i-lucide-file-text', slot: 'requirements' },
-          { label: 'Office', icon: 'i-lucide-building', slot: 'office' },
-        ]"
-        variant="pill"
-        class="w-full"
-      >
+      <UTabs :items="[
+        { label: 'Student', icon: 'i-lucide-user', slot: 'student' },
+        { label: 'School', icon: 'i-lucide-school', slot: 'school' },
+        { label: 'Internship', icon: 'i-lucide-briefcase', slot: 'internship' },
+        { label: 'Requirements', icon: 'i-lucide-file-text', slot: 'requirements' },
+        { label: 'Office', icon: 'i-lucide-building', slot: 'office' },
+      ]" variant="pill" class="w-full">
         <!-- Student Tab -->
         <template #student>
-          <UPageCard
-            title="Student Information"
-            icon="i-lucide-user-round"
-            variant="outline"
-            class="mt-4"
-          >
+          <UPageCard title="Student Information" icon="i-lucide-user-round" variant="outline" class="mt-4">
             <UForm ref="form" :disabled="isDisabled" class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <UFormField label="Last Name">
                 <UInput v-model="details.student.lastName" class="w-full" variant="soft" />
@@ -380,18 +376,10 @@ const goToEdit = () => {
                 <UInput v-model="details.student.dateOfBirth" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Gender">
-                <UInput
-                  :model-value="genderLabel(details.student.gender)"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput :model-value="genderLabel(details.student.gender)" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Grade Level">
-                <UInput
-                  :model-value="gradeLabel(details.student.gradeLevel)"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput :model-value="gradeLabel(details.student.gradeLevel)" class="w-full" variant="soft" />
               </UFormField>
             </UForm>
           </UPageCard>
@@ -399,12 +387,7 @@ const goToEdit = () => {
 
         <!-- School Tab -->
         <template #school>
-          <UPageCard
-            title="School Information"
-            icon="i-lucide-school"
-            variant="outline"
-            class="mt-4"
-          >
+          <UPageCard title="School Information" icon="i-lucide-school" variant="outline" class="mt-4">
             <UForm disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <UFormField label="School Name">
                 <UInput v-model="details.school.name" class="w-full" variant="soft" />
@@ -427,50 +410,25 @@ const goToEdit = () => {
 
         <!-- Internship Tab -->
         <template #internship>
-          <UPageCard
-            title="Internship Information"
-            icon="i-lucide-briefcase"
-            variant="outline"
-            class="mt-4"
-          >
+          <UPageCard title="Internship Information" icon="i-lucide-briefcase" variant="outline" class="mt-4">
             <UForm disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <UFormField label="Nature">
-                <UInput
-                  :model-value="natureLabel(details.internship.internshipNature)"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput :model-value="natureLabel(details.internship.internshipNature)" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Strand">
-                <UInput
-                  :model-value="strandLabel(details.internship.strand)"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput :model-value="strandLabel(details.internship.strand)" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Degree">
-                <UInput
-                  :model-value="degreeLabel(details.internship.degree) ?? 'N/A'"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput :model-value="degreeLabel(details.internship.degree) ?? 'N/A'" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Start Date">
                 <UInput v-model="details.internship.startDate" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Estimated End Date">
-                <UInput
-                  v-model="details.internship.estimatedEndDate"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput v-model="details.internship.estimatedEndDate" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Total Hours">
-                <UInput
-                  v-model="details.internship.internshipTotalHours"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput v-model="details.internship.internshipTotalHours" class="w-full" variant="soft" />
               </UFormField>
             </UForm>
           </UPageCard>
@@ -478,49 +436,23 @@ const goToEdit = () => {
 
         <!-- Requirements Tab -->
         <template #requirements>
-          <UPageCard
-            title="Submitted Requirements"
-            icon="i-lucide-file-text"
-            variant="outline"
-            class="mt-4"
-          >
-            <UTable
-              v-if="details.requirements?.length"
-              :data="details.requirements"
-              :columns="requirementColumns"
-              class="w-full"
-            />
-            <UAlert
-              v-else
-              color="neutral"
-              icon="i-lucide-inbox"
-              title="No requirements submitted yet."
-            />
+          <UPageCard title="Submitted Requirements" icon="i-lucide-file-text" variant="outline" class="mt-4">
+            <UTable v-if="details.requirements?.length" :data="details.requirements" :columns="requirementColumns"
+              class="w-full" />
+            <UAlert v-else color="neutral" icon="i-lucide-inbox" title="No requirements submitted yet." />
           </UPageCard>
         </template>
 
         <!-- Office Tab -->
         <template #office>
-          <UPageCard
-            :title="details.office ? 'Assigned Office' : 'No Office Assigned'"
-            :icon="details.office ? 'i-lucide-building' : 'i-lucide-building-x'"
-            variant="outline"
-            class="mt-4"
-          >
+          <UPageCard :title="details.office ? 'Assigned Office' : 'No Office Assigned'"
+            :icon="details.office ? 'i-lucide-building' : 'i-lucide-building-x'" variant="outline" class="mt-4">
             <UForm v-if="details.office" disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <UFormField label="Office Name">
-                <UInput
-                  :model-value="OfficeNameLabels[details.office.name]"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput :model-value="OfficeNameLabels[details.office.name]" class="w-full" variant="soft" />
               </UFormField>
               <UFormField label="Current OIC">
-                <UInput
-                  :model-value="details.office.currentOIC ?? 'N/A'"
-                  class="w-full"
-                  variant="soft"
-                />
+                <UInput :model-value="details.office.currentOIC ?? 'N/A'" class="w-full" variant="soft" />
               </UFormField>
             </UForm>
             <p v-else class="text-muted text-sm">
@@ -531,35 +463,15 @@ const goToEdit = () => {
       </UTabs>
 
       <div class="flex justify-end gap-3 pt-4">
-        <UModal
-          ref="modal"
-          v-if="isPending"
-          title="Assign office & approve"
-          :description="route.params.uuid as string"
-        >
-          <UButton
-            label=" Assign office & approve"
-            color="success"
-            icon="i-lucide-check"
-            variant="subtle"
-            size="sm"
-          />
+        <UModal ref="modal" v-if="isPending" title="Assign office & approve" :description="route.params.uuid as string">
+          <UButton label=" Assign office & approve" color="success" icon="i-lucide-check" variant="solid" size="sm" />
 
           <template #body>
-            <UForm
-              class="flex flex-col gap-3"
-              :schema="officeSchema"
-              :state="selectedOffice"
-              @submit="debounceSubmitOffice"
-            >
+            <UForm class="flex flex-col gap-3" :schema="officeSchema" :state="selectedOffice"
+              @submit="debounceSubmitOffice">
               <UFormField label="Office" required name="office">
-                <USelect
-                  :value="selectedOffice.office"
-                  class="w-full"
-                  v-model="selectedOffice.office"
-                  :items="OfficesArray"
-                  placeholder="Select office"
-                />
+                <USelect :value="selectedOffice.office" class="w-full" v-model="selectedOffice.office"
+                  :items="OfficesArray" placeholder="Select office" />
               </UFormField>
 
               <div class="ms-auto">
@@ -570,30 +482,19 @@ const goToEdit = () => {
         </UModal>
       </div>
     </template>
-    <UPageCard v-if="!isPending" :class="pdfSource ? 'min-h-125 md:min-h-150' : ''">
+    <UPageCard v-if="isApproved" :class="pdfSource ? 'min-h-125 md:min-h-150' : ''">
       <!-- Minimum height, can grow -->
       <template #header>
         <div v-if="pdfSource" class="flex items-center gap-2 justify-end">
-          <UButton
-            icon="i-lucide-download"
-            variant="soft"
-            label="Download pdf"
-            @click="debounceDownloadEndorsement"
-          />
-          <UButton
-            icon="i-lucide-x"
-            variant="soft"
-            label="Close preview"
-            @click="debounceClosePreview"
-          />
+          <UButton icon="i-lucide-download" variant="soft" label="Download pdf" @click="debounceDownloadEndorsement" />
+          <UButton icon="i-lucide-x" variant="soft" label="Close preview" @click="debounceClosePreview" />
         </div>
       </template>
-      <PDFViewer
-        class="h-full"
-        v-if="pdfSource"
-        :config="{ src: pdfSource, theme: { preference: 'light' } }"
-        :style="{ width: '100%', height: '100%' }"
-      />
+
+
+
+      <PDFViewer class="h-full" v-if="pdfSource" :config="{ src: pdfSource, theme: { preference: 'light' } }"
+        :style="{ width: '100%', height: '100%' }" />
       <UAlert v-else description="No preview" />
     </UPageCard>
   </UMain>

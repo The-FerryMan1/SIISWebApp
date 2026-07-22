@@ -3,7 +3,7 @@
     public enum ApplicationStatusEnum
     {
         Pending,
-        Viewed,
-        Approved
+        Approved,
+        Rejected
     }
 }

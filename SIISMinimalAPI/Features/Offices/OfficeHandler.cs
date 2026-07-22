@@ -20,6 +20,7 @@ public class OfficeHandler(AppDbContext context) : IOfficeService
         CurrentOIC = o.CurrentOIC,
         CreateAt = o.CreateAt,
         UpdatedAt = o.UpdatedAt,
+        Honorific = o.Honorific,
         Students = [.. o.Students.Select(s => new StudentCount
         {
            Id = s.Id
@@ -32,6 +33,7 @@ public class OfficeHandler(AppDbContext context) : IOfficeService
         var exist = await _context.Offices.FirstOrDefaultAsync(t => t.Id == id, ct)
         ?? throw new KeyNotFoundException("Office not found");
         exist.CurrentOIC = dto.OIC;
+        exist.Honorific = dto.Honorific;
         _context.Offices.Update(exist);
         await _context.SaveChangesAsync(ct);
     }

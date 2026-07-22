@@ -13,7 +13,7 @@ const close = (state: boolean) => {
 <template>
   <UModal :title="title" description="This action cannot be undone">
     <template #footer>
-      <UButton @click="close(true)" label="Delete" color="error" />
+      <UButton @click="close(true)" label="Confirm" color="error" />
       <UButton @click="close(false)" label="Cancel" color="neutral" />
     </template>
   </UModal>
