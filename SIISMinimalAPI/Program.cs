@@ -12,6 +12,8 @@ using SIISMinimalAPI.Features.Offices;
 using SIISMinimalAPI.Features.Ojt;
 using SIISMinimalAPI.Features.OnBoarding;
 using SIISMinimalAPI.Features.RegistrationToken;
+using SIISMinimalAPI.Features.Report.OjtList;
+using SIISMinimalAPI.Features.Report.OjtPerOffice;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +96,8 @@ builder.Services.AddScoped<IOfficeService, OfficeHandler>();
 builder.Services.AddScoped<IOjtService, OjtHandler>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRegistrationTokenService, RegistrationTokenHandler>();
+builder.Services.AddScoped<IOjtListService, OjtListHandler>();
+builder.Services.AddScoped<IOjtPerOfficeService, OjtPerOfficehandler>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -116,6 +120,8 @@ app.MapToOjt();
 app.MapToAuth();
 app.MapToUser();
 app.MapToRegistrationEndpoint();
+app.MapToOjtList();
+app.MapToOjtPerOffice();
 
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 

@@ -90,6 +90,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/registration/registrationtoken.vue'),
         name: 'registration-generator',
         meta: { isRequiresAuth: true },
+      },
+      {
+        path: '/report',
+        component: () => import('../pages/report/reportpage.vue'),
+        name: 'report',
+        meta: { isRequiresAuth: true },
       }
     ],
   },
