@@ -11,3 +11,4 @@ public class OjtListDto
     public DateOnly? StartDate { get; set; }
     public int TotalHours { get; set; }
 }
+
