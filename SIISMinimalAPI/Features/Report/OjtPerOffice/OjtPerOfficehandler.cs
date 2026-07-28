@@ -1,4 +1,5 @@
 using System;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -12,23 +13,23 @@ namespace SIISMinimalAPI.Features.Report.OjtPerOffice;
 public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
 {
     private readonly AppDbContext _context = context;
-   public async Task<byte[]> ListAllOjtPerOffice(OfficeNameEnum office, CancellationToken ct)
-{
-    // No need for switch - just use the enum directly
-    var ojtOffice = await _context.Students
-        .Include(t => t.Application)
-        .Include(t => t.Office)
-        .Include(t => t.Internship)
-        .Where(t => t.Office.Name == office) // Direct enum comparison
-        .AsNoTracking()
-        .AsSplitQuery()
-        .ToListAsync(ct);
- QuestPDF.Settings.License = LicenseType.Community; // or Evaluation
-    var document = Document.Create(doc =>
+    public async Task<byte[]> ListAllOjtPerOffice(OfficeNameEnum office, CancellationToken ct)
+    {
+        // No need for switch - just use the enum directly
+        var ojtOffice = await _context.Students
+            .Include(t => t.Application)
+            .Include(t => t.Office)
+            .Include(t => t.Internship)
+            .Where(t => t.Office.Name == office) // Direct enum comparison
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync(ct);
+        QuestPDF.Settings.License = LicenseType.Community; // or Evaluation
+        var document = Document.Create(doc =>
     {
         doc.Page(page =>
         {
-            page.Size(PageSizes.A4.Landscape());
+            page.Size(PageSizes.A4);
             page.Margin(30);
 
             // Header
@@ -53,53 +54,66 @@ public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
                     columns.RelativeColumn(2.5f);
                     columns.RelativeColumn(1.5f);
                     columns.RelativeColumn(1.2f);
+                    columns.RelativeColumn(1.2f);
+                    columns.RelativeColumn(1.5f);
+                    columns.RelativeColumn(1.2f);
                 });
 
-                // Header row - FIXED: Added Element(HeaderCell)
+                // Header row
                 table.Header(header =>
                 {
                     header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
                     header.Cell().Element(HeaderCell).Text("Student Name").Bold();
                     header.Cell().Element(HeaderCell).AlignCenter().Text("Status").Bold();
-                    header.Cell().Element(HeaderCell).AlignCenter().Text("Total Hrs").Bold();
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Grade level").Bold();
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Strand").Bold();
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Degree").Bold();
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Internship hours").Bold();
 
                     static IContainer HeaderCell(IContainer container) => container
-                        .DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.White))
-                        .PaddingVertical(8)
-                        .PaddingHorizontal(5)
-                        .Background(Colors.Blue.Medium)
-                        .BorderBottom(2)
-                        .BorderColor(Colors.Blue.Darken2);
+                        .DefaultTextStyle(x => x.FontSize(10))
+                        .Padding(0)
+                        .Border(1)
+                        .BorderColor(Colors.Black);
                 });
 
                 // Data rows
                 int index = 1;
                 foreach (var ojt in ojtOffice)
                 {
-                    var isEven = index % 2 == 0;
                     var fullname = $"{ojt.LastName}, {ojt.FirstName} {ojt.MiddleName}".Trim();
                     var status = ojt.Application?.Status;
                     var totalHours = ojt.Internship?.InternshipTotalHours ?? 0;
+                    var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
+                    var degree = ojt.Internship?.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var strand =  ojt.Internship?.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
 
-                    table.Cell().Element(c => DataCell(c, isEven)).AlignCenter()
+                    table.Cell().Element(DataCell).AlignCenter()
                         .Text(index++.ToString()).FontSize(9);
 
-                    table.Cell().Element(c => DataCell(c, isEven))
+                    table.Cell().Element(DataCell)
                         .Text(fullname).FontSize(9);
 
-                    table.Cell().Element(c => DataCell(c, isEven)).AlignCenter()
+                    table.Cell().Element(DataCell).AlignCenter()
                         .Text(status?.ToString() ?? "N/A").FontSize(9);
 
-                    table.Cell().Element(c => DataCell(c, isEven)).AlignCenter()
+                    table.Cell().Element(DataCell).AlignCenter()
+                        .Text(gradeLevel.ToString() ?? "N/A").FontSize(9);
+
+                    table.Cell().Element(DataCell).AlignCenter()
+                       .Text(strand ?? "N/A").FontSize(9);
+
+                    table.Cell().Element(DataCell).AlignCenter()
+                       .Text(degree).FontSize(9);
+
+                    table.Cell().Element(DataCell).AlignCenter()
                         .Text(totalHours > 0 ? totalHours.ToString() : "-").FontSize(9);
                 }
 
-                static IContainer DataCell(IContainer container, bool isEven) => container
-                    .PaddingVertical(6)
-                    .PaddingHorizontal(5)
-                    .Background(isEven ? Colors.Grey.Lighten4 : Colors.White)
-                    .BorderBottom(1)
-                    .BorderColor(Colors.Grey.Lighten2);
+                static IContainer DataCell(IContainer container) => container
+                    .Padding(0)
+                    .Border(1)
+                    .BorderColor(Colors.Black);
             });
 
             // Footer
@@ -113,8 +127,8 @@ public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
         });
     });
 
-    return document.GeneratePdf(); // Returns byte[]
-}
+        return document.GeneratePdf(); // Returns byte[]
+    }
 
 
     private static OfficeNameEnum GetOfficeSwitch(OfficeNameEnum office)
