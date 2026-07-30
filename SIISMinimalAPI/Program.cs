@@ -152,7 +152,7 @@ using (var scope = app.Services.CreateScope())
 {
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
     await SeederAdmin.InitOffices(scope.ServiceProvider);
-    await SeederStudent.InitStudents(scope.ServiceProvider);
+
 }
 
 app.MapFallbackToFile("index.html");

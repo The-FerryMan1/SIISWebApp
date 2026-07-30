@@ -122,40 +122,6 @@ const columns: TableColumn<Ojt>[] = [
         : h('span', { class: 'italic' }, 'Not updated')
     },
   },
-  {
-    header: 'Actions',
-    cell: ({ row }) => {
-      const uuid = row.original.ojtUUID as string
-
-      return h('div', { class: 'flex items-center gap-2' }, [
-        h(UButton, {
-          icon: 'i-lucide-eye',
-          size: 'xs',
-          variant: 'ghost',
-          color: 'primary',
-          onClick: () => viewActions(uuid),
-        }),
-        h(UButton, {
-          icon: 'i-lucide-pen',
-          size: 'xs',
-          variant: 'ghost',
-          color: 'info',
-          onClick: () =>
-            router.push({
-              name: 'application-edit',
-              params: { uuid },
-            }),
-        }),
-        h(UButton, {
-          icon: 'i-lucide-trash',
-          size: 'xs',
-          variant: 'ghost',
-          color: 'error',
-          onClick: () => console.log(uuid),
-        }),
-      ])
-    },
-  },
 ]
 
 const viewActions = (uuid: string) => {

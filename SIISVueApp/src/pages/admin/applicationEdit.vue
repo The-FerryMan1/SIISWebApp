@@ -9,7 +9,6 @@ import axios from 'axios'
 import { useDebounceFn } from '@vueuse/core'
 import { OfficeNameLabels, OfficesArray } from './types/officeSelectValue'
 import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './types/applicationUpdateValidator'
-import type { FormSubmitEvent } from '@nuxt/ui'
 
 const router = useRouter()
 const route = useRoute()
