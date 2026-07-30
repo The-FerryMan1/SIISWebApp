@@ -149,16 +149,11 @@ const formatColors: Record<string, 'primary' | 'success'> = {
 }
 
 const openModal = (action: string, formats: readonly ('pdf' | 'csv')[], paramItems?: SelectItem[]) => {
-  const items = paramItems ?? formats.map((f) => ({
-    label: formatLabels[f],
-    value: f,
-  }))
-
   const instance = selectFileTypeModal.open({
     title: 'Export Report',
     description: 'Choose your preferred file format',
     selectPlaceholder: 'Select option',
-    items,
+    items: paramItems,
     formats: Array.from(formats),
   })
 

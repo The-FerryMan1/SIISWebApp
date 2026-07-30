@@ -19,6 +19,7 @@ const selectedFormat = ref<'pdf' | 'csv' | 'none'>()
 
 const showPdf = computed(() => !props.formats || props.formats.includes('pdf'))
 const showCsv = computed(() => !props.formats || props.formats.includes('csv'))
+const showSelect = computed(() => props.items != null && props.items.length > 0)
 
 function handleExport() {
   emit('close', { format: selectedFormat.value ?? 'none', selected: selected.value })
@@ -33,6 +34,7 @@ function handleExport() {
         <p v-if="description" class="text-sm text-gray-500">{{ description }}</p>
 
         <USelect
+          v-if="showSelect"
           :placeholder="selectPlaceholder"
           v-model="selected"
           :items
