@@ -245,35 +245,6 @@ const back = () => {
                   </UForm>
                 </template>
               </UModal>
-
-              <UModal v-model:open="isExtendOpen" title="Extend Token Expiry">
-                <UButton label="Extend Token" icon="i-lucide-pencil" color="primary" variant="soft" />
-                <template #content>
-                  <UForm
-                    @error="(r) => console.log(r)"
-                    @submit="extendDebounce"
-                    :state="state"
-                    :schema="expirySchema"
-                    class="p-4 w-full space-y-4"
-                  >
-                    <p class="text-sm text-neutral-500">
-                      Current expiry: {{ new Date(extendCurrentDate).toLocaleDateString() }}
-                    </p>
-                    <UFormField name="expDate" label="New expiration date">
-                      <UInput
-                        v-model="state.expDate"
-                        type="date"
-                        class="w-full"
-                        :min="extendMinDate"
-                      />
-                    </UFormField>
-                    <div class="flex justify-end gap-2">
-                      <UButton color="neutral" label="Cancel" @click="isExtendOpen = false" />
-                      <UButton type="submit" label="Extend" icon="i-lucide-check" />
-                    </div>
-                  </UForm>
-                </template>
-              </UModal>
             </div>
           </div>
         </template>
