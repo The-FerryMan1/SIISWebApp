@@ -3,29 +3,24 @@ import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { ApplicationGetByIdResponse } from './types/applicationType'
 import { useRoute, useRouter } from 'vue-router'
 import { useAxios } from '../../fetch/axios'
-
-const router = useRouter()
-const route = useRoute()
-const toast = useToast()
-const onaboard = useOnBoardStore()
-import { CalendarDate } from '@internationalized/date'
+import { useOnBoardStore } from '../../stores/onaboard'
+import { storeToRefs } from 'pinia'
+import axios from 'axios'
 import { useDebounceFn } from '@vueuse/core'
 import { OfficeNameLabels, OfficesArray } from './types/officeSelectValue'
 import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './types/applicationUpdateValidator'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { useOnBoardStore } from '../../stores/onaboard'
-import { storeToRefs } from 'pinia'
-import axios from 'axios'
+
+const router = useRouter()
+const route = useRoute()
+const toast = useToast()
 const onboard = useOnBoardStore()
-const {state:bstate} = storeToRefs(onboard)
+const { state: bstate } = storeToRefs(onboard)
 
 const loading = ref<boolean>(false)
-const error = ref()
 const open = ref<boolean>(false)
 const details = ref<ApplicationGetByIdResponse | null>(null)
-const form = useTemplateRef('form')
 const fileUploaded = ref<File[]>([])
-
 
 const state = ref<Partial<OnBoardUpdateDto>>()
 
@@ -35,18 +30,15 @@ watch(
     try {
       loading.value = true
       const { data } = await useAxios.get('/application/' + route.params.uuid)
-      console.log(data)
       details.value = data
-    } catch (err) {
-      error.value = err
-    } finally {
+    } catch {
       loading.value = false
     }
   },
   { immediate: true, once: true },
 )
 
-watch(details, (value)=>{
+watch(details, (value) => {
   bstate.value = value as any
 })
 
@@ -80,7 +72,6 @@ watch(
 )
 
 const onSubmit = async () => {
-
   try {
     loading.value = true
     await axios.put('/api/onboading/details/' + route.params.uuid, onboard.toDataForm(), {
@@ -89,13 +80,11 @@ const onSubmit = async () => {
         },
     })
     toast.add({ title: 'Application updated successfully', color: 'success' })
-  } catch (error) {
-    console.log(error)
+  } catch {
     toast.add({ title: 'Update failed', color: 'error' })
   } finally {
     loading.value = false
     open.value = false
-    console.log(loading.value)
   }
 }
 
@@ -109,7 +98,7 @@ const getRequirementName = (req: any): string => {
   return req.fileName || req.name || ''
 }
 
-watch(fileUploaded, (value)=>{
+watch(fileUploaded, (value) => {
   bstate.value.requirements.push(...value)
 })
 </script>

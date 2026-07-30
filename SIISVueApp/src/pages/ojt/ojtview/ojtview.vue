@@ -7,8 +7,6 @@ import { OfficesArray } from '../../admin/types/officeSelectValue'
 import { useDebounceFn } from '@vueuse/core'
 import ConfirmationModal from '../../../components/confirmationModal.vue'
 
-
-
 const overlay = useOverlay()
 const confModal = overlay.create(ConfirmationModal)
 const ojt = useOJtStore()

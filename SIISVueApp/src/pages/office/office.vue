@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { useOfficeStore, type Office } from '../../stores/office'
-import type { FormSubmitEvent, TableColumn } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui'
 import { OfficeNameEnum, OfficeNameLabels } from '../admin/types/officeSelectValue'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import OjtCountChart from './partials/ojtCountChart.vue'
 import OfficeUpdateModal from '../../components/officeUpdateModal.vue'
 import { resolveComponent, onMounted, h, computed, ref } from 'vue'
-import z from 'zod'
-import { useBattery, useDebounce, useDebouncedRefHistory, useDebounceFn } from '@vueuse/core'
+import { useDebounceFn } from '@vueuse/core'
 import { useAxios } from '../../fetch/axios.ts'
 
 const office = useOfficeStore()
@@ -22,14 +21,6 @@ const globalFilter = ref('')
 const totalOffices = computed(() => office.offices?.length ?? 0)
 const loading = ref<boolean>(false)
 const toast = useToast()
-
-const schema = z.object({
-  oic: z.string().min(1),
-})
-type Schema = z.infer<typeof schema>
-const officeOIC = ref<Partial<Schema>>({
-  oic: undefined,
-})
 
 onMounted(async () => {
   if (!office.offices) {
@@ -125,7 +116,6 @@ const columns: TableColumn<Office>[] = [
   },
 ]
 
-const close = () => {}
 const pageIndex = computed(() => pagination.value.pageIndex)
 const pageSize = computed(() => pagination.value.pageSize)
 

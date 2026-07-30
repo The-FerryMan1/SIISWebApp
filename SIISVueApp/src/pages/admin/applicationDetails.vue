@@ -19,8 +19,6 @@ const UModal = resolveComponent('UModal')
 const modalOverlay = overlay.create(h(UModal))
 const cModal = overlay.create(ConfirmationModal)
 const { copy } = useClipboard()
-const formRef = useTemplateRef('form')
-const modalRef = useTemplateRef('modal')
 const details = ref<ApplicationGetByIdResponse | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -31,7 +29,6 @@ const isPending = computed(
 const application = useApplicationStore()
 const pdfSource = ref<string>('')
 
-// --- Data Fetching ---
 watch(
   () => route.params.uuid,
   async (value) => {
@@ -50,7 +47,6 @@ watch(
   { immediate: true },
 )
 
-// --- Actions ---
 const copyId = (uuid: string) => {
   copy(uuid)
   toast.add({ title: 'Clipboard', description: 'Application ID copied', color: 'success' })
@@ -58,7 +54,6 @@ const copyId = (uuid: string) => {
 
 const goBack = () => router.back()
 
-// --- Helpers ---
 const statusColor = (status: ApplicationStatusEnum) => {
   switch (status) {
     case ApplicationStatusEnum.Rejected:
@@ -87,7 +82,6 @@ const gradeLabel = (g: number) => {
 
 const strandLabel = (s: number | null | undefined) => {
   const map: Record<number, string> = { 0: 'STEM', 1: 'ABM', 2: 'HUMSS', 3: 'GAS', 4: 'ICT' }
-
   return s !== null && s !== undefined ? (map[s] ?? 'Unknown') : 'N/A'
 }
 
@@ -106,14 +100,12 @@ const degreeLabel = (s: number | null | undefined) => {
     10: 'BSPharma',
     11: 'BSPsych',
   }
-
   return s !== null && s !== undefined ? (map[s] ?? 'Unknown') : 'N/A'
 }
 
 const natureLabel = (n: number) =>
   ({ 0: 'OJT', 1: 'Apprenticeship', 2: 'Internship', 3: 'Work Immersion' })[n] ?? 'Unknown'
 
-// --- Requirements Table Columns ---
 const requirementColumns: TableColumn<any>[] = [
   { accessorKey: 'fileName', header: 'File Name' },
   { accessorKey: 'fileType', header: 'Type' },
@@ -148,8 +140,6 @@ const items = computed<BreadcrumbItem[]>(() => [
   },
 ])
 
-//assign office & approve
-
 const officeSchema = z.object({
   office: z.enum(OfficeNameEnum, { error: 'Office is required' }),
 })
@@ -160,8 +150,6 @@ const selectedOffice = ref<Partial<OfficeSchema>>({
 })
 
 const submitOffice = async (payload: FormSubmitEvent<OfficeSchema>) => {
-  if (!modalRef.value || !formRef.value) return
-
   try {
     modalOverlay.open({
       titel: 'Loading',
@@ -196,10 +184,6 @@ const submitOffice = async (payload: FormSubmitEvent<OfficeSchema>) => {
 }
 
 const debounceSubmitOffice = useDebounceFn(submitOffice, 1000)
-
-const disableForm = () => {
-  isDisabled.value = !isDisabled.value
-}
 
 const generateEndorsement = async () => {
   try {
@@ -263,18 +247,16 @@ const rejectApplication = async (uuid: string) => {
 
   const instance = await cmodal.result
 
-  if (instance) { // Checked positive confirmation
-    debouncedRejectApi(uuid) // Call the debounced handler
+  if (instance) {
+    debouncedRejectApi(uuid)
   }
 }
 
-const isRejected = computed(()=>details.value?.application.status === ApplicationStatusEnum.Rejected)
 const isApproved = computed(()=>details.value?.application.status === ApplicationStatusEnum.Approved)
 </script>
 
 <template>
   <UMain>
-    <!-- Header -->
     <div class="flex items-center gap-2 my-3">
       <UButton variant="ghost" color="neutral" icon="i-lucide-arrow-left" @click="goBack">
         Back

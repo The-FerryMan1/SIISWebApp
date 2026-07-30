@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import z from 'zod'
-import { OfficeNameEnum, OfficeNameLabels, OfficesArray } from '../admin/types/officeSelectValue'
 import { computed, h, ref, resolveComponent, useTemplateRef, watch } from 'vue'
 
 import { storeToRefs } from 'pinia'
 import { useOJtStore, type Ojt } from '../../stores/ojt'
 import type { TableColumn } from '@nuxt/ui'
 import { useAxios } from '../../fetch/axios'
+import { OfficeNameEnum, OfficeNameLabels, OfficesArray } from '../admin/types/officeSelectValue'
 
 type Payload = {
   office: OfficeNameEnum
@@ -15,13 +14,10 @@ type Payload = {
 
 const ojt = useOJtStore()
 const { ojts } = storeToRefs(ojt)
-const officeSchema = z.object({
-  office: z.enum(OfficeNameEnum, { error: 'Office is required' }),
-})
-type OfficeSchema = z.infer<typeof officeSchema>
 
 const UCheckbox = resolveComponent('UCheckbox')
-const selectedOffice = ref<Partial<OfficeSchema>>({
+const UIcon = resolveComponent('UIcon')
+const selectedOffice = ref<Partial<{ office: OfficeNameEnum }>>({
   office: undefined,
 })
 const selectedUniv = ref<string>()
@@ -37,7 +33,7 @@ watch(
   async () => {
     try {
       await ojt.ojtInit()
-    } catch (error) {}
+    } catch {}
   },
   { immediate: true },
 )
@@ -51,7 +47,6 @@ const iconGender = (g: number | null) => {
   return ['i-lucide-mars', 'i-lucide-venus', 'i-lucide-circle-small'][g] ?? 'i-lucide-help-circle'
 }
 const UChip = resolveComponent('UChip')
-const UIcon = resolveComponent('UIcon')
 const columns: TableColumn<Ojt>[] = [
   {
     id: 'select',

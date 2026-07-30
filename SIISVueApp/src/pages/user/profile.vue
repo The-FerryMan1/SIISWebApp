@@ -59,10 +59,9 @@ const profileSubmit = async (event: FormSubmitEvent<ProfileSchema>) => {
 const profileRequest = useDebounceFn(async (payload: ProfileSchema) => {
   await useAxios.put('/user', payload)
   await auth.useVerify()
-})
+}, 500)
 
 //change password
-const changePassForm = useTemplateRef('changePassForm')
 const changePassSchema = z
   .object({
     currentPassword: z.string('Invalid password'),
@@ -99,7 +98,6 @@ const changePassSubmit = async (event: FormSubmitEvent<ChangePassSchema>) => {
       }
       console.log(error)
     } finally {
-      profileSubmitLoading.value = false
       changePassState.value = {
         confirm: undefined,
         currentPassword: undefined,
@@ -159,7 +157,6 @@ const changePassRequest = useDebounceFn(async (payload: ChangePassSchema) => {
 
         <UCard title="Change Password" variant="outline">
           <UForm
-            ref="changePassForm"
             :state="changePassState"
             :schema="changePassSchema"
             @submit="changePassSubmit"

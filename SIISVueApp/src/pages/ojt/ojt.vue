@@ -1,27 +1,19 @@
 <script setup lang="ts">
-import { UseAuthStore } from '../../stores/auth'
 import { computed, h, onMounted, ref, resolveComponent, useTemplateRef, watch } from 'vue'
-import type { TableColumn, TableRow } from '@nuxt/ui'
-import { useApplicationStore } from '../../stores/application'
-import type { Applicaton } from '../../stores/application'
-import { getPaginationRowModel, type Row } from '@tanstack/vue-table'
+import type { TableColumn } from '@nuxt/ui'
+import { getPaginationRowModel } from '@tanstack/vue-table'
 import { useRouter } from 'vue-router'
-import { type Ojt, useOJtStore } from '../../stores/ojt'
+import { useDebounceFn } from '@vueuse/core'
+import { useOJtStore, type Ojt } from '../../stores/ojt'
 import { OfficeNameLabels, type OfficeNameEnum } from '../admin/types/officeSelectValue'
-import { GenderEnum } from '../onBoarding/validator/onboardingValidator'
 import OjtPieChart from './graph/ojtPieChart.vue'
 
-//states
-const auth = UseAuthStore()
-const application = useApplicationStore()
 const ojt = useOJtStore()
+const UButton = resolveComponent('UButton')
+const UChip = resolveComponent('UChip')
+const UIcon = resolveComponent('UIcon')
 const router = useRouter()
 
-const UBadge = resolveComponent('UBadge')
-const UChip = resolveComponent('UChip')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
-const UIcon = resolveComponent('UIcon')
 const genderLabel = (g: number) => ['Male', 'Female', 'Other'][g] ?? 'Unknown'
 const iconGender = (g: number | null) => {
   if (g === null || g === undefined) return 'i-lucide-help-circle'
@@ -32,7 +24,6 @@ onMounted(async () => {
   await ojt.ojtInit()
 })
 
-//table column
 const columns: TableColumn<Ojt>[] = [
   {
     accessorKey: 'lastName',
@@ -178,7 +169,6 @@ const getAge = (birthDate: string | Date): number => {
   let age = today.getFullYear() - birth.getFullYear()
   const monthDiff = today.getMonth() - birth.getMonth()
 
-  // Adjust if birthday hasn't occurred yet this year
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
     age--
   }
@@ -186,13 +176,11 @@ const getAge = (birthDate: string | Date): number => {
   return age
 }
 
-//cards
 const cards = computed(() => [
   {
     title: 'Total OJT',
     icon: 'i-lucide-file',
     text: ojt.ojts?.length,
-    color: 'bg-info-400',
   },
 ])
 
@@ -208,7 +196,7 @@ const genderSelectedFIlter = ref('All')
 const genderFilterResult = computed(() => {
   return ojt.ojts.filter((t) => {
     if (genderSelectedFIlter.value === 'All') {
-      return true // Show all
+      return true
     }
     return genderLabel(t.gender) === genderSelectedFIlter.value
   })
@@ -218,7 +206,7 @@ watch(
   () => pagination.value.pageSize,
   (size) => {
     table.value?.tableApi?.setPageSize(size)
-    pagination.value.pageIndex = 0 // reset to first page when limit changes
+    pagination.value.pageIndex = 0
   },
 )
 
@@ -226,7 +214,7 @@ const pageSize = ref(10)
 
 watch(pageSize, (size) => {
   pagination.value.pageSize = size
-  pagination.value.pageIndex = 0 // reset to page 1
+  pagination.value.pageIndex = 0
 })
 </script>
 

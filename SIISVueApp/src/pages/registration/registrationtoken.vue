@@ -13,7 +13,7 @@ import ConfirmationModal from '../../components/confirmationModal.vue';
 import { useAxios } from '../../fetch/axios.ts';
 
 const regsToken = useRegistrationToken()
-const { registrationTokenError, tokens } = storeToRefs(regsToken)
+const { tokens } = storeToRefs(regsToken)
 const router = useRouter()
 const route = useRoute()
 const table = useTemplateRef('table')

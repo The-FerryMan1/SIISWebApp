@@ -6,7 +6,6 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart, LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
-import { UseAuthStore } from '../../stores/auth'
 import { useOfficeStore } from '../../stores/office'
 import { useOJtStore } from '../../stores/ojt'
 import { useApplicationStore } from '../../stores/application'
@@ -16,7 +15,6 @@ import { OfficeNameLabels, type OfficeNameEnum } from '../admin/types/officeSele
 
 use([CanvasRenderer, BarChart, LineChart, GridComponent, TooltipComponent])
 
-const auth = UseAuthStore()
 const officeStore = useOfficeStore()
 const ojtStore = useOJtStore()
 const applicationStore = useApplicationStore()

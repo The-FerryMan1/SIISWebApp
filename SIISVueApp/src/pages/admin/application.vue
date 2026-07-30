@@ -1,23 +1,17 @@
 <script setup lang="ts">
-import { UseAuthStore } from '../../stores/auth'
 import { computed, h, onMounted, ref, resolveComponent, useTemplateRef, watch } from 'vue'
-import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui'
 import { useApplicationStore } from '../../stores/application'
-import type { Applicaton } from '../../stores/application'
-import { getPaginationRowModel, type Row } from '@tanstack/vue-table'
+import { getPaginationRowModel } from '@tanstack/vue-table'
 import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import ConfirmationModal from '../../components/confirmationModal.vue'
 import { useAxios } from '../../fetch/axios'
-import { ApplicationStatusEnum } from './types/applicationType.ts'
 
-//states
-const auth = UseAuthStore()
 const application = useApplicationStore()
+const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UChip = resolveComponent('UChip')
-const UButton = resolveComponent('UButton')
-const UCheckbox = resolveComponent('UCheckbox')
 const router = useRouter()
 
 const toast = useToast()
@@ -28,8 +22,7 @@ onMounted(async () => {
   await application.applicationInit()
 })
 
-//table column
-const columns: TableColumn<Applicaton>[] = [
+const columns: TableColumn<any>[] = [
   {
     accessorKey: 'fullName',
     header: 'Applicant',
@@ -136,30 +129,21 @@ const debounceDelete = useDebounceFn(async (uuid: string) => {
   }
 }, 500)
 
-//row actions
-const rowActions = (row: Row<Applicaton>) => {
-  return []
-}
-
-//cards
 const cards = computed(() => [
   {
     title: 'Applications',
     icon: 'i-lucide-file',
     text: application.applications?.length,
-    color: 'bg-info-400',
   },
   {
     title: 'Approved',
     icon: 'i-lucide-badge-check',
     text: application.applications?.filter((t) => t.status == 'Approved').length,
-    color: 'bg-yellow-400',
   },
   {
     title: 'Pending',
     icon: 'i-lucide-ellipsis',
     text: application.applications?.filter((t) => t.status == 'Pending').length,
-    color: 'bg-yellow-400',
   },
   {
     title: 'Rejected',
@@ -167,7 +151,6 @@ const cards = computed(() => [
     text: application.applications?.filter(
       (t) => t.status == "Rejected"
     ).length,
-    color: 'bg-green-400',
   },
 ])
 
@@ -194,7 +177,7 @@ watch(
   () => pagination.value.pageSize,
   (size) => {
     table.value?.tableApi?.setPageSize(size)
-    pagination.value.pageIndex = 0 // reset to first page when limit changes
+    pagination.value.pageIndex = 0
   },
 )
 
@@ -202,7 +185,7 @@ const pageSize = ref(10)
 
 watch(pageSize, (size) => {
   pagination.value.pageSize = size
-  pagination.value.pageIndex = 0 // reset to page 1
+  pagination.value.pageIndex = 0
 })
 </script>
 
@@ -222,7 +205,7 @@ watch(pageSize, (size) => {
           :title="card.title"
           :icon="card.icon"
           orientation="horizontal"
-          :color="card.color"
+          color="info"
         >
           <span class="text-3xl font-bold text-primary">{{ card.text }}</span>
         </UPageCard>

@@ -6,11 +6,6 @@ import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 
-watch(
-  () => route.params.uuid,
-  async () => {},
-)
-
 const items = computed<BreadcrumbItem[]>(() => [
   {
     label: 'Application',
