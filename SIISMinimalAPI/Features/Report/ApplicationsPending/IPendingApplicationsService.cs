@@ -5,4 +5,5 @@ namespace SIISMinimalAPI.Features.Report.ApplicationsPending;
 public interface IPendingApplicationsService
 {
     Task<byte[]> GetPendingApplications(CancellationToken ct);
+    Task<byte[]> GetPendingApplicationsCsv(CancellationToken ct);
 }

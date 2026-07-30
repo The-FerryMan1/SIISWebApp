@@ -60,11 +60,14 @@ export const useReportStore = defineStore('report', () => {
         }
     }
 
-    const pendingApplications = async () => {
+    const pendingApplications = async (format?: string) => {
+        const endpoint = format === 'csv' ? '/report/applications/pending/csv' : '/report/applications/pending'
         try {
-            const { data } = await useAxios.get('/report/applications/pending', {
+            const { data } = await useAxios.get(endpoint, {
                 responseType: 'blob',
-                headers: { 'Content-Type': 'application/pdf' }
+                headers: {
+                    'Content-Type': format === 'csv' ? 'text/csv' : 'application/pdf'
+                }
             });
             return data
         } catch (error) {
@@ -147,11 +150,14 @@ export const useReportStore = defineStore('report', () => {
         }
     }
 
-    const expiringInternships = async () => {
+    const expiringInternships = async (format?: string) => {
+        const endpoint = format === 'csv' ? '/report/internship/expiring/csv' : '/report/internship/expiring'
         try {
-            const { data } = await useAxios.get('/report/internship/expiring', {
+            const { data } = await useAxios.get(endpoint, {
                 responseType: 'blob',
-                headers: { 'Content-Type': 'application/pdf' }
+                headers: {
+                    'Content-Type': format === 'csv' ? 'text/csv' : 'application/pdf'
+                }
             });
             return data
         } catch (error) {

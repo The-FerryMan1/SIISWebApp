@@ -50,8 +50,8 @@
     <Content Remove="wwwroot\**" />
   </ItemGroup>
 
-  <Target Name="BuildVue" BeforeTargets="Build;Publish">
+  <Target Name="BuildVue" BeforeTargets="Build;Publish" Condition="Exists('..\SIISVueApp\package.json')">
     <Message Importance="high" Text="Building Vue frontend for the .NET host..." />
-    <Exec Command="npm run build" WorkingDirectory="..\SIISVueApp" />
+    <Exec Command="npm run build" WorkingDirectory="..\SIISVueApp" ContinueOnError="true" />
   </Target>
 </Project>

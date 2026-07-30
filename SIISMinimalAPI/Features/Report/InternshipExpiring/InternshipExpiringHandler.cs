@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.Text;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
@@ -82,7 +85,7 @@ public class InternshipExpiringHandler(AppDbContext context) : IInternshipExpiri
 
                             static IContainer HeaderCell(IContainer container) => container
                                 .DefaultTextStyle(x => x.FontSize(10))
-                                .Padding(4)
+                                .Padding(0)
                                 .Border(1)
                                 .BorderColor(Colors.Black);
                         });
@@ -103,7 +106,7 @@ public class InternshipExpiringHandler(AppDbContext context) : IInternshipExpiri
                             table.Cell().Element(DataCell).AlignCenter().Text(internship.InternshipTotalHours.ToString()).FontSize(9);
 
                             static IContainer DataCell(IContainer container) => container
-                                .Padding(4)
+                                .Padding(0)
                                 .Border(1)
                                 .BorderColor(Colors.Black);
                         }
@@ -121,5 +124,41 @@ public class InternshipExpiringHandler(AppDbContext context) : IInternshipExpiri
         });
 
         return document.GeneratePdf();
+    }
+
+    public async Task<byte[]> GetExpiringInternshipsCsv(CancellationToken ct, int daysThreshold = 30)
+    {
+        var thresholdDate = DateOnly.FromDateTime(DateTime.Now.AddDays(daysThreshold));
+
+        var students = await _context.Students
+            .Include(s => s.Internship)
+            .Include(s => s.Office)
+            .Include(s => s.Application)
+            .Where(s => !s.IsDeleted 
+                && s.Internship != null 
+                && s.Internship.EstimatedEndDate <= thresholdDate
+                && s.Application.Status == ApplicationStatusEnum.Approved)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .OrderBy(s => s.Internship.EstimatedEndDate)
+            .ToListAsync(ct);
+
+        var records = students.Select(s => new InternshipExpiringDto
+        {
+            FullName = $"{s.LastName}, {s.FirstName} {s.MiddleName}".Trim(),
+            Office = s.Office != null ? OfficeEnumLabels.GetLabel(s.Office.Name) : "N/A",
+            EstimatedEndDate = s.Internship!.EstimatedEndDate,
+            DaysLeft = s.Internship.EstimatedEndDate.DayNumber - DateOnly.FromDateTime(DateTime.Now).DayNumber,
+            TotalHours = s.Internship.InternshipTotalHours
+        }).ToList();
+
+        using var memoryStream = new MemoryStream();
+        using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, leaveOpen: true))
+        using (var csv = new CsvWriter(writer, new CsvConfiguration()))
+        {
+            csv.WriteRecords(records);
+        }
+
+        return memoryStream.ToArray();
     }
 }

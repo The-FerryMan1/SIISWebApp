@@ -1,304 +1,300 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import CsvPdfModal from '../../components/csvPdfModal.vue';
-import { useReportStore } from '../../stores/report.ts';
-import { OfficeNameEnum } from '../admin/types/applicationUpdateValidator.ts';
-import { Labels, OfficeOptions } from '../../shared/officeEnum.ts';
-
+import { ref } from 'vue'
+import CsvPdfModal from '../../components/csvPdfModal.vue'
+import { useReportStore } from '../../stores/report.ts'
+import type { SelectItem } from '@nuxt/ui'
+import { OfficeOptions } from '../../shared/officeEnum.ts'
 
 const overlay = useOverlay()
 const selectFileTypeModal = overlay.create(CsvPdfModal)
 const report = useReportStore()
+const toast = useToast()
 
-const selectedFileTypeState = ref<number | undefined>(1)
-const cards = ref([
-    {
-        title: 'OJTs',
-        description: 'List of ojt',
-        icon: 'i-lucide-user',
-        onClick: async () => generateReport('s')
-    },
-    {
-        title: 'OJT Per Office',
-        description: 'List of ojt per office',
-        icon: 'i-lucide-building',
-         onClick: async () => generateReportPerOffice()
+const loading = ref(false)
 
-    },
-    {
-        title: 'Pending Applications',
-        description: 'List of pending applications',
-        icon: 'i-lucide-clock',
-        onClick: async () => generatePendingApplications()
-    },
-    {
-        title: 'Missing Requirements',
-        description: 'Approved students without requirements',
-        icon: 'i-lucide-file-x',
-        onClick: async () => generateMissingRequirements()
-    },
-    {
-        title: 'Office Summary',
-        description: 'Statistics per office',
-        icon: 'i-lucide-bar-chart-3',
-        onClick: async () => generateOfficesSummary()
-    },
-    {
+const statusOptions: SelectItem[] = [
+  { label: 'Pending', value: 0 },
+  { label: 'Approved', value: 1 },
+  { label: 'Rejected', value: 2 },
+]
+
+interface ReportItem {
+  title: string
+  description: string
+  icon: string
+  formats: readonly ('pdf' | 'csv')[]
+  action: string
+  paramItems?: SelectItem[]
+}
+
+interface ReportCategory {
+  title: string
+  description: string
+  items: ReportItem[]
+}
+
+const reportCategories = ref<ReportCategory[]>([
+  {
+    title: 'Student Reports',
+    description: 'Student masterlist, demographics, and academic information',
+    items: [
+      {
         title: 'Student Masterlist',
-        description: 'Complete list of students',
+        description: 'Complete directory with contact details and status',
         icon: 'i-lucide-users',
-        onClick: async () => generateStudents()
-    },
-    {
-        title: 'Internship Hours',
-        description: 'Internship hours summary',
-        icon: 'i-lucide-timer',
-        onClick: async () => generateInternshipHours()
-    },
-    {
+        formats: ['pdf', 'csv'] as const,
+        action: 'students',
+        paramItems: undefined,
+      },
+    ],
+  },
+  {
+    title: 'Office Reports',
+    description: 'Office placement statistics and OJT distribution',
+    items: [
+      {
+        title: 'Office Statistics Summary',
+        description: 'OJT count and share percentage per office',
+        icon: 'i-lucide-bar-chart-3',
+        formats: ['pdf'] as const,
+        action: 'officesSummary',
+        paramItems: undefined,
+      },
+    ],
+  },
+  {
+    title: 'Application Reports',
+    description: 'Application status and approval tracking',
+    items: [
+      {
+        title: 'Pending Applications',
+        description: 'Applications awaiting review and approval',
+        icon: 'i-lucide-clock',
+        formats: ['pdf', 'csv'] as const,
+        action: 'pendingApplications',
+        paramItems: undefined,
+      },
+      {
+        title: 'OJTs by Status',
+        description: 'List of OJTs filtered by approval status',
+        icon: 'i-lucide-user-check',
+        formats: ['pdf', 'csv'] as const,
+        action: 'ojts',
+        paramItems: statusOptions,
+      },
+      {
+        title: 'OJT Per Office',
+        description: 'Students assigned to a specific office',
+        icon: 'i-lucide-building',
+        formats: ['pdf'] as const,
+        action: 'ojtsPerOffice',
+        paramItems: OfficeOptions,
+      },
+    ],
+  },
+  {
+    title: 'Requirements Reports',
+    description: 'Document submission tracking and compliance',
+    items: [
+      {
+        title: 'Missing Requirements',
+        description: 'Approved students without submitted documents',
+        icon: 'i-lucide-file-x',
+        formats: ['pdf', 'csv'] as const,
+        action: 'missingRequirements',
+        paramItems: undefined,
+      },
+      {
         title: 'Requirements Checklist',
-        description: 'Requirements submitted list',
+        description: 'All submitted requirements per student',
         icon: 'i-lucide-list-checks',
-        onClick: async () => generateRequirementsChecklist()
-    },
-    {
+        formats: ['pdf', 'csv'] as const,
+        action: 'requirementsChecklist',
+        paramItems: undefined,
+      },
+    ],
+  },
+  {
+    title: 'Internship Reports',
+    description: 'Hours tracking and expiration monitoring',
+    items: [
+      {
+        title: 'Internship Hours Summary',
+        description: 'Total and average hours per student',
+        icon: 'i-lucide-timer',
+        formats: ['pdf'] as const,
+        action: 'internshipHours',
+        paramItems: undefined,
+      },
+      {
         title: 'Expiring Internships',
-        description: 'Internships ending soon',
+        description: 'Internships ending within the next 30 days',
         icon: 'i-lucide-alert-triangle',
-        onClick: async () => generateExpiringInternships()
-    },
+        formats: ['pdf', 'csv'] as const,
+        action: 'expiringInternships',
+        paramItems: undefined,
+      },
+    ],
+  },
 ])
 
-const generateReport = async (endpoint: string) => {
-    const instance = selectFileTypeModal.open({
-        title: 'Select file type',  selectPlaceholder:"Select Status", "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), items: [
-            {
-                label: 'Pending',
-                value: 0
-            },
-            {
-                label: 'Approved',
-                value: 1
-            },
-            {
-                label: 'Rejected',
-                value: 2
-            }
-        ]
+const formatLabels: Record<string, string> = {
+  pdf: 'PDF',
+  csv: 'CSV',
+}
+
+const formatColors: Record<string, 'primary' | 'success'> = {
+  pdf: 'primary',
+  csv: 'success',
+}
+
+const openModal = (action: string, formats: readonly ('pdf' | 'csv')[], paramItems?: SelectItem[]) => {
+  const items = paramItems ?? formats.map((f) => ({
+    label: formatLabels[f],
+    value: f,
+  }))
+
+  const instance = selectFileTypeModal.open({
+    title: 'Export Report',
+    description: 'Choose your preferred file format',
+    selectPlaceholder: 'Select option',
+    items,
+    formats: Array.from(formats),
+  })
+
+  instance.result.then((result) => {
+    if (!result || result.format === 'none') return
+    handleExport(action, result.format, result.selected)
+  })
+}
+
+const handleExport = async (action: string, format: string, selectedParam?: number) => {
+  try {
+    loading.value = true
+    let blob: Blob | undefined
+
+    switch (action) {
+      case 'students':
+        blob = await report.studentsReport(format)
+        downloadFile(blob, format, 'students-masterlist')
+        break
+      case 'officesSummary':
+        blob = await report.officesSummary()
+        downloadFile(blob, 'pdf', 'offices-summary')
+        break
+      case 'pendingApplications':
+        blob = await report.pendingApplications(format)
+        downloadFile(blob, format, 'pending-applications')
+        break
+      case 'ojts':
+        blob = await report.pdfReport('/report/ojtList' + (format === 'csv' ? '/csv' : ''), selectedParam ?? 1)
+        downloadFile(blob, format, 'ojt-list')
+        break
+      case 'ojtsPerOffice':
+        blob = await report.pdfReportPerOffice('/report/ojtPerOffice', selectedParam ?? 1)
+        downloadFile(blob, 'pdf', 'ojt-per-office')
+        break
+      case 'missingRequirements':
+        blob = await report.missingRequirements(format)
+        downloadFile(blob, format, 'missing-requirements')
+        break
+      case 'requirementsChecklist':
+        blob = await report.requirementsChecklist(format)
+        downloadFile(blob, format, 'requirements-checklist')
+        break
+      case 'internshipHours':
+        blob = await report.internshipHours()
+        downloadFile(blob, 'pdf', 'internship-hours')
+        break
+      case 'expiringInternships':
+        blob = await report.expiringInternships(format)
+        downloadFile(blob, format, 'expiring-internships')
+        break
+    }
+
+    toast.add({
+      title: 'Report exported successfully',
+      description: `Your ${format.toUpperCase()} report is ready.`,
+      color: 'success',
     })
-    const result = await instance.result
-
-    try {
-        if (result == 'csv') {
-
-            const file = await report.pdfReport('/report/ojtList/csv', selectedFileTypeState.value)
-            downloadFile(file, 'csv', 'ojtlist')
-
-        }
-        else if (result == 'pdf') {
-            const file = await report.pdfReport('/report/ojtList', selectedFileTypeState.value)
-            downloadFile(file, 'pdf', 'ojtlist')
-        }
-    }
-    catch (error) {
-
-    }
-
-}
-
-
-
-const generateReportPerOffice = async () => {
-    const instance = selectFileTypeModal.open({ title: 'Select file type', selectPlaceholder:"Select Office", "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), items:OfficeOptions })
-    const result = await instance.result
-
-    try {
-        if (result == 'pdf') {
-
-            const file = await report.pdfReportPerOffice('/report/ojtPerOffice', selectedFileTypeState.value)
-            downloadFile(file, 'pdf', 'ojtlist')
-
-        }
-        else if (result == 'csv') {
-          
-        }
-    }
-    catch (error) {
-
-    }
-}
-
-const generatePendingApplications = async () => {
-    const instance = selectFileTypeModal.open({ 
-        title: 'Select file type', 
-        selectPlaceholder:"Format", 
-        "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), 
-        items: [{ label: 'PDF', value: 1 }] 
+  } catch (error) {
+    toast.add({
+      title: 'Export failed',
+      description: 'Something went wrong while generating the report.',
+      color: 'error',
     })
-    const result = await instance.result
-
-    try {
-        if (result == 'pdf') {
-            const file = await report.pendingApplications()
-            downloadFile(file, 'pdf', 'pending-applications')
-        }
-    }
-    catch (error) {
-
-    }
+  } finally {
+    loading.value = false
+  }
 }
 
-const generateMissingRequirements = async () => {
-    const instance = selectFileTypeModal.open({ 
-        title: 'Select file type', 
-        selectPlaceholder:"Format", 
-        "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), 
-        items: [{ label: 'All', value: 1 }] 
-    })
-    const result = await instance.result
-
-    try {
-        if (result == 'csv') {
-            const file = await report.missingRequirements('csv')
-            downloadFile(file, 'csv', 'missing-requirements')
-        }
-        else if (result == 'pdf') {
-            const file = await report.missingRequirements()
-            downloadFile(file, 'pdf', 'missing-requirements')
-        }
-    }
-    catch (error) {
-
-    }
-}
-
-const generateOfficesSummary = async () => {
-    const instance = selectFileTypeModal.open({ 
-        title: 'Select file type', 
-        selectPlaceholder:"Format", 
-        "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), 
-        items: [{ label: 'PDF', value: 1 }] 
-    })
-    const result = await instance.result
-
-    try {
-        if (result == 'pdf') {
-            const file = await report.officesSummary()
-            downloadFile(file, 'pdf', 'offices-summary')
-        }
-    }
-    catch (error) {
-
-    }
-}
-
-const generateStudents = async () => {
-    const instance = selectFileTypeModal.open({ 
-        title: 'Select file type', 
-        selectPlaceholder:"Format", 
-        "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), 
-        items: [{ label: 'All', value: 1 }] 
-    })
-    const result = await instance.result
-
-    try {
-        if (result == 'csv') {
-            const file = await report.studentsReport('csv')
-            downloadFile(file, 'csv', 'students-masterlist')
-        }
-        else if (result == 'pdf') {
-            const file = await report.studentsReport()
-            downloadFile(file, 'pdf', 'students-masterlist')
-        }
-    }
-    catch (error) {
-
-    }
-}
-
-const generateInternshipHours = async () => {
-    const instance = selectFileTypeModal.open({ 
-        title: 'Select file type', 
-        selectPlaceholder:"Format", 
-        "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), 
-        items: [{ label: 'PDF', value: 1 }] 
-    })
-    const result = await instance.result
-
-    try {
-        if (result == 'pdf') {
-            const file = await report.internshipHours()
-            downloadFile(file, 'pdf', 'internship-hours')
-        }
-    }
-    catch (error) {
-
-    }
-}
-
-const generateRequirementsChecklist = async () => {
-    const instance = selectFileTypeModal.open({ 
-        title: 'Select file type', 
-        selectPlaceholder:"Format", 
-        "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), 
-        items: [{ label: 'All', value: 1 }] 
-    })
-    const result = await instance.result
-
-    try {
-        if (result == 'csv') {
-            const file = await report.requirementsChecklist('csv')
-            downloadFile(file, 'csv', 'requirements-checklist')
-        }
-        else if (result == 'pdf') {
-            const file = await report.requirementsChecklist()
-            downloadFile(file, 'pdf', 'requirements-checklist')
-        }
-    }
-    catch (error) {
-
-    }
-}
-
-const generateExpiringInternships = async () => {
-    const instance = selectFileTypeModal.open({ 
-        title: 'Select file type', 
-        selectPlaceholder:"Format", 
-        "onUpdate:modelValue": (t: number | undefined) => (selectedFileTypeState.value = t), 
-        items: [{ label: 'PDF', value: 1 }] 
-    })
-    const result = await instance.result
-
-    try {
-        if (result == 'pdf') {
-            const file = await report.expiringInternships()
-            downloadFile(file, 'pdf', 'expiring-internships')
-        }
-    }
-    catch (error) {
-
-    }
-}
-
-
-const downloadFile = (blob: Blob, ext?: string, filename?: string) => {
-    const downloadUrl = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = downloadUrl
-    a.download = `${filename}-${new Date().toLocaleDateString()}.${ext}`
-    a.click()
-    URL.revokeObjectURL(downloadUrl)
+const downloadFile = (blob: Blob | undefined, ext: string, filename: string) => {
+  if (!blob) return
+  const downloadUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = downloadUrl
+  a.download = `${filename}-${new Date().toISOString().slice(0, 10)}.${ext}`
+  a.click()
+  URL.revokeObjectURL(downloadUrl)
 }
 </script>
 
 <template>
-
-    <div>
-        <h1 class="text-xl font-bold text-primary">Generate PDF/CSV</h1>
+  <UMain class="space-y-10">
+    <div class="px-4 py-2 my-5">
+      <div>
+        <h2 class="text-4xl font-black text-primary">Reports</h2>
+        <p class="text-muted text-sm">
+          Generate and export PDF or CSV reports for students, offices, applications, and more.
+        </p>
+      </div>
     </div>
 
+    <div v-for="category in reportCategories" :key="category.title" class="space-y-4">
+      <div class="px-4">
+        <h3 class="text-lg font-semibold text-primary">{{ category.title }}</h3>
+        <p class="text-muted text-sm">{{ category.description }}</p>
+      </div>
 
-    <UPageGrid>
-        <UPageCard :spotlight="true" spotlight-color="primary" v-for="(card, index) in cards" :key="index" v-bind="card" />
-    </UPageGrid>
+      <UPageGrid>
+        <UPageCard
+          v-for="item in category.items"
+          :key="item.title"
+          :spotlight="true"
+          spotlight-color="primary"
+          class="transition hover:shadow-lg"
+          :title="item.title"
+          :description="item.description"
+          :icon="item.icon"
+          :ui="{ footer: 'border-t border-default pt-4' }"
+        >
+          <template #footer>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-1">
+                <UBadge
+                  v-for="format in item.formats"
+                  :key="format"
+                  :color="formatColors[format]"
+                  variant="subtle"
+                  size="xs"
+                >
+                  {{ formatLabels[format] }}
+                </UBadge>
+              </div>
+              <UButton
+                icon="i-lucide-download"
+                size="xs"
+                color="primary"
+                variant="ghost"
+                :loading="loading"
+                @click="openModal(item.action, item.formats, item.paramItems)"
+              >
+                Export
+              </UButton>
+            </div>
+          </template>
+        </UPageCard>
+      </UPageGrid>
+    </div>
+  </UMain>
 </template>

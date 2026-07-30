@@ -84,7 +84,7 @@ public class RequirementsChecklistHandler(AppDbContext context) : IRequirementsC
 
                                     static IContainer HeaderCell(IContainer container) => container
                                         .DefaultTextStyle(x => x.FontSize(9))
-                                        .Padding(3)
+                                        .Padding(0)
                                         .Border(1)
                                         .BorderColor(Colors.Black);
                                 });
@@ -96,7 +96,7 @@ public class RequirementsChecklistHandler(AppDbContext context) : IRequirementsC
                                     table.Cell().Element(DataCell).AlignCenter().Text(req.CreateAt.ToString("MM/dd/yyyy")).FontSize(9);
 
                                     static IContainer DataCell(IContainer container) => container
-                                        .Padding(3)
+                                        .Padding(0)
                                         .Border(1)
                                         .BorderColor(Colors.Black);
                                 }

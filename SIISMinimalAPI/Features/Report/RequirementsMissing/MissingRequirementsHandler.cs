@@ -79,7 +79,7 @@ public class MissingRequirementsHandler(AppDbContext context) : IMissingRequirem
 
                             static IContainer HeaderCell(IContainer container) => container
                                 .DefaultTextStyle(x => x.FontSize(10))
-                                .Padding(4)
+                                .Padding(0)
                                 .Border(1)
                                 .BorderColor(Colors.Black);
                         });
@@ -97,7 +97,7 @@ public class MissingRequirementsHandler(AppDbContext context) : IMissingRequirem
                             table.Cell().Element(DataCell).AlignCenter().Text(s.Application.CreateAt.ToString("MM/dd/yyyy")).FontSize(9);
 
                             static IContainer DataCell(IContainer container) => container
-                                .Padding(4)
+                                .Padding(0)
                                 .Border(1)
                                 .BorderColor(Colors.Black);
                         }

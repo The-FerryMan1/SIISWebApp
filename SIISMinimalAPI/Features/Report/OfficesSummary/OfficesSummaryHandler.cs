@@ -64,7 +64,7 @@ public class OfficesSummaryHandler(AppDbContext context) : IOfficesSummaryServic
 
                         static IContainer HeaderCell(IContainer container) => container
                             .DefaultTextStyle(x => x.FontSize(10))
-                            .Padding(4)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     });
@@ -82,7 +82,7 @@ public class OfficesSummaryHandler(AppDbContext context) : IOfficesSummaryServic
                         table.Cell().Element(DataCell).AlignCenter().Text($"{share}%").FontSize(9);
 
                         static IContainer DataCell(IContainer container) => container
-                            .Padding(4)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     }

@@ -77,7 +77,7 @@ public class StudentsHandler(AppDbContext context) : IStudentsService
 
                         static IContainer HeaderCell(IContainer container) => container
                             .DefaultTextStyle(x => x.FontSize(9))
-                            .Padding(3)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     });
@@ -99,7 +99,7 @@ public class StudentsHandler(AppDbContext context) : IStudentsService
                         table.Cell().Element(DataCell).AlignCenter().Text(status).FontSize(8);
 
                         static IContainer DataCell(IContainer container) => container
-                            .Padding(3)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     }

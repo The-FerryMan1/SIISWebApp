@@ -30,6 +30,19 @@ public static class InternshipExpiringEndpoint
             }
         }).RequireAuthorization();
 
+        group.MapGet("/csv", [Authorize] async Task<IResult>(CancellationToken ct, IInternshipExpiringService service) =>
+        {
+            try
+            {
+                var result = await service.GetExpiringInternshipsCsv(ct);
+                return TypedResults.File(result, "text/csv", "expiring-internships.csv");
+            }
+            catch (System.Exception)
+            {
+                return TypedResults.InternalServerError();
+            }
+        }).RequireAuthorization();
+
         group.MapGet("/days", [Authorize] async Task<IResult>([FromQuery] int days, CancellationToken ct, IInternshipExpiringService service) =>
         {
             try

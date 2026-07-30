@@ -75,7 +75,7 @@ public class InternshipHoursHandler(AppDbContext context) : IInternshipHoursServ
 
                         static IContainer HeaderCell(IContainer container) => container
                             .DefaultTextStyle(x => x.FontSize(10))
-                            .Padding(4)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     });
@@ -97,7 +97,7 @@ public class InternshipHoursHandler(AppDbContext context) : IInternshipHoursServ
                         table.Cell().Element(DataCell).AlignCenter().Text(status).FontSize(9);
 
                         static IContainer DataCell(IContainer container) => container
-                            .Padding(4)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     }

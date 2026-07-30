@@ -1,4 +1,7 @@
 using System;
+using System.Text;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
@@ -69,7 +72,7 @@ public class PendingApplicationsHandler(AppDbContext context) : IPendingApplicat
 
                         static IContainer HeaderCell(IContainer container) => container
                             .DefaultTextStyle(x => x.FontSize(10))
-                            .Padding(4)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     });
@@ -91,7 +94,7 @@ public class PendingApplicationsHandler(AppDbContext context) : IPendingApplicat
                         table.Cell().Element(DataCell).AlignCenter().Text(app.CreateAt.ToString("MM/dd/yyyy")).FontSize(9);
 
                         static IContainer DataCell(IContainer container) => container
-                            .Padding(4)
+                            .Padding(0)
                             .Border(1)
                             .BorderColor(Colors.Black);
                     }
@@ -108,5 +111,36 @@ public class PendingApplicationsHandler(AppDbContext context) : IPendingApplicat
         });
 
         return document.GeneratePdf();
+    }
+
+    public async Task<byte[]> GetPendingApplicationsCsv(CancellationToken ct)
+    {
+        var applications = await _context.Applications
+            .Include(a => a.Student)
+            .ThenInclude(s => s.Internship)
+            .Include(a => a.Student.Office)
+            .Where(a => a.Status == ApplicationStatusEnum.Pending && !a.IsDeleted)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .OrderByDescending(a => a.CreateAt)
+            .ToListAsync(ct);
+
+        var records = applications.Select(a => new PendingApplicationsDto
+        {
+            FullName = $"{a.Student.LastName}, {a.Student.FirstName} {a.Student.MiddleName}".Trim(),
+            GradeLevel = a.Student.GradeLevel.ToString().Humanize(LetterCasing.Title),
+            Office = a.Student.Office != null ? OfficeEnumLabels.GetLabel(a.Student.Office.Name) : "N/A",
+            InternshipType = a.Student.Internship != null ? a.Student.Internship.InternshipNature.ToString().Humanize(LetterCasing.Title) : "N/A",
+            AppliedDate = a.CreateAt
+        }).ToList();
+
+        using var memoryStream = new MemoryStream();
+        using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, leaveOpen: true))
+        using (var csv = new CsvWriter(writer, new CsvConfiguration()))
+        {
+            csv.WriteRecords(records);
+        }
+
+        return memoryStream.ToArray();
     }
 }

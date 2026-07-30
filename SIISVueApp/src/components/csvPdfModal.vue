@@ -1,70 +1,66 @@
 <script setup lang="ts">
-import type {SelectItem, FormSubmitEvent } from '@nuxt/ui'
-import { ref, useTemplateRef } from 'vue';
-import z from 'zod';
+import type { SelectItem } from '@nuxt/ui'
+import { ref, computed } from 'vue'
 
-
-const model = defineModel<number>()
 const props = defineProps<{
-    title?: string,
-    description?: string
-    items?: SelectItem[]
-    selectPlaceholder?: string
+  title?: string
+  description?: string
+  items?: SelectItem[]
+  selectPlaceholder?: string
+  formats?: ('pdf' | 'csv')[]
 }>()
 
 const emit = defineEmits<{
-    close: ['pdf' | 'csv' | 'none']
+  close: [{ format: 'pdf' | 'csv' | 'none'; selected?: number }]
 }>()
 
-const form = useTemplateRef('form')
+const selected = ref<number | undefined>(undefined)
+const selectedFormat = ref<'pdf' | 'csv' | 'none'>()
 
+const showPdf = computed(() => !props.formats || props.formats.includes('pdf'))
+const showCsv = computed(() => !props.formats || props.formats.includes('csv'))
 
-const schema = z.object({
-    selected: z.number()
-})
-const selectedFormat = ref<'pdf'|'csv'|'none'>()
-
-type Schema = z.infer<typeof schema>
-
-
-function onSubmit(event: FormSubmitEvent<Schema>){
-    if(selectedFormat.value){
-         emit('close', selectedFormat.value)
-    }
-   
-}
-
-function selectFormat( format: 'pdf' | 'csv') {
-    selectedFormat.value = format
-    form.value?.submit()
+function handleExport() {
+  emit('close', { format: selectedFormat.value ?? 'none', selected: selected.value })
 }
 </script>
 
 <template>
-    <UModal>
-        <template #content>
-            <div class="space-y-4 p-6 text-center">
-                <h2 class="text-lg font-semibold">{{ title || 'Select Format' }}</h2>
-                <p v-if="description" class="text-sm text-gray-500">{{ description }}</p>
-                <UForm ref="form" :schema="schema" @submit="onSubmit" :state="{selected: model}">
+  <UModal>
+    <template #content>
+      <div class="space-y-4 p-6 text-center">
+        <h2 class="text-lg font-semibold">{{ title || 'Select Format' }}</h2>
+        <p v-if="description" class="text-sm text-gray-500">{{ description }}</p>
 
-               
-                <UFormField name="selected" :label="selectPlaceholder">
-                    <USelect :placeholder="selectPlaceholder" v-model="model" :items  class="w-full" />
-                </UFormField>
-                <div class="flex justify-end gap-2 my-2">
-                    <UButton icon="i-lucide-file-text" color="primary" @click="selectFormat('pdf')">
-                        PDF
-                    </UButton>
-                    <UButton icon="i-lucide-table" color="success" @click="selectFormat('csv')">
-                        CSV
-                    </UButton>
-                </div>
-                 </UForm>
-            </div>
-        </template>
-        <template #footer>
-            <UButton label="Cancel" color="neutral" variant="subtle" @click="$emit('close', 'none')" />
-        </template>
-    </UModal>
+        <USelect
+          :placeholder="selectPlaceholder"
+          v-model="selected"
+          :items
+          class="w-full"
+        />
+
+        <div class="flex justify-end gap-2 my-2">
+          <UButton
+            v-if="showPdf"
+            icon="i-lucide-file-text"
+            color="primary"
+            @click="selectedFormat = 'pdf'; handleExport()"
+          >
+            PDF
+          </UButton>
+          <UButton
+            v-if="showCsv"
+            icon="i-lucide-table"
+            color="success"
+            @click="selectedFormat = 'csv'; handleExport()"
+          >
+            CSV
+          </UButton>
+        </div>
+      </div>
+    </template>
+    <template #footer>
+      <UButton label="Cancel" color="neutral" variant="subtle" @click="$emit('close', { format: 'none' })" />
+    </template>
+  </UModal>
 </template>

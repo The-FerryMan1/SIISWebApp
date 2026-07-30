@@ -30,6 +30,19 @@ public static class PendingApplicationsEndpoint
             }
         }).RequireAuthorization();
 
+        group.MapGet("/csv", [Authorize] async Task<IResult>(CancellationToken ct, IPendingApplicationsService service) =>
+        {
+            try
+            {
+                var result = await service.GetPendingApplicationsCsv(ct);
+                return TypedResults.File(result, "text/csv", "pending-applications.csv");
+            }
+            catch (System.Exception)
+            {
+                return TypedResults.InternalServerError();
+            }
+        }).RequireAuthorization();
+
         return app;
     }
 }
