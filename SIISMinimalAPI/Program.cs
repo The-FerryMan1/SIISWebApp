@@ -14,6 +14,13 @@ using SIISMinimalAPI.Features.OnBoarding;
 using SIISMinimalAPI.Features.RegistrationToken;
 using SIISMinimalAPI.Features.Report.OjtList;
 using SIISMinimalAPI.Features.Report.OjtPerOffice;
+using SIISMinimalAPI.Features.Report.ApplicationsPending;
+using SIISMinimalAPI.Features.Report.RequirementsMissing;
+using SIISMinimalAPI.Features.Report.OfficesSummary;
+using SIISMinimalAPI.Features.Report.Students;
+using SIISMinimalAPI.Features.Report.InternshipHours;
+using SIISMinimalAPI.Features.Report.RequirementsChecklist;
+using SIISMinimalAPI.Features.Report.InternshipExpiring;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,6 +105,13 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRegistrationTokenService, RegistrationTokenHandler>();
 builder.Services.AddScoped<IOjtListService, OjtListHandler>();
 builder.Services.AddScoped<IOjtPerOfficeService, OjtPerOfficehandler>();
+builder.Services.AddScoped<IPendingApplicationsService, PendingApplicationsHandler>();
+builder.Services.AddScoped<IMissingRequirementsService, MissingRequirementsHandler>();
+builder.Services.AddScoped<IOfficesSummaryService, OfficesSummaryHandler>();
+builder.Services.AddScoped<IStudentsService, StudentsHandler>();
+builder.Services.AddScoped<IInternshipHoursService, InternshipHoursHandler>();
+builder.Services.AddScoped<IRequirementsChecklistService, RequirementsChecklistHandler>();
+builder.Services.AddScoped<IInternshipExpiringService, InternshipExpiringHandler>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -122,6 +136,13 @@ app.MapToUser();
 app.MapToRegistrationEndpoint();
 app.MapToOjtList();
 app.MapToOjtPerOffice();
+app.MapToPendingApplications();
+app.MapToMissingRequirements();
+app.MapToOfficesSummary();
+app.MapToStudents();
+app.MapToInternshipHours();
+app.MapToRequirementsChecklist();
+app.MapToInternshipExpiring();
 
 app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 

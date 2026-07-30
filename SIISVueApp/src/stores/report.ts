@@ -60,7 +60,107 @@ export const useReportStore = defineStore('report', () => {
         }
     }
 
+    const pendingApplications = async () => {
+        try {
+            const { data } = await useAxios.get('/report/applications/pending', {
+                responseType: 'blob',
+                headers: { 'Content-Type': 'application/pdf' }
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
 
+    const missingRequirements = async (format?: string) => {
+        const endpoint = format === 'csv' ? '/report/requirements/missing/csv' : '/report/requirements/missing'
+        try {
+            const { data } = await useAxios.get(endpoint, {
+                responseType: 'blob',
+                headers: {
+                    'Content-Type': format === 'csv' ? 'text/csv' : 'application/pdf'
+                }
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
+    const officesSummary = async () => {
+        try {
+            const { data } = await useAxios.get('/report/offices/summary', {
+                responseType: 'blob',
+                headers: { 'Content-Type': 'application/pdf' }
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
+    const studentsReport = async (format?: string) => {
+        const endpoint = format === 'csv' ? '/report/students/csv' : '/report/students'
+        try {
+            const { data } = await useAxios.get(endpoint, {
+                responseType: 'blob',
+                headers: {
+                    'Content-Type': format === 'csv' ? 'text/csv' : 'application/pdf'
+                }
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
+    const internshipHours = async () => {
+        try {
+            const { data } = await useAxios.get('/report/internship/hours', {
+                responseType: 'blob',
+                headers: { 'Content-Type': 'application/pdf' }
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
+    const requirementsChecklist = async (format?: string) => {
+        const endpoint = format === 'csv' ? '/report/requirements/checklist/csv' : '/report/requirements/checklist'
+        try {
+            const { data } = await useAxios.get(endpoint, {
+                responseType: 'blob',
+                headers: {
+                    'Content-Type': format === 'csv' ? 'text/csv' : 'application/pdf'
+                }
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
+    const expiringInternships = async () => {
+        try {
+            const { data } = await useAxios.get('/report/internship/expiring', {
+                responseType: 'blob',
+                headers: { 'Content-Type': 'application/pdf' }
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
+    
     
     const csvExportPerOffice = async(endpoint: string, param?: number) => {
          try {
@@ -83,6 +183,13 @@ export const useReportStore = defineStore('report', () => {
     return {
         pdfReport,
         csvExport,
-        pdfReportPerOffice
+        pdfReportPerOffice,
+        pendingApplications,
+        missingRequirements,
+        officesSummary,
+        studentsReport,
+        internshipHours,
+        requirementsChecklist,
+        expiringInternships
     }
 })
