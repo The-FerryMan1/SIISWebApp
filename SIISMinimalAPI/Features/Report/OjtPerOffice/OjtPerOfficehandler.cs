@@ -57,6 +57,8 @@ public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
                     columns.RelativeColumn(1.2f);
                     columns.RelativeColumn(1.5f);
                     columns.RelativeColumn(1.2f);
+                    columns.RelativeColumn(1.5f);   // Started Date
+                    columns.RelativeColumn(1.5f);   // Estimated End Date
                 });
 
                 // Header row
@@ -69,6 +71,8 @@ public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
                     header.Cell().Element(HeaderCell).AlignCenter().Text("Strand").Bold();
                     header.Cell().Element(HeaderCell).AlignCenter().Text("Degree").Bold();
                     header.Cell().Element(HeaderCell).AlignCenter().Text("Internship hours").Bold();
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Started Date").Bold();
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Estimated End Date").Bold();
 
                     static IContainer HeaderCell(IContainer container) => container
                         .DefaultTextStyle(x => x.FontSize(10))
@@ -87,6 +91,8 @@ public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
                     var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
                     var degree = ojt.Internship?.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
                     var strand =  ojt.Internship?.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var startedDate = ojt.Internship.StartDate;
+                    var estimatedDate = ojt.Internship.EstimatedEndDate;
 
                     table.Cell().Element(DataCell).AlignCenter()
                         .Text(index++.ToString()).FontSize(9);
@@ -108,6 +114,12 @@ public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
 
                     table.Cell().Element(DataCell).AlignCenter()
                         .Text(totalHours > 0 ? totalHours.ToString() : "-").FontSize(9);
+                    
+                    table.Cell().Element(DataCell).AlignCenter()
+                       .Text(startedDate).FontSize(9);
+
+                    table.Cell().Element(DataCell).AlignCenter()
+                       .Text(estimatedDate).FontSize(9);
                 }
 
                 static IContainer DataCell(IContainer container) => container

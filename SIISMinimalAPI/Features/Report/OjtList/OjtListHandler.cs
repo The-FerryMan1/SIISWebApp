@@ -32,7 +32,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
 {
     doc.Page(page =>
     {
-        page.Size(PageSizes.A4.Landscape());
+        page.Size(PageSizes.A4.Portrait());
         page.Margin(30);
 
         // Header with timestamp
@@ -66,7 +66,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 header.Cell().Element(HeaderCell).Text("Student Name").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Status").SemiBold();
                 header.Cell().Element(HeaderCell).Text("Office").SemiBold();
-                header.Cell().Element(HeaderCell).AlignCenter().Text("Hours").SemiBold();
+                header.Cell().Element(HeaderCell).AlignCenter().Text("Internship hours").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Created").SemiBold();
             });

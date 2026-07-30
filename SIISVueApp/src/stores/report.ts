@@ -41,8 +41,48 @@ export const useReportStore = defineStore('report', () => {
         }
     }
 
+
+    const pdfReportPerOffice = async(endpoint: string, param?: number)=>{
+         try {
+            const { data } = await useAxios.get(endpoint, {
+                params: {
+                    office: param
+                },
+                responseType: 'blob',
+                headers: {
+                    'Content-Type': 'application/pdf'
+                },
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
+
+    
+    const csvExportPerOffice = async(endpoint: string, param?: number) => {
+         try {
+            const { data } = await useAxios.get(endpoint, {
+                params: {
+                    status: param
+                },
+                responseType: 'blob',
+                headers: {
+                    'Content-Type': 'application/csv'
+                },
+            });
+            return data
+        } catch (error) {
+            const err = error as AxiosError
+            console.log(err)
+        }
+    }
+
     return {
         pdfReport,
-        csvExport
+        csvExport,
+        pdfReportPerOffice
     }
 })
