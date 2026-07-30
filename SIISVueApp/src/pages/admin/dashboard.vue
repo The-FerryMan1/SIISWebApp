@@ -178,59 +178,60 @@ onMounted(async () => {
 })
 </script>
 
-<template>
-  <div class="space-y-6">
-    <div class="px-1 py-2 my-10">
-      <div>
-        <h2 class="text-4xl font-black text-primary">Dashboard</h2>
-        <p class="text-muted text-sm">
-          Overview of office placements, participant demographics, and recent activity.
-        </p>
+  <template>
+    <div class="space-y-8">
+      <div class="px-1 py-2">
+        <div>
+          <h2 class="text-4xl font-black text-primary tracking-tight">Dashboard</h2>
+          <p class="text-muted text-sm mt-1">
+            Overview of office placements, participant demographics, and recent activity.
+          </p>
+        </div>
       </div>
-    </div>
 
-    <UPageGrid>
-      <UPageCard title="Total Offices"  icon="i-lucide-building" orientation="horizontal">
-        <h2 class="text-3xl font-bold text-primary">{{ totalOffices }}</h2>
-      </UPageCard>
-      <UPageCard title="Total OJTs" icon="i-lucide-users" orientation="horizontal">
-        <h2 class="text-3xl font-bold text-primary">{{ totalOjts }}</h2>
-      </UPageCard>
-      <UPageCard title="Male Participants" icon="i-lucide-user" orientation="horizontal">
-        <h2 class="text-3xl font-bold text-primary">{{ maleCount }}</h2>
-      </UPageCard>
-      <UPageCard title="Female Participants" icon="i-lucide-user-check" orientation="horizontal">
-        <h2 class="text-3xl font-bold text-primary">{{ femaleCount }}</h2>
-      </UPageCard>
-      <UPageCard title="Pending Applications" icon="i-lucide-clock-3" orientation="horizontal">
-        <h2 class="text-3xl font-bold text-amber-500">{{ pendingApplications }}</h2>
-      </UPageCard>
-      <UPageCard
-        title="Approved Applications"
-        icon="i-lucide-circle-check"
-        orientation="horizontal"
-      >
-        <h2 class="text-3xl font-bold text-emerald-500">{{ approvedApplications }}</h2>
-      </UPageCard>
-    </UPageGrid>
+      <UPageGrid>
+        <UPageCard title="Total Offices" icon="i-lucide-building" orientation="horizontal" color="primary">
+          <h2 class="text-3xl font-bold text-primary">{{ totalOffices }}</h2>
+        </UPageCard>
+        <UPageCard title="Total OJTs" icon="i-lucide-users" orientation="horizontal" color="info">
+          <h2 class="text-3xl font-bold text-primary">{{ totalOjts }}</h2>
+        </UPageCard>
+        <UPageCard title="Male Participants" icon="i-lucide-user" orientation="horizontal" color="primary">
+          <h2 class="text-3xl font-bold text-primary">{{ maleCount }}</h2>
+        </UPageCard>
+        <UPageCard title="Female Participants" icon="i-lucide-user-check" orientation="horizontal" color="info">
+          <h2 class="text-3xl font-bold text-primary">{{ femaleCount }}</h2>
+        </UPageCard>
+        <UPageCard title="Pending Applications" icon="i-lucide-clock" orientation="horizontal" color="warning">
+          <h2 class="text-3xl font-bold text-amber-500">{{ pendingApplications }}</h2>
+        </UPageCard>
+        <UPageCard
+          title="Approved Applications"
+          icon="i-lucide-circle-check"
+          orientation="horizontal"
+          color="success"
+        >
+          <h2 class="text-3xl font-bold text-emerald-500">{{ approvedApplications }}</h2>
+        </UPageCard>
+      </UPageGrid>
 
-    <div class="grid gap-6 xl:grid-cols-2">
-      <OjtCountChart />
-      <OjtPieChart />
-    </div>
+      <div class="grid gap-6 xl:grid-cols-2">
+        <OjtCountChart />
+        <OjtPieChart />
+      </div>
 
-    <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-      <UCard title="Application status">
-        <VChart :option="applicationChartOption" autoresize style="height: 320px; width: 100%" />
+      <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <UCard title="Application Status" variant="outline">
+          <VChart :option="applicationChartOption" autoresize style="height: 320px; width: 100%" />
+        </UCard>
+
+        <UCard title="Application Submissions Trend" variant="outline">
+          <VChart :option="applicationTrendOption" autoresize style="height: 320px; width: 100%" />
+        </UCard>
+      </div>
+
+      <UCard title="Recent OJT Participants" variant="outline">
+        <UTable :data="recentOjts" :columns="tableColumns" />
       </UCard>
-
-      <UCard title="Application submissions trend">
-        <VChart :option="applicationTrendOption" autoresize style="height: 320px; width: 100%" />
-      </UCard>
     </div>
-
-    <UCard title="Recent OJT participants">
-      <UTable :data="recentOjts" :columns="tableColumns" />
-    </UCard>
-  </div>
-</template>
+  </template>

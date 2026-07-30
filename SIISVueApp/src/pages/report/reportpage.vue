@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { SelectItem } from '@nuxt/ui'
+import { ref, computed } from 'vue'
 import CsvPdfModal from '../../components/csvPdfModal.vue'
 import { useReportStore } from '../../stores/report.ts'
-import type { SelectItem } from '@nuxt/ui'
 import { OfficeOptions } from '../../shared/officeEnum.ts'
 
 const overlay = useOverlay()
@@ -11,6 +11,7 @@ const report = useReportStore()
 const toast = useToast()
 
 const loading = ref(false)
+const activeCategory = ref<string>('all')
 
 const statusOptions: SelectItem[] = [
   { label: 'Pending', value: 0 },
@@ -19,134 +20,137 @@ const statusOptions: SelectItem[] = [
 ]
 
 interface ReportItem {
+  id: string
   title: string
   description: string
   icon: string
+  color: 'primary' | 'success' | 'warning' | 'error' | 'info' | 'neutral'
   formats: readonly ('pdf' | 'csv')[]
   action: string
   paramItems?: SelectItem[]
+  category: string
 }
 
-interface ReportCategory {
-  title: string
-  description: string
-  items: ReportItem[]
-}
-
-const reportCategories = ref<ReportCategory[]>([
+const reportItems = ref<ReportItem[]>([
   {
-    title: 'Student Reports',
-    description: 'Student masterlist, demographics, and academic information',
-    items: [
-      {
-        title: 'Student Masterlist',
-        description: 'Complete directory with contact details and status',
-        icon: 'i-lucide-users',
-        formats: ['pdf', 'csv'] as const,
-        action: 'students',
-        paramItems: undefined,
-      },
-    ],
+    id: 'students',
+    title: 'Student Masterlist',
+    description: 'Complete directory with contact details, grade level, and application status for all students.',
+    icon: 'i-lucide-users',
+    color: 'primary',
+    formats: ['pdf', 'csv'] as const,
+    action: 'students',
+    category: 'student',
   },
   {
-    title: 'Office Reports',
-    description: 'Office placement statistics and OJT distribution',
-    items: [
-      {
-        title: 'Office Statistics Summary',
-        description: 'OJT count and share percentage per office',
-        icon: 'i-lucide-bar-chart-3',
-        formats: ['pdf'] as const,
-        action: 'officesSummary',
-        paramItems: undefined,
-      },
-    ],
+    id: 'offices-summary',
+    title: 'Office Statistics',
+    description: 'OJT count and percentage distribution across all provincial offices.',
+    icon: 'i-lucide-bar-chart-3',
+    color: 'info',
+    formats: ['pdf'] as const,
+    action: 'officesSummary',
+    category: 'office',
   },
   {
-    title: 'Application Reports',
-    description: 'Application status and approval tracking',
-    items: [
-      {
-        title: 'Pending Applications',
-        description: 'Applications awaiting review and approval',
-        icon: 'i-lucide-clock',
-        formats: ['pdf', 'csv'] as const,
-        action: 'pendingApplications',
-        paramItems: undefined,
-      },
-      {
-        title: 'OJTs by Status',
-        description: 'List of OJTs filtered by approval status',
-        icon: 'i-lucide-user-check',
-        formats: ['pdf', 'csv'] as const,
-        action: 'ojts',
-        paramItems: statusOptions,
-      },
-      {
-        title: 'OJT Per Office',
-        description: 'Students assigned to a specific office',
-        icon: 'i-lucide-building',
-        formats: ['pdf'] as const,
-        action: 'ojtsPerOffice',
-        paramItems: OfficeOptions,
-      },
-    ],
+    id: 'pending-applications',
+    title: 'Pending Applications',
+    description: 'Applications currently awaiting review and approval by the administration.',
+    icon: 'i-lucide-clock',
+    color: 'warning',
+    formats: ['pdf', 'csv'] as const,
+    action: 'pendingApplications',
+    category: 'application',
   },
   {
-    title: 'Requirements Reports',
-    description: 'Document submission tracking and compliance',
-    items: [
-      {
-        title: 'Missing Requirements',
-        description: 'Approved students without submitted documents',
-        icon: 'i-lucide-file-x',
-        formats: ['pdf', 'csv'] as const,
-        action: 'missingRequirements',
-        paramItems: undefined,
-      },
-      {
-        title: 'Requirements Checklist',
-        description: 'All submitted requirements per student',
-        icon: 'i-lucide-list-checks',
-        formats: ['pdf', 'csv'] as const,
-        action: 'requirementsChecklist',
-        paramItems: undefined,
-      },
-    ],
+    id: 'ojts-by-status',
+    title: 'OJTs by Status',
+    description: 'Filter OJT list by approval status: Pending, Approved, or Rejected.',
+    icon: 'i-lucide-user-check',
+    color: 'success',
+    formats: ['pdf', 'csv'] as const,
+    action: 'ojts',
+    paramItems: statusOptions,
+    category: 'application',
   },
   {
-    title: 'Internship Reports',
-    description: 'Hours tracking and expiration monitoring',
-    items: [
-      {
-        title: 'Internship Hours Summary',
-        description: 'Total and average hours per student',
-        icon: 'i-lucide-timer',
-        formats: ['pdf'] as const,
-        action: 'internshipHours',
-        paramItems: undefined,
-      },
-      {
-        title: 'Expiring Internships',
-        description: 'Internships ending within the next 30 days',
-        icon: 'i-lucide-alert-triangle',
-        formats: ['pdf', 'csv'] as const,
-        action: 'expiringInternships',
-        paramItems: undefined,
-      },
-    ],
+    id: 'ojts-per-office',
+    title: 'OJT Per Office',
+    description: 'Students assigned to a specific office with full internship details.',
+    icon: 'i-lucide-building',
+    color: 'primary',
+    formats: ['pdf'] as const,
+    action: 'ojtsPerOffice',
+    paramItems: OfficeOptions,
+    category: 'office',
+  },
+  {
+    id: 'missing-requirements',
+    title: 'Missing Requirements',
+    description: 'Approved students who have not yet submitted their required documents.',
+    icon: 'i-lucide-file-x',
+    color: 'error',
+    formats: ['pdf', 'csv'] as const,
+    action: 'missingRequirements',
+    category: 'requirements',
+  },
+  {
+    id: 'requirements-checklist',
+    title: 'Requirements Checklist',
+    description: 'All submitted requirements per student with file names and submission dates.',
+    icon: 'i-lucide-list-checks',
+    color: 'info',
+    formats: ['pdf', 'csv'] as const,
+    action: 'requirementsChecklist',
+    category: 'requirements',
+  },
+  {
+    id: 'internship-hours',
+    title: 'Internship Hours',
+    description: 'Total and average internship hours per student with office assignment.',
+    icon: 'i-lucide-timer',
+    color: 'primary',
+    formats: ['pdf'] as const,
+    action: 'internshipHours',
+    category: 'internship',
+  },
+  {
+    id: 'expiring-internships',
+    title: 'Expiring Internships',
+    description: 'Internships ending within the next 30 days for proactive follow-up.',
+    icon: 'i-lucide-alert-triangle',
+    color: 'warning',
+    formats: ['pdf', 'csv'] as const,
+    action: 'expiringInternships',
+    category: 'internship',
   },
 ])
 
-const formatLabels: Record<string, string> = {
-  pdf: 'PDF',
-  csv: 'CSV',
-}
+const categories = computed(() => {
+  const cats = new Map<string, { label: string; icon: string; value: string }>()
+  cats.set('all', { label: 'All Reports', icon: 'i-lucide-layout-grid', value: 'all' })
+  reportItems.value.forEach((item) => {
+    if (!cats.has(item.category)) {
+      const labels: Record<string, { label: string; icon: string; value: string }> = {
+        student: { label: 'Students', icon: 'i-lucide-users', value: 'student' },
+        office: { label: 'Offices', icon: 'i-lucide-building', value: 'office' },
+        application: { label: 'Applications', icon: 'i-lucide-file-text', value: 'application' },
+        requirements: { label: 'Requirements', icon: 'i-lucide-folder', value: 'requirements' },
+        internship: { label: 'Internships', icon: 'i-lucide-timer', value: 'internship' },
+      }
+      cats.set(item.category, labels[item.category] ?? { label: item.category, icon: 'i-lucide-folder', value: item.category })
+    }
+  })
+  return Array.from(cats.values())
+})
 
-const formatColors: Record<string, 'primary' | 'success'> = {
-  pdf: 'primary',
-  csv: 'success',
-}
+const filteredReports = computed(() => {
+  if (activeCategory.value === 'all') return reportItems.value
+  return reportItems.value.filter((item) => item.category === activeCategory.value)
+})
+
+const formatLabel = (format: string) => format.toUpperCase()
+const formatColor = (format: string): 'primary' | 'success' => format === 'pdf' ? 'primary' : 'success'
 
 const openModal = (action: string, formats: readonly ('pdf' | 'csv')[], paramItems?: SelectItem[]) => {
   const instance = selectFileTypeModal.open({
@@ -234,62 +238,71 @@ const downloadFile = (blob: Blob | undefined, ext: string, filename: string) => 
 }
 </script>
 
-<template>
-  <UMain class="space-y-10">
-    <div class="px-4 py-2 my-5">
-      <div>
-        <h2 class="text-4xl font-black text-primary">Reports</h2>
-        <p class="text-muted text-sm">
+  <template>
+    <UMain class="space-y-8">
+      <div class="px-4 py-2">
+        <h2 class="text-4xl font-black text-primary tracking-tight">Reports</h2>
+        <p class="text-muted text-sm mt-1">
           Generate and export PDF or CSV reports for students, offices, applications, and more.
         </p>
       </div>
-    </div>
 
-    <div v-for="category in reportCategories" :key="category.title" class="space-y-4">
       <div class="px-4">
-        <h3 class="text-lg font-semibold text-primary">{{ category.title }}</h3>
-        <p class="text-muted text-sm">{{ category.description }}</p>
+        <USelectMenu
+          v-model="activeCategory"
+          :items="categories as SelectItem[]"
+          value-attribute="value"
+          label-attribute="label"
+          placeholder="Filter reports..."
+          class="w-full sm:w-64"
+          size="md"
+        />
       </div>
 
-      <UPageGrid>
-        <UPageCard
-          v-for="item in category.items"
-          :key="item.title"
-          :spotlight="true"
-          spotlight-color="primary"
-          class="transition hover:shadow-lg"
-          :title="item.title"
-          :description="item.description"
-          :icon="item.icon"
-          :ui="{ footer: 'border-t border-default pt-4' }"
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <UCard
+          v-for="item in filteredReports"
+          :key="item.id"
+          class="transition hover:shadow-lg hover:border-primary/50"
+          variant="outline"
         >
-          <template #footer>
-            <div class="flex items-center justify-between">
-              <div class="flex gap-1">
-                <UBadge
-                  v-for="format in item.formats"
-                  :key="format"
-                  :color="formatColors[format]"
-                  variant="subtle"
-                  size="xs"
-                >
-                  {{ formatLabels[format] }}
-                </UBadge>
-              </div>
-              <UButton
-                icon="i-lucide-download"
-                size="xs"
-                color="primary"
-                variant="ghost"
-                :loading="loading"
-                @click="openModal(item.action, item.formats, item.paramItems)"
-              >
-                Export
-              </UButton>
+          <div class="flex items-start gap-4">
+            <div
+              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+              :class="`bg-${item.color}/10 text-${item.color}`"
+            >
+              <UIcon :name="item.icon" class="h-6 w-6" />
             </div>
-          </template>
-        </UPageCard>
-      </UPageGrid>
-    </div>
-  </UMain>
-</template>
+
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-primary truncate">{{ item.title }}</h3>
+              <p class="text-sm text-muted mt-1 line-clamp-2">{{ item.description }}</p>
+
+              <div class="flex items-center justify-between mt-4">
+                <div class="flex gap-1.5">
+                  <UBadge
+                    v-for="format in item.formats"
+                    :key="format"
+                    :color="formatColor(format)"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    {{ formatLabel(format) }}
+                  </UBadge>
+                </div>
+
+                <UButton
+                  icon="i-lucide-download"
+                  size="xs"
+                  color="primary"
+                  variant="ghost"
+                  :loading="loading"
+                  @click="openModal(item.action, item.formats, item.paramItems)"
+                />
+              </div>
+            </div>
+          </div>
+        </UCard>
+      </div>
+    </UMain>
+  </template>

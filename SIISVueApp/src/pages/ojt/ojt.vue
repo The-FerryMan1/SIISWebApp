@@ -230,89 +230,83 @@ watch(pageSize, (size) => {
 })
 </script>
 
-<template>
-  <UMain>
-    <div class="py-2">
-      <div>
-        <h2 class="text-4xl font-black text-primary">OJT</h2>
-        <p class="text-muted text-sm"></p>
+  <template>
+    <UMain>
+      <div class="py-2">
+        <div>
+          <h2 class="text-4xl font-black text-primary tracking-tight">OJT Management</h2>
+          <p class="text-muted text-sm">View and manage all OJT participants</p>
+        </div>
       </div>
-    </div>
 
-    <div class="py-2">
-      <UPageGrid
-        class="mb-5"
-        :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }"
-      >
-        <UPageCard
-          spotlight
-          variant="outline"
-          orientation="horizontal"
-          reverse
-          v-for="card in cards"
-          :title="card.title"
-        >
-          <UContainer>
-            <div class="flex items-center gap-10">
-              <UIcon :name="card.icon" class="size-10" />
-              <span class="text-3xl font-bold text-primary">{{ card.text }}</span>
-            </div>
-          </UContainer>
-        </UPageCard>
-      </UPageGrid>
-    </div>
+      <div class="py-2">
+        <UPageGrid class="mb-6">
+          <UPageCard
+            v-for="card in cards"
+            :key="card.title"
+            :title="card.title"
+            :icon="card.icon"
+            orientation="horizontal"
+            color="info"
+          >
+            <span class="text-3xl font-bold text-primary">{{ card.text }}</span>
+          </UPageCard>
+        </UPageGrid>
+      </div>
 
-    <div class="py-2">
-      <UCard class="mb-5">
-        <template #header>
-          <div class="w-full flex items-center mb-4 gap-2 md:flex-nowrap flex-wrap">
-            <UInput
-              v-model="globalFilter"
-              class="w-full shrink-0 sm:shrink"
-              placeholder="Filter..."
-              icon="i-lucide-search"
-            />
-
-            <div class="ms-auto flex items-center gap-2">
-              <USelect v-model="genderSelectedFIlter" :items="genderFilter" class="ms-auto" />
+      <div class="py-2">
+        <UCard class="mb-5">
+          <template #header>
+            <div class="w-full flex items-center gap-2 md:flex-nowrap flex-wrap">
               <UInput
-                v-model.number="pageSize"
-                type="number"
-                :min="1"
-                class="max-w-sm"
-                placeholder="Limit"
-                icon="i-lucide-list-ordered"
+                v-model="globalFilter"
+                class="w-full shrink-0 sm:shrink"
+                placeholder="Filter OJTs..."
+                icon="i-lucide-search"
+                size="md"
+              />
+
+              <div class="ms-auto flex items-center gap-2">
+                <USelect v-model="genderSelectedFIlter" :items="genderFilter" class="w-auto" placeholder="Filter by gender" />
+                <UInput
+                  v-model.number="pageSize"
+                  type="number"
+                  :min="1"
+                  class="w-24"
+                  placeholder="Limit"
+                  icon="i-lucide-list-ordered"
+                  size="md"
+                />
+              </div>
+            </div>
+          </template>
+
+          <UTable
+            ref="table"
+            sticky
+            v-model:global-filter="globalFilter"
+            v-model:pagination="pagination"
+            :data="genderFilterResult ?? []"
+            :columns="columns"
+            class="flex-1"
+            :pagination-options="{
+              getPaginationRowModel: getPaginationRowModel(),
+            }"
+          />
+
+          <template #footer>
+            <div class="flex justify-end border-t border-default pt-4 px-4">
+              <UPagination
+                :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+                :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+                :total="table?.tableApi?.getFilteredRowModel().rows.length"
+                @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
               />
             </div>
-          </div>
-        </template>
+          </template>
+        </UCard>
 
-        <UTable
-          ref="table"
-          sticky
-          v-model:global-filter="globalFilter"
-          v-model:pagination="pagination"
-          :data="genderFilterResult ?? []"
-          :columns="columns"
-          class="flex-1"
-          :pagination-options="{
-            getPaginationRowModel: getPaginationRowModel(),
-          }"
-        />
-
-        <template #footer>
-          <div class="flex justify-end border-t border-default pt-4 px-4">
-            <UPagination
-              :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-              :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-              :total="table?.tableApi?.getFilteredRowModel().rows.length"
-              @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
-            />
-          </div>
-        </template>
-      </UCard>
-
-      <OjtPieChart />
-    </div>
-  </UMain>
-</template>
+        <OjtPieChart />
+      </div>
+    </UMain>
+  </template>

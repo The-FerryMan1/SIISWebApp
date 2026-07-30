@@ -206,57 +206,50 @@ watch(pageSize, (size) => {
 })
 </script>
 
-<template>
-  <div class="py-2 my-10">
-    <div>
-      <h2 class="text-4xl font-black text-primary">Application</h2>
-      <p class="text-muted text-sm">Manage and review submitted applications</p>
+  <template>
+    <div class="py-2 my-10">
+      <div>
+        <h2 class="text-4xl font-black text-primary tracking-tight">Applications</h2>
+        <p class="text-muted text-sm">Manage and review submitted applications</p>
+      </div>
     </div>
-  </div>
 
-  <div class="py-2">
-    <UPageGrid
-      class="mb-5"
-      :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }"
-    >
-      <UPageCard
-        spotlight
-        variant="outline"
-        orientation="horizontal"
-        reverse
-        v-for="card in cards"
-        :title="card.title"
-      >
-        <UContainer>
-          <div class="flex items-center gap-10">
-            <UIcon :name="card.icon" class="size-10" />
-            <span class="text-3xl font-bold text-primary">{{ card.text }}</span>
-          </div>
-        </UContainer>
-      </UPageCard>
-    </UPageGrid>
-  </div>
+    <div class="py-2">
+      <UPageGrid class="mb-6">
+        <UPageCard
+          v-for="card in cards"
+          :key="card.title"
+          :title="card.title"
+          :icon="card.icon"
+          orientation="horizontal"
+          :color="card.color"
+        >
+          <span class="text-3xl font-bold text-primary">{{ card.text }}</span>
+        </UPageCard>
+      </UPageGrid>
+    </div>
 
-  <div class="py-2">
     <UCard>
       <template #header>
-        <div class="w-full flex items-center mb-4 gap-2 md:flex-nowrap flex-wrap">
+        <div class="w-full flex items-center gap-2 md:flex-nowrap flex-wrap">
           <UInput
             v-model="globalFilter"
             class="w-full shrink-0 sm:shrink"
-            placeholder="Filter..."
+            placeholder="Filter applications..."
             icon="i-lucide-search"
+            size="md"
           />
 
           <div class="ms-auto flex items-center gap-2">
-            <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" />
+            <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="w-auto" placeholder="Filter by status" />
             <UInput
               v-model.number="pageSize"
               type="number"
               :min="1"
-              class="max-w-sm"
+              class="w-24"
               placeholder="Limit"
               icon="i-lucide-list-ordered"
+              size="md"
             />
           </div>
         </div>
@@ -286,5 +279,4 @@ watch(pageSize, (size) => {
         </div>
       </template>
     </UCard>
-  </div>
-</template>
+  </template>

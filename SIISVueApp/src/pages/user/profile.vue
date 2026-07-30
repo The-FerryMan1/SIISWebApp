@@ -118,80 +118,84 @@ const changePassRequest = useDebounceFn(async (payload: ChangePassSchema) => {
 }, 500)
 </script>
 
-<template>
-  <UMain class="space-y-5">
-    <div>
-      <UButton variant="ghost" label="Back" icon="i-lucide-arrow-left" @click="back" />
-    </div>
-    <div>
-      <h1 class="font-bold text-3xl text-primary my-10">Profile</h1>
-    </div>
-    <UCard title="Edit Profile">
-      <UForm
-        :schema="profileSchema"
-        :state="profileState"
-        v-if="user"
-        class="space-y-4"
-        @submit="profileSubmit"
-        loading-auto
-      >
-        <UFormField name="username" label="Username" required>
-          <UInput v-model="profileState.username" placeholder="Enter new username" class="w-full" />
-        </UFormField>
+  <template>
+    <UMain class="space-y-8">
+      <div>
+        <UButton variant="ghost" label="Back" icon="i-lucide-arrow-left" @click="back" />
+      </div>
+      <div>
+        <h1 class="text-4xl font-black text-primary tracking-tight">Profile</h1>
+        <p class="text-muted text-sm mt-1">Manage your account settings and preferences</p>
+      </div>
 
-        <UFormField name="email" label="Email" required>
-          <UInput
-            v-model="profileState.email"
-            placeholder="Enter new email"
-            class="w-full"
-            disabled
-          />
-        </UFormField>
+      <div class="grid gap-6 lg:grid-cols-2">
+        <UCard title="Edit Profile" variant="outline">
+          <UForm
+            :schema="profileSchema"
+            :state="profileState"
+            v-if="user"
+            class="space-y-4"
+            @submit="profileSubmit"
+            loading-auto
+          >
+            <UFormField name="username" label="Username" required>
+              <UInput v-model="profileState.username" placeholder="Enter new username" class="w-full" />
+            </UFormField>
 
-        <div class="w-full flex justify-end items-center my-8">
-          <UButton type="submit" label="Save" icon="i-lucide-save" />
-        </div>
-      </UForm>
-    </UCard>
+            <UFormField name="email" label="Email" required>
+              <UInput
+                v-model="profileState.email"
+                placeholder="Enter new email"
+                class="w-full"
+                disabled
+              />
+            </UFormField>
 
-    <UCard title="Change Password">
-      <UForm
-        ref="changePassForm"
-        :state="changePassState"
-        :schema="changePassSchema"
-        @submit="changePassSubmit"
-        :loading="changePassLoading"
-        class="space-y-4"
-        @error="(err) => console.log(err)"
-      >
-        <UFormField name="currentPassword" label="Current Password" required>
-          <UInput
-            type="password"
-            v-model="changePassState.currentPassword"
-            placeholder="Enter current password"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField name="newPassword" label="New Password" required>
-          <UInput
-            type="password"
-            v-model="changePassState.newPassword"
-            placeholder="Enter new password"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField name="confirm" label="Confirm Password" required>
-          <UInput
-            type="password"
-            v-model="changePassState.confirm"
-            placeholder="Confirm new password"
-            class="w-full"
-          />
-        </UFormField>
-        <div class="w-full flex justify-end items-center my-8">
-          <UButton type="submit" label="Change Password" icon="i-lucide-save" />
-        </div>
-      </UForm>
-    </UCard>
-  </UMain>
-</template>
+            <div class="w-full flex justify-end items-center">
+              <UButton type="submit" label="Save Changes" icon="i-lucide-save" color="primary" />
+            </div>
+          </UForm>
+        </UCard>
+
+        <UCard title="Change Password" variant="outline">
+          <UForm
+            ref="changePassForm"
+            :state="changePassState"
+            :schema="changePassSchema"
+            @submit="changePassSubmit"
+            :loading="changePassLoading"
+            class="space-y-4"
+            @error="(err) => console.log(err)"
+          >
+            <UFormField name="currentPassword" label="Current Password" required>
+              <UInput
+                type="password"
+                v-model="changePassState.currentPassword"
+                placeholder="Enter current password"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField name="newPassword" label="New Password" required>
+              <UInput
+                type="password"
+                v-model="changePassState.newPassword"
+                placeholder="Enter new password"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField name="confirm" label="Confirm Password" required>
+              <UInput
+                type="password"
+                v-model="changePassState.confirm"
+                placeholder="Confirm new password"
+                class="w-full"
+              />
+            </UFormField>
+            <div class="w-full flex justify-end items-center">
+              <UButton type="submit" label="Change Password" icon="i-lucide-lock" color="primary" />
+            </div>
+          </UForm>
+        </UCard>
+      </div>
+    </UMain>
+  </template>

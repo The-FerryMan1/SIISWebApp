@@ -51,50 +51,32 @@ const debounceSubmit = useDebounceFn(onSubmit, 1000)
 </script>
 
 <template>
-  <UMain class="bg-[url('/images/cover-bg.png')] bg-cover bg-center min-h-screen flex flex-col items-center justify-center">
-    <UPageCard orientation="vertical" :reverse="true" variant="outline" class="w-full max-w-md p-2">
+  <UMain class="bg-[url('/images/cover-bg.png')] bg-cover bg-center min-h-screen flex flex-col items-center justify-center p-4">
+    <UPageCard orientation="vertical" variant="outline" class="w-full max-w-md">
+      <template #header>
+        <div class="flex flex-col items-center gap-4 pb-4 text-center">
+          <img
+            src="../../assets/img/brand.png"
+            alt="SIIS"
+            class="h-20 w-auto object-contain"
+            loading="lazy"
+          />
+          <div>
+            <h1 class="text-xl font-black text-primary">Student Internship Information System</h1>
+            <p class="text-sm text-muted mt-1">Sign in to your account</p>
+          </div>
+        </div>
+      </template>
+
       <UAuthForm
         :schema
         :fields
         icon="i-lucide-lock"
-        title="Login"
+        title="Welcome back"
         description="Enter your credentials to access your account."
         loading-auto
         @submit="debounceSubmit"
-      >
-        <template #header>
-          <div class="flex flex-col items-center gap-4 pb-4 text-center">
-            <img
-              src="../../assets/img/brand.png"
-              alt="Illustration"
-              class="h-24 w-auto object-contain"
-              loading="lazy"
-            />
-            <h1 class="text-xl font-black">Student Internship Information System</h1>
-          </div>
-        </template>
-      </UAuthForm>
+      />
     </UPageCard>
   </UMain>
-
-  <!-- <div
-          class="w-full h-125 flex justify-center items-start relative"
-          :style="{
-            backgroundImage: 'url(../../assets/img/cover-bg.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }"
-        >
-          <div class="absolute p-20">
-            <img
-              src="../../assets/img/brand.png"
-              alt="Illustration"
-              class="w-full rounded-lg object-contain size-35 z-1"
-              loading="lazy"
-            />
-            <h1 class="text-nowrap text-xl font-black p-5">
-              Student Internship Information System
-            </h1>
-          </div>
-        </div> -->
 </template>

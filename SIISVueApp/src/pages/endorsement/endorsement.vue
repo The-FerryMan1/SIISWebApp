@@ -211,47 +211,46 @@ watch(officeFilter, () => {
 })
 </script>
 
-<template>
-  <UMain class="space-y-5">
-    {{ selectedOffice.office }}
-    <div class="px-10 py-2 my-10">
-      <div>
-        <p v-for="u in univ">
-          {{ u }}
-        </p>
-        <h2 class="text-4xl font-black text-primary">Endorsement</h2>
-        <p class="text-muted text-sm">Multiple/Bulk endorsement letter generation</p>
-      </div>
-    </div>
-    <UPageCard>
-      <template #header>
-        <div class="flex gap-4 items-end w-125">
-          <UFormField name="selected.office" label="Select Office" required class="w-full">
-            <USelect
-              icon="i-lucide-building"
-              v-model="selectedOffice.office"
-              placeholder="Select office"
-              :items="OfficesArray"
-              class="w-full"
-            />
-          </UFormField>
-          <UFormField v-if="selectedOffice.office != undefined" label="Select School" required>
-            <USelect
-              v-model="selectedUniv"
-              icon="i-lucide-building"
-              placeholder="Select School"
-              :items="univ"
-              class="w-full"
-            />
-          </UFormField>
-          <UButton @click="generate" label="Generate selected rows" />
+  <template>
+    <UMain class="space-y-6">
+      <div class="px-10 py-2">
+        <div>
+          <h2 class="text-4xl font-black text-primary tracking-tight">Endorsement</h2>
+          <p class="text-muted text-sm mt-1">Generate bulk endorsement letters for OJT participants</p>
         </div>
-      </template>
-      <UTable ref="table" v-model:row-selection="selectedRow" :data="doubleFilter ?? []" :columns />
-    </UPageCard>
-    <div class="px-4 py-3.5 border-t border-accented text-sm text-muted">
-      {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
-      {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
-    </div>
-  </UMain>
-</template>
+      </div>
+
+      <UPageCard>
+        <template #header>
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end w-full">
+            <UFormField name="selected.office" label="Select Office" required class="flex-1">
+              <USelect
+                icon="i-lucide-building"
+                v-model="selectedOffice.office"
+                placeholder="Select office"
+                :items="OfficesArray"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField v-if="selectedOffice.office != undefined" label="Select School" required class="flex-1">
+              <USelect
+                v-model="selectedUniv"
+                icon="i-lucide-school"
+                placeholder="Select School"
+                :items="univ"
+                class="w-full"
+              />
+            </UFormField>
+            <UButton @click="generate" label="Generate Selected" icon="i-lucide-file-text" size="md" />
+          </div>
+        </template>
+
+        <UTable ref="table" v-model:row-selection="selectedRow" :data="doubleFilter ?? []" :columns />
+      </UPageCard>
+
+      <div class="px-4 py-3.5 border-t border-accented text-sm text-muted">
+        {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
+        {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
+      </div>
+    </UMain>
+  </template>

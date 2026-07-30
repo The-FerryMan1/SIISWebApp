@@ -29,40 +29,50 @@ function handleExport() {
 <template>
   <UModal>
     <template #content>
-      <div class="space-y-4 p-6 text-center">
-        <h2 class="text-lg font-semibold">{{ title || 'Select Format' }}</h2>
-        <p v-if="description" class="text-sm text-gray-500">{{ description }}</p>
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-semibold text-primary">{{ title || 'Export Report' }}</h2>
+            <p v-if="description" class="text-sm text-muted mt-0.5">{{ description }}</p>
+          </div>
+          <UButton
+            icon="i-lucide-x"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            @click="$emit('close', { format: 'none' })"
+          />
+        </div>
 
         <USelect
           v-if="showSelect"
           :placeholder="selectPlaceholder"
           v-model="selected"
           :items
-          class="w-full"
+          class="w-full mb-4"
         />
 
-        <div class="flex justify-end gap-2 my-2">
+        <div class="flex justify-end gap-2">
           <UButton
             v-if="showPdf"
             icon="i-lucide-file-text"
             color="primary"
+            variant="solid"
             @click="selectedFormat = 'pdf'; handleExport()"
           >
-            PDF
+            Export PDF
           </UButton>
           <UButton
             v-if="showCsv"
             icon="i-lucide-table"
             color="success"
+            variant="solid"
             @click="selectedFormat = 'csv'; handleExport()"
           >
-            CSV
+            Export CSV
           </UButton>
         </div>
       </div>
-    </template>
-    <template #footer>
-      <UButton label="Cancel" color="neutral" variant="subtle" @click="$emit('close', { format: 'none' })" />
     </template>
   </UModal>
 </template>

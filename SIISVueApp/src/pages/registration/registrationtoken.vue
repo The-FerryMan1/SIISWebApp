@@ -202,93 +202,102 @@ const back = () => {
 
 </script>
 
-<template>
-    <UMain>
-        <div>
-            <UButton @click="back" label="Back" icon="i-lucide-arrow-left" variant="ghost" />
-        </div>
-        <div class="my-3">
-            <h1 class="text-2xl font-bold text-primary">Registration Token</h1>
-        </div>
-        <UCard>
-            <template #header>
-                <div class="w-full flex justify-start items-center">
-                    <UInput v-model="globalFilter" class="max-w-sm " placeholder="Filter..." />
+  <template>
+    <UMain class="space-y-6">
+      <div>
+        <UButton @click="back" label="Back" icon="i-lucide-arrow-left" variant="ghost" />
+      </div>
+      <div class="my-3">
+        <h1 class="text-4xl font-black text-primary tracking-tight">Registration Token</h1>
+        <p class="text-muted text-sm mt-1">Manage registration tokens and QR codes</p>
+      </div>
 
-                    <USelect
-                        class=""
-                        v-model="selectedFilter" :items="filterItem"
-                    />
+      <UCard variant="outline">
+        <template #header>
+          <div class="w-full flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <UInput v-model="globalFilter" class="max-w-sm" placeholder="Filter tokens..." icon="i-lucide-search" size="md" />
+              <USelect
+                v-model="selectedFilter"
+                :items="filterItem"
+                class="w-auto"
+                placeholder="Filter by status"
+              />
+            </div>
 
-                    <!-- Create Token Modal -->
-                    <UModal class="ms-auto" v-model:open="isOpen" title="Add expiration date">
-                        <UButton label="Generate registration token" />
-                        <template #content>
-                            <UForm @error="(r) => console.log(r)" @submit="submitDebounce" :state="state"
-                                :schema="expirySchema" class="p-4 w-full">
-                                <UFormField name="expDate" label="Expiration date">
-                                    <UInput v-model="state.expDate" type="date" class="w-full" :min="minDate" />
-                                </UFormField>
-                                <UButton type="submit" label="Submit" />
-                            </UForm>
-                        </template>
-                    </UModal>
+            <div class="flex items-center gap-2">
+              <UModal v-model:open="isOpen" title="Generate Registration Token">
+                <UButton label="Generate Token" icon="i-lucide-plus" color="primary" />
+                <template #content>
+                  <UForm
+                    @error="(r) => console.log(r)"
+                    @submit="submitDebounce"
+                    :state="state"
+                    :schema="expirySchema"
+                    class="p-4 w-full space-y-4"
+                  >
+                    <UFormField name="expDate" label="Expiration date">
+                      <UInput v-model="state.expDate" type="date" class="w-full" :min="minDate" />
+                    </UFormField>
+                    <div class="flex justify-end">
+                      <UButton type="submit" label="Generate" icon="i-lucide-qr-code" />
+                    </div>
+                  </UForm>
+                </template>
+              </UModal>
 
-                    <!-- Extend Token Modal -->
-                    <UModal v-model:open="isExtendOpen" title="Extend expiration date">
-                        <template #content>
-                            <UForm 
-                                @error="(r) => console.log(r)" 
-                                @submit="extendDebounce" 
-                                :state="state"
-                                :schema="expirySchema" 
-                                class="p-4 w-full"
-                            >
-                                <p class="text-sm text-neutral-500 mb-4">
-                                    Current expiry: {{ new Date(extendCurrentDate).toLocaleDateString() }}
-                                </p>
-                                <UFormField name="expDate" label="New expiration date">
-                                    <UInput 
-                                        v-model="state.expDate" 
-                                        type="date" 
-                                        class="w-full" 
-                                        :min="extendMinDate" 
-                                    />
-                                </UFormField>
-                                <div class="flex justify-end gap-2 mt-4">
-                                    <UButton 
-                                        color="neutral" 
-                                        label="Cancel" 
-                                        @click="isExtendOpen = false" 
-                                    />
-                                    <UButton type="submit" label="Extend" />
-                                </div>
-                            </UForm>
-                        </template>
-                    </UModal>
-                </div>
-            </template>
-            
-            <UTable 
-                ref="table" 
-                v-model:pagination="pagination"
-                :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" 
-                :data="filterResult ?? []"
-                :columns="columns" 
-                class="flex-1"  
-                v-model:global-filter="globalFilter"
+              <UModal v-model:open="isExtendOpen" title="Extend Token Expiry">
+                <UButton label="Extend Token" icon="i-lucide-pencil" color="primary" variant="soft" />
+                <template #content>
+                  <UForm
+                    @error="(r) => console.log(r)"
+                    @submit="extendDebounce"
+                    :state="state"
+                    :schema="expirySchema"
+                    class="p-4 w-full space-y-4"
+                  >
+                    <p class="text-sm text-neutral-500">
+                      Current expiry: {{ new Date(extendCurrentDate).toLocaleDateString() }}
+                    </p>
+                    <UFormField name="expDate" label="New expiration date">
+                      <UInput
+                        v-model="state.expDate"
+                        type="date"
+                        class="w-full"
+                        :min="extendMinDate"
+                      />
+                    </UFormField>
+                    <div class="flex justify-end gap-2">
+                      <UButton color="neutral" label="Cancel" @click="isExtendOpen = false" />
+                      <UButton type="submit" label="Extend" icon="i-lucide-check" />
+                    </div>
+                  </UForm>
+                </template>
+              </UModal>
+            </div>
+          </div>
+        </template>
+
+        <UTable
+          ref="table"
+          v-model:pagination="pagination"
+          :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
+          :data="filterResult ?? []"
+          :columns="columns"
+          class="flex-1"
+          v-model:global-filter="globalFilter"
+        />
+
+        <template #footer>
+          <div class="w-full flex justify-end items-center">
+            <UPagination
+              :default-page="(pagination.pageIndex || 0) + 1"
+              :items-per-page="pagination.pageSize"
+              :total="tokens?.length ?? 0"
+              @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
             />
-            
-            <template #footer>
-                <div class="w-full flex justify-end items-center">
-                    <UPagination 
-                        :default-page="(pagination.pageIndex || 0) + 1" 
-                        :items-per-page="pagination.pageSize"
-                        :total="tokens?.length ?? 0" 
-                        @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" 
-                    />
-                </div>
-            </template>
-        </UCard>
+          </div>
+        </template>
+      </UCard>
     </UMain>
-</template>
+  </template>

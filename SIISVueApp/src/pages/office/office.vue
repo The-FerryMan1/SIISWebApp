@@ -143,52 +143,51 @@ const setPage = (p: number) => {
 }
 </script>
 
-<template>
-  <UMain class="space-y-10">
-    <div class="px-4 py-2 my-5">
-      <div>
-        <h2 class="text-4xl font-black text-primary">Offices</h2>
-        <p class="text-muted text-sm">Manage current officer-in-charge</p>
-      </div>
-    </div>
-
-    <UPageGrid>
-      <UPageCard title="Total Offices" icon="i-lucide-building" orientation="horizontal">
-        <h1 class="text-4xl text-primary font-bold">{{ totalOffices }}</h1>
-      </UPageCard>
-    </UPageGrid>
-
-    <UCard>
-      <template #header>
-        <UInput v-model="globalFilter" placeholder="search..." icon="i-lucide-search" />
-      </template>
-
-      <UTable
-        ref="table"
-        sticky
-        class="w-full max-h-96 flex-1"
-        :pagination-options="{
-          getPaginationRowModel: getPaginationRowModel(),
-        }"
-        v-model:pagination="pagination"
-        v-model:global-filter="globalFilter"
-        :data="office.offices ?? []"
-        :columns
-      />
-
-      <template #footer>
-        <div class="flex justify-end border-t border-default pt-4 px-4">
-          <!-- ✅ Uses computed refs, not inline tableApi calls -->
-          <UPagination
-            :page="pageIndex + 1"
-            :items-per-page="pageSize"
-            :total="totalRows"
-            @update:page="setPage"
-          />
+  <template>
+    <UMain class="space-y-8">
+      <div class="px-4 py-2">
+        <div>
+          <h2 class="text-4xl font-black text-primary tracking-tight">Offices</h2>
+          <p class="text-muted text-sm mt-1">Manage offices and officer-in-charge assignments</p>
         </div>
-      </template>
-    </UCard>
+      </div>
 
-    <OjtCountChart />
-  </UMain>
-</template>
+      <UPageGrid>
+        <UPageCard title="Total Offices" icon="i-lucide-building" orientation="horizontal" color="primary">
+          <h1 class="text-4xl text-primary font-bold">{{ totalOffices }}</h1>
+        </UPageCard>
+      </UPageGrid>
+
+      <UCard variant="outline">
+        <template #header>
+          <UInput v-model="globalFilter" placeholder="Search offices..." icon="i-lucide-search" size="md" />
+        </template>
+
+        <UTable
+          ref="table"
+          sticky
+          class="w-full max-h-96 flex-1"
+          :pagination-options="{
+            getPaginationRowModel: getPaginationRowModel(),
+          }"
+          v-model:pagination="pagination"
+          v-model:global-filter="globalFilter"
+          :data="office.offices ?? []"
+          :columns
+        />
+
+        <template #footer>
+          <div class="flex justify-end border-t border-default pt-4 px-4">
+            <UPagination
+              :page="pageIndex + 1"
+              :items-per-page="pageSize"
+              :total="totalRows"
+              @update:page="setPage"
+            />
+          </div>
+        </template>
+      </UCard>
+
+      <OjtCountChart />
+    </UMain>
+  </template>
