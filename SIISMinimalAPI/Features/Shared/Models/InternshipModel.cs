@@ -17,6 +17,7 @@ namespace SIISMinimalAPI.Features.Shared.Models
         [DataType(DataType.Date)]
         public DateOnly EstimatedEndDate { get; set; }
         public int InternshipTotalHours { get; set; }
+        public int AccumulatedHours { get; set; } = 0;
 
         public bool IsDeleted { get; set; } = false;
         public DateTime CreateAt { get; set; } = DateTime.Now;

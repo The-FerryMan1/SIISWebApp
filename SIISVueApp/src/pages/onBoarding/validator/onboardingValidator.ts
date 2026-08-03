@@ -97,8 +97,9 @@ export const InternshipInfoSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
-  internshipTotalHours: z.number().int().min(1).max(1000),
-})
+internshipTotalHours: z.number().int().min(1).max(1000),
+    accumulatedHours: z.number().int().min(0).optional(),
+  })
 
 export const RequirementInfoSchema = z.object({
   id: z.number().int().positive(),
@@ -134,7 +135,7 @@ export const ApplicationGetByIdResponseSchema = z.object({
     .object({
       id: z.number(),
       name: z.number().int(), // OfficeNameEnum
-      currentOIC: z.string().nullable(),
+      department: z.string().nullable(),
       isDeleted: z.boolean(),
       createAt: z.iso.datetime().nullable(),
       updatedAt: z.iso.datetime().nullable().nullable(),

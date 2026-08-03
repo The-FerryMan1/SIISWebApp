@@ -43,6 +43,7 @@ public static class OnBoardingEntityMapper
                  Strand = internship.Strand,
                  EstimatedEndDate = internship.EstimatedEndDate,
                  InternshipTotalHours = internship.InternshipTotalHours,
+                  AccumulatedHours = internship.AccumulatedHours,
                  StartDate = internship.StartDate,
              },
 

@@ -71,7 +71,7 @@ public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> 
                     // Recipient block
                     content.Item().AlignLeft().Column(recipient =>
                     {
-                        recipient.Item().Text($"{stud.Office.Honorific} {stud.Office.CurrentOIC}" ?? "The Officer in Charge").Bold().FontSize(12);
+                        recipient.Item().Text($"{stud.Office.Honorific} {stud.Office.Department}" ?? "The Officer in Charge").Bold().FontSize(12);
                         recipient.Item().Text($"{OfficeEnumLabels.GetLabel(officeEnum)}").FontSize(12);
                         recipient.Item().Text("Trece Martires City").FontSize(12);
                     });
@@ -79,7 +79,7 @@ public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> 
                     content.Item().PaddingVertical(5);
 
                     // Salutation
-                    content.Item().AlignLeft().Text($"Dear {stud.Office?.Honorific} {stud.Office?.CurrentOIC?.Trim().Split(' ').Last() ?? "Sir/Madam"}").FontSize(12);
+                    content.Item().AlignLeft().Text($"Dear {stud.Office?.Honorific} {stud.Office?.Department?.Trim().Split(' ').Last() ?? "Sir/Madam"}").FontSize(12);
 
                     content.Item().PaddingVertical(5);
 

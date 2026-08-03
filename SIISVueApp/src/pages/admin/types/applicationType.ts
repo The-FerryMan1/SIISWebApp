@@ -103,18 +103,19 @@ export interface SchoolInfo {
 }
 
 export interface InternshipInfo {
-  id: number
-  internshipNature: InternshipNatureEnum
-  strand: StrandEnum | null
-  degree: number | null // or DegreeEnum | null
-  startDate: string // "YYYY-MM-DD"
-  estimatedEndDate: string | undefined
-  internshipTotalHours: number
-  isDeleted: boolean
-  createAt: string
-  updatedAt: string | null
-  deletedAt: string | null
-}
+   id: number
+   internshipNature: InternshipNatureEnum
+   strand: StrandEnum | null
+   degree: number | null // or DegreeEnum | null
+   startDate: string // "YYYY-MM-DD"
+   estimatedEndDate: string | undefined
+   internshipTotalHours: number
+   accumulatedHours: number
+   isDeleted: boolean
+   createAt: string
+   updatedAt: string | null
+   deletedAt: string | null
+ }
 
 export interface RequirementInfo {
   id: number
@@ -128,14 +129,14 @@ export interface RequirementInfo {
 }
 
 export interface OfficeInfo {
-  id: number
-  name: OfficeNameEnum
-  currentOIC: string | null
-  isDeleted: boolean
-  createAt: string
-  updatedAt: string | null
-  deletedAt: string | null
-}
+   id: number
+   name: OfficeNameEnum
+   department: string | null
+   isDeleted: boolean
+   createAt: string
+   updatedAt: string | null
+   deletedAt: string | null
+ }
 
 // Main response type
 export interface ApplicationGetByIdResponse {

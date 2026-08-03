@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Data
 {
@@ -19,12 +20,10 @@ namespace SIISMinimalAPI.Data
             string username = "admin";
             string password = "Admin123!";
 
-
             if (!await roleManager.RoleExistsAsync(role))
             {
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
-
 
             var defaultAdmin = new IdentityUser
             {
@@ -43,8 +42,8 @@ namespace SIISMinimalAPI.Data
         {
             var dbContext = service.GetRequiredService<AppDbContext>();
 
-            var count = await dbContext.Offices.CountAsync();
-            if (count == 0)
+            var officeCount = await dbContext.Offices.CountAsync();
+            if (officeCount == 0)
             {
                 foreach (OfficeNameEnum office in Enum.GetValues<OfficeNameEnum>())
                 {
@@ -53,9 +52,30 @@ namespace SIISMinimalAPI.Data
                         Name = office
                     });
                 }
-
                 await dbContext.SaveChangesAsync();
             }
+
+            var offices = await dbContext.Offices.Where(o => !o.IsDeleted).ToListAsync();
+            var hasher = new PasswordHasher<OfficeAccountModel>();
+
+            foreach (var office in offices)
+            {
+                var existing = await dbContext.OfficeAccounts
+                    .AnyAsync(a => a.OfficeId == office.Id && !a.IsDeleted);
+
+                if (!existing)
+                {
+                    await dbContext.OfficeAccounts.AddAsync(new Features.Shared.Models.OfficeAccountModel
+                    {
+                        OfficeId = office.Id,
+                        Username = OfficeEnumLabels.GetLabel(office.Name).ToLower().Replace(" ", ""),
+                        Email = $"{office.Name.ToString().ToLower()}@siis.local",
+                        PasswordHash = hasher.HashPassword(null, "Admin123!"),
+                    });
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
         }
     }
 }

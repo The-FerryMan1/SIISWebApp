@@ -13,7 +13,7 @@ import { useAxios } from '../fetch/axios'
 export type Office = {
   id: number
   name: number
-  currentOIC: string | null
+  department: string | null
   students: []
   createAt: string
   updatedAt: string | null

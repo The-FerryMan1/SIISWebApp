@@ -57,6 +57,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 columns.RelativeColumn(0.9f);
                 columns.RelativeColumn(1.1f);
                 columns.RelativeColumn(1.1f);
+                columns.RelativeColumn(1.2f);
             });
 
             // Header row
@@ -69,6 +70,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Internship hours").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Created").SemiBold();
+                header.Cell().Element(HeaderCell).AlignCenter().Text("Accumulated Hours").SemiBold();
             });
 
             // Data rows
@@ -84,6 +86,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Internship?.InternshipTotalHours.ToString() ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Internship?.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.CreateAt.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Internship?.AccumulatedHours.ToString() ?? "-").FontSize(9);
             }
 
             static IContainer HeaderCell(IContainer container) => container
@@ -127,7 +130,166 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
         Office = t.Office != null ? OfficeEnumLabels.GetLabel(t.Office.Name) : "N/A",
         StartDate = t.Internship?.StartDate,
         Status = t.Application.Status.ToString(),
-        TotalHours = (int)(t.Internship?.InternshipTotalHours)
+        TotalHours = (int)(t.Internship?.InternshipTotalHours),
+        AccumulatedHours = (int)(t.Internship?.AccumulatedHours)
+    }).ToList();
+
+    using var memoryStream = new MemoryStream();
+    using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, leaveOpen: true))
+    using (var csv = new CsvWriter(writer, new CsvConfiguration()))
+    {
+        csv.WriteRecords(records);
+    }
+
+    return memoryStream.ToArray();
+}
+
+public async Task<byte[]> ListAllOjtFiltered(ApplicationStatusEnum? status, string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
+{
+    var query = _context.Students
+        .Include(t => t.Application)
+        .Include(t => t.Office)
+        .Include(t => t.Internship)
+        .AsNoTracking()
+        .AsSplitQuery();
+
+    if (status.HasValue)
+    {
+        query = query.Where(t => t.Application.Status == status.Value);
+    }
+
+    if (!string.IsNullOrEmpty(office))
+    {
+        query = query.Where(t => t.Office != null && t.Office.Name.ToString() == office);
+    }
+
+    if (dateFrom.HasValue)
+    {
+        query = query.Where(t => t.Internship != null && t.Internship.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
+    }
+
+    if (dateTo.HasValue)
+    {
+        query = query.Where(t => t.Internship != null && t.Internship.StartDate <= DateOnly.FromDateTime(dateTo.Value));
+    }
+
+    var ojts = await query.ToListAsync(ct);
+    QuestPDF.Settings.License = LicenseType.Community;
+    var selectedStatus = status ?? ApplicationStatusEnum.Pending;
+    var document = Document.Create(doc =>
+{
+    doc.Page(page =>
+    {
+        page.Size(PageSizes.A4.Portrait());
+        page.Margin(30);
+
+        page.Header().Column(col =>
+        {
+            col.Item().Text($"OJT Students - {selectedStatus} (Filtered)")
+                .FontSize(16).Bold().AlignCenter();
+
+            col.Item().PaddingTop(4).Text($"Generated: {DateTime.Now:MMMM dd, yyyy hh:mm tt}")
+                .FontSize(9).FontColor(Colors.Grey.Darken1).AlignCenter();
+        });
+
+        page.Content().PaddingTop(15).Table(table =>
+        {
+            table.ColumnsDefinition(columns =>
+            {
+                columns.ConstantColumn(35);
+                columns.RelativeColumn(2.2f);
+                columns.RelativeColumn(1.2f);
+                columns.RelativeColumn(1.8f);
+                columns.RelativeColumn(0.9f);
+                columns.RelativeColumn(1.1f);
+                columns.RelativeColumn(1.1f);
+                columns.RelativeColumn(1.2f);
+            });
+
+            table.Header(header =>
+            {
+                header.Cell().Element(HeaderCell).AlignCenter().Text("#").SemiBold();
+                header.Cell().Element(HeaderCell).Text("Student Name").SemiBold();
+                header.Cell().Element(HeaderCell).AlignCenter().Text("Status").SemiBold();
+                header.Cell().Element(HeaderCell).Text("Office").SemiBold();
+                header.Cell().Element(HeaderCell).AlignCenter().Text("Internship hours").SemiBold();
+                header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").SemiBold();
+                header.Cell().Element(HeaderCell).AlignCenter().Text("Created").SemiBold();
+                header.Cell().Element(HeaderCell).AlignCenter().Text("Accumulated Hours").SemiBold();
+            });
+
+            int index = 1;
+            foreach (var ojt in ojts)
+            {
+                var fullname = $"{ojt.LastName}, {ojt.FirstName} {ojt.MiddleName}".Trim();
+
+                table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
+                table.Cell().Element(DataCell).Text(fullname).FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Application?.Status.ToString() ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).Text(ojt.Office != null ? OfficeEnumLabels.GetLabel(ojt.Office.Name) : "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Internship?.InternshipTotalHours.ToString() ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Internship?.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.CreateAt.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Internship?.AccumulatedHours.ToString() ?? "-").FontSize(9);
+            }
+
+            static IContainer HeaderCell(IContainer container) => container
+                .Padding(0)
+                .Border(1)
+                .BorderColor(Colors.Black);
+
+            static IContainer DataCell(IContainer container) => container
+                .Padding(0)
+                .Border(1)
+                .BorderColor(Colors.Black);
+        });
+
+        page.Footer().AlignRight().PaddingTop(10).Text(text =>
+        {
+            text.Span("Page ").FontSize(9);
+            text.CurrentPageNumber().FontSize(9);
+            text.Span(" of ").FontSize(9);
+            text.TotalPages().FontSize(9);
+        });
+    });
+});
+    return document.GeneratePdf();
+}
+
+public async Task<byte[]> OjtListCsvFiltered(string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
+{
+    var query = _context.Students
+        .Include(t => t.Application)
+        .Include(t => t.Office)
+        .Include(t => t.Internship)
+        .AsNoTracking()
+        .AsSplitQuery();
+
+    if (!string.IsNullOrEmpty(office))
+    {
+        query = query.Where(t => t.Office != null && t.Office.Name.ToString() == office);
+    }
+
+    if (dateFrom.HasValue)
+    {
+        query = query.Where(t => t.Internship != null && t.Internship.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
+    }
+
+    if (dateTo.HasValue)
+    {
+        query = query.Where(t => t.Internship != null && t.Internship.StartDate <= DateOnly.FromDateTime(dateTo.Value));
+    }
+
+    var ojts = await query.ToListAsync(ct);
+
+    var records = ojts.Select(t => new OjtListDto
+    {
+        Name = $"{t.LastName}, {t.FirstName} {t.MiddleName}",
+        Office = t.Office != null ? OfficeEnumLabels.GetLabel(t.Office.Name) : "N/A",
+        StartDate = t.Internship?.StartDate,
+        Status = t.Application.Status.ToString(),
+        TotalHours = (int)(t.Internship?.InternshipTotalHours),
+        AccumulatedHours = (int)(t.Internship?.AccumulatedHours)
     }).ToList();
 
     using var memoryStream = new MemoryStream();

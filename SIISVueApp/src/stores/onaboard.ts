@@ -26,14 +26,15 @@ export const useOnBoardStore = defineStore('onboard', () => {
       email: '',
       name: '',
     },
-    internship: {
-      degree: undefined as number | undefined, // ✅ Properly typed
-      strand: undefined as number | undefined, // ✅ Properly typed
-      estimatedEndDate: '',
-      internshipNature: 0,
-      internshipTotalHours: 0,
-      startDate: '',
-    },
+internship: {
+       degree: undefined as number | undefined, // ✅ Properly typed
+       strand: undefined as number | undefined, // ✅ Properly typed
+       estimatedEndDate: '',
+       internshipNature: 0,
+       internshipTotalHours: 0,
+       accumulatedHours: 0,
+       startDate: '',
+     },
     requirements: [] as any[], // ✅ Use this for files, remove separate `files`
   })
 
@@ -71,6 +72,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
       'internship.internshipTotalHours',
       String(state.value.internship.internshipTotalHours),
     )
+    formData.append('internship.accumulatedHours', String(state.value.internship.accumulatedHours))
     formData.append('internship.startDate', state.value.internship.startDate?.toString() ?? '')
 
     // --- Requirements (Existing) ---
@@ -138,14 +140,15 @@ export const useOnBoardStore = defineStore('onboard', () => {
         email: '',
         name: '',
       },
-      internship: {
-        degree: undefined as number | undefined, // ✅ Properly typed
-        strand: undefined as number | undefined, // ✅ Properly typed
-        estimatedEndDate: '',
-        internshipNature: 0,
-        internshipTotalHours: 0,
-        startDate: '',
-      },
+internship: {
+         degree: undefined as number | undefined, // ✅ Properly typed
+         strand: undefined as number | undefined, // ✅ Properly typed
+         estimatedEndDate: '',
+         internshipNature: 0,
+         internshipTotalHours: 0,
+         accumulatedHours: 0,
+         startDate: '',
+       },
       requirements: [] as any[], // ✅ Use this for files, remove separate `files`
     }
 

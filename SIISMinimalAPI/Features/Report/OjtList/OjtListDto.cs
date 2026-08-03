@@ -10,5 +10,6 @@ public class OjtListDto
     public string? Status {get; set;} = string.Empty;
     public DateOnly? StartDate { get; set; }
     public int TotalHours { get; set; }
+    public int AccumulatedHours { get; set; }
 }
 

@@ -13,6 +13,7 @@ namespace SIISMinimalAPI.Data
         public DbSet<RequirementModel> Requirements { get; set; }
         public DbSet<ApplicationModel> Applications { get; set; }
         public DbSet<OfficeModel> Offices { get; set; }
+        public DbSet<OfficeAccountModel> OfficeAccounts { get; set; }
         public DbSet<RegistrationTokenModel> RegistrationTokens { get; set; }
         // DbSet<LogsModel> Logs {get; set;}
 
@@ -63,6 +64,14 @@ namespace SIISMinimalAPI.Data
             builder.Entity<OfficeModel>(office =>
             {
                 office.HasQueryFilter(o => !o.IsDeleted);
+            });
+
+            // Office Account
+            builder.Entity<OfficeAccountModel>(acc =>
+            {
+                acc.HasIndex(a => a.Email).IsUnique();
+                acc.HasIndex(a => a.Username).IsUnique();
+                acc.HasQueryFilter(a => !a.IsDeleted);
             });
 
             // School

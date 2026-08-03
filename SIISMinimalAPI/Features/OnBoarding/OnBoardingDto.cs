@@ -47,6 +47,7 @@ public class InternshipRegDto
     public DateOnly StartDate { get; set; }
     public DateOnly EstimatedEndDate { get; set; }
     public int InternshipTotalHours { get; set; }
+    public int AccumulatedHours { get; set; }
 
 }
 

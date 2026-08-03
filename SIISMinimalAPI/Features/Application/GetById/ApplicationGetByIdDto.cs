@@ -65,6 +65,7 @@ public class InternshipInfo
 
     public DateOnly EstimatedEndDate { get; set; }
     public int InternshipTotalHours { get; set; }
+    public int AccumulatedHours { get; set; } = 0;
 
     public bool IsDeleted { get; set; } = false;
     public DateTime CreateAt { get; set; } = DateTime.Now;
@@ -99,7 +100,7 @@ public class OfficeInfo
 {
         public long Id { get; set; }
         public OfficeNameEnum Name { get; set; }
-        public string? CurrentOIC { get; set; }
+        public string? Department { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime CreateAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }

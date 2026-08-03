@@ -6,4 +6,5 @@ namespace SIISMinimalAPI.Features.Report.OjtPerOffice;
 public interface IOjtPerOfficeService
 {
     Task<byte[]> ListAllOjtPerOffice(OfficeNameEnum office, CancellationToken ct);
+    Task<byte[]> ListAllOjtPerOfficeFiltered(OfficeNameEnum? office, ApplicationStatusEnum? status, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct);
 }

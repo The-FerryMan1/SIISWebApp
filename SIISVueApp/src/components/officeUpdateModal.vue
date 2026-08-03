@@ -6,32 +6,32 @@ import { ref } from 'vue'
 interface Props {
   title?: string
   officeId?: number
-  oic?: string | null
+  department?: string | null
   loading: boolean
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  close: [value: { id: number; name: string; honorific: string } | null]
+  close: [value: { id: number; department: string; honorific: string } | null]
 }>()
 
 const schema = z.object({
-  name: z.string().min(1, 'officer-in-charge is required'),
+  department: z.string().min(1, 'department is required'),
   honorific: z.string()
 })
 
 type Schema = z.output<typeof schema>
 
 const state = ref({
-  name: props.oic ?? '',
+  department: props.department ?? '',
   honorific: undefined
 })
 
 const form = ref()
 
 const onSubmit = (event: FormSubmitEvent<Schema>) => {
-  emit('close', { id: props.officeId!, name:event.data.name, honorific: event.data.honorific })
+  emit('close', { id: props.officeId!, department: event.data.department, honorific: event.data.honorific })
 }
 
 const handleSave = () => form.value?.submit()
@@ -95,9 +95,9 @@ const honorificItems = ref([
 
 
 
-        <UFormField label="Officer-in-Charge" name="name">
-          <UInput v-model="state.name" placeholder="Enter officer-in-charge" class="w-full" />
-        </UFormField>
+<UFormField label="Department" name="department">
+           <UInput v-model="state.department" placeholder="Enter department name" class="w-full" />
+         </UFormField>
 
 
         

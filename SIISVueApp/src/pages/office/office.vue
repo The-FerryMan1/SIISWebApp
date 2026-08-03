@@ -24,11 +24,11 @@ const loading = ref<boolean>(false)
 const toast = useToast()
 
 const schema = z.object({
-  oic: z.string().min(1),
+  department: z.string().min(1),
 })
 type Schema = z.infer<typeof schema>
 const officeOIC = ref<Partial<Schema>>({
-  oic: undefined,
+  department: undefined,
 })
 
 onMounted(async () => {
@@ -43,19 +43,19 @@ const view = async (id: number) => {
   const result = await overlayModal.open({
     title: 'Edit Office',
     officeId: current?.id,
-    oic: current?.currentOIC,
+    department: current?.department,
     loading: loading.value,
   })
 
-  if (result) {
-    await debounceSubmit(result.id, result.name, result.honorific)
-  }
+if (result) {
+     await debounceSubmit(result.id, result.department, result.honorific)
+   }
 }
 
-const debounceSubmit = useDebounceFn(async (id: number, oic: string, honorific: string) => {
+const debounceSubmit = useDebounceFn(async (id: number, department: string, honorific: string) => {
   try {
     loading.value = true
-    await useAxios.put('/office/' + id, { oic: oic, honorific: honorific })
+    await useAxios.put('/office/' + id, { department: department, honorific: honorific })
     await office.officeInit()
     toast.add({ title: 'Office Updated Successfully', color: 'primary' })
   } catch (error) {
@@ -86,9 +86,9 @@ const columns: TableColumn<Office>[] = [
     cell: ({ row }) => row.getValue('honorific') || 'None',
   },
   {
-    accessorKey: 'currentOIC',
-    header: 'Current officer-in-charge',
-    cell: ({ row }) => row.getValue('currentOIC') || 'Officer in Charge not assigned',
+    accessorKey: 'department',
+    header: 'Department',
+    cell: ({ row }) => row.getValue('department') || 'No department assigned',
   },
   {
     accessorKey: 'students',
@@ -148,7 +148,7 @@ const setPage = (p: number) => {
     <div class="px-4 py-2 my-5">
       <div>
         <h2 class="text-4xl font-black text-primary">Offices</h2>
-        <p class="text-muted text-sm">Manage current officer-in-charge</p>
+        <p class="text-muted text-sm">Manage department information</p>
       </div>
     </div>
 

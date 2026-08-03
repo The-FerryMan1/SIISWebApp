@@ -169,7 +169,7 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
             {
                 Id = application.Office.Id,
                 Name = application.Office.Name,
-                CurrentOIC = application.Office.CurrentOIC,
+                Department = application.Office.Department,
                 IsDeleted = application.Office.IsDeleted,
                 CreateAt = application.Office.CreateAt,
                 UpdatedAt = application.Office.UpdatedAt,

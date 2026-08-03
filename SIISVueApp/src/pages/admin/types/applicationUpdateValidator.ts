@@ -92,6 +92,7 @@ export const InternshipUpdateDtoSchema = z
     StartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     EstimatedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     InternshipTotalHours: z.number().int().min(1).max(1000),
+    AccumulatedHours: z.number().int().min(0).optional(),
   })
   .refine(
     (data) => {

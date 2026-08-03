@@ -30,6 +30,8 @@ const isPending = computed(
 )
 const application = useApplicationStore()
 const pdfSource = ref<string>('')
+const previewOpen = ref(false)
+const previewUrl = ref<string>('')
 
 // --- Data Fetching ---
 watch(
@@ -120,18 +122,17 @@ const requirementColumns: TableColumn<any>[] = [
   {
     accessorKey: 'filePath',
     header: 'Action',
-    cell: ({ row }) => {
-      const id = row.original.id
-      return h(resolveComponent('UButton'), {
-        size: 'xs',
-        variant: 'ghost',
-        color: 'primary',
-        icon: 'i-lucide-download',
-        label: 'Download',
-        href: '/api/application/requirements/download/' + id,
-        target: '_blank',
-      })
-    },
+cell: ({ row }) => {
+       const id = row.original.id
+       return h(resolveComponent('UButton'), {
+         size: 'xs',
+         variant: 'ghost',
+         color: 'primary',
+         icon: 'i-lucide-eye',
+         label: 'Preview',
+         onClick: () => openPreview(id),
+       })
+     },
   },
 ]
 
@@ -176,9 +177,9 @@ const submitOffice = async (payload: FormSubmitEvent<OfficeSchema>) => {
 
     if (details.value) {
       details.value.office = {
-        id: details.value.office?.id ?? 0, // or whatever default
+        id: details.value.office?.id ?? 0,
         name: payload.data.office as OfficeNameEnum,
-        currentOIC: details.value.office?.currentOIC ?? null,
+        department: details.value.office?.department ?? null,
         isDeleted: details.value.office?.isDeleted ?? false,
         createAt: details.value.office?.createAt ?? new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -229,24 +230,45 @@ const downloadPdf = () => {
 
   const link = document.createElement('a')
   link.href = pdfSource.value
-  link.download = `endorsement-letter-${route.params.uuid}.pdf` // ← Control name here
+  link.download = `endorsement-letter-${route.params.uuid}.pdf`
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
 }
 
-const closePreview = () => {
+const closeEndorsementPreview = () => {
   if (!pdfSource.value) return
   if (typeof pdfSource.value === 'string') URL.revokeObjectURL(pdfSource.value)
   pdfSource.value = ''
 }
+
+const openPreview = (filePath: string) => {
+  previewUrl.value = '/api/application/requirements/download/' + filePath
+  previewOpen.value = true
+}
+
+const downloadRequirement = () => {
+  if (!previewUrl.value) return
+  const link = document.createElement('a')
+  link.href = previewUrl.value
+  link.download = ''
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+const closeRequirementPreview = () => {
+  previewUrl.value = ''
+  previewOpen.value = false
+}
+
 onBeforeUnmount(() => {
   if (typeof pdfSource.value === 'string') URL.revokeObjectURL(pdfSource.value)
 })
 
 const debounceGenerateEndorsement = useDebounceFn(generateEndorsement, 1000)
 const debounceDownloadEndorsement = useDebounceFn(downloadPdf, 1000)
-const debounceClosePreview = useDebounceFn(closePreview, 500)
+const debounceClosePreview = useDebounceFn(closeEndorsementPreview, 500)
 const debouncedRejectApi = useDebounceFn((uuid: string) => {
   application.rejectApplication(uuid)
 }, 500)
@@ -344,12 +366,8 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
 
       <!-- Tabs -->
       <UTabs :items="[
-        { label: 'Student', icon: 'i-lucide-user', slot: 'student' },
-        { label: 'School', icon: 'i-lucide-school', slot: 'school' },
-        { label: 'Internship', icon: 'i-lucide-briefcase', slot: 'internship' },
-        { label: 'Requirements', icon: 'i-lucide-file-text', slot: 'requirements' },
-        { label: 'Office', icon: 'i-lucide-building', slot: 'office' },
-      ]" variant="pill" class="w-full">
+{ label: 'Office', icon: 'i-lucide-building', slot: 'office' },
+       ]" variant="pill" class="w-full">
         <!-- Student Tab -->
         <template #student>
           <UPageCard title="Student Information" icon="i-lucide-user-round" variant="outline" class="mt-4">
@@ -434,15 +452,6 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
           </UPageCard>
         </template>
 
-        <!-- Requirements Tab -->
-        <template #requirements>
-          <UPageCard title="Submitted Requirements" icon="i-lucide-file-text" variant="outline" class="mt-4">
-            <UTable v-if="details.requirements?.length" :data="details.requirements" :columns="requirementColumns"
-              class="w-full" />
-            <UAlert v-else color="neutral" icon="i-lucide-inbox" title="No requirements submitted yet." />
-          </UPageCard>
-        </template>
-
         <!-- Office Tab -->
         <template #office>
           <UPageCard :title="details.office ? 'Assigned Office' : 'No Office Assigned'"
@@ -451,9 +460,9 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
               <UFormField label="Office Name">
                 <UInput :model-value="OfficeNameLabels[details.office.name]" class="w-full" variant="soft" />
               </UFormField>
-              <UFormField label="Current OIC">
-                <UInput :model-value="details.office.currentOIC ?? 'N/A'" class="w-full" variant="soft" />
-              </UFormField>
+<UFormField label="Department">
+                  <UInput :model-value="details.office.department ?? 'N/A'" class="w-full" variant="soft" />
+                </UFormField>
             </UForm>
             <p v-else class="text-muted text-sm">
               This application has not been assigned to an office yet.
@@ -482,20 +491,38 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
         </UModal>
       </div>
     </template>
-    <UPageCard v-if="isApproved" :class="pdfSource ? 'min-h-125 md:min-h-150' : ''">
-      <!-- Minimum height, can grow -->
-      <template #header>
-        <div v-if="pdfSource" class="flex items-center gap-2 justify-end">
-          <UButton icon="i-lucide-download" variant="soft" label="Download pdf" @click="debounceDownloadEndorsement" />
-          <UButton icon="i-lucide-x" variant="soft" label="Close preview" @click="debounceClosePreview" />
-        </div>
-      </template>
+<UPageCard v-if="isApproved" :class="pdfSource ? 'min-h-125 md:min-h-150' : ''">
+       <!-- Minimum height, can grow -->
+       <template #header>
+         <div v-if="pdfSource" class="flex items-center gap-2 justify-end">
+           <UButton icon="i-lucide-download" variant="soft" label="Download pdf" @click="debounceDownloadEndorsement" />
+           <UButton icon="i-lucide-x" variant="soft" label="Close preview" @click="debounceClosePreview" />
+         </div>
+       </template>
 
 
 
-      <PDFViewer class="h-full" v-if="pdfSource" :config="{ src: pdfSource, theme: { preference: 'light' } }"
-        :style="{ width: '100%', height: '100%' }" />
-      <UAlert v-else description="No preview" />
-    </UPageCard>
-  </UMain>
-</template>
+
+       <PDFViewer class="h-full" v-if="pdfSource" :config="{ src: pdfSource, theme: { preference: 'light' } }"
+         :style="{ width: '100%', height: '100%' }" />
+       <UAlert v-else description="No preview" />
+     </UPageCard>
+
+     <!-- Requirements File Preview Modal -->
+     <UModal v-model="previewOpen" title="File Preview" size="xl">
+       <template #body>
+         <div class="w-full h-[70vh] flex flex-col">
+           <div class="flex-1 border rounded overflow-hidden">
+             <iframe v-if="previewUrl && previewUrl.endsWith('.pdf')" :src="previewUrl" class="w-full h-full" />
+             <img v-else-if="previewUrl" :src="previewUrl" class="w-full h-full object-contain" />
+             <UAlert v-else description="Preview not available" />
+           </div>
+           <div class="flex justify-end gap-2 mt-3">
+             <UButton label="Download" icon="i-lucide-download" color="primary" @click="downloadRequirement" />
+             <UButton label="Close" variant="outline" @click="closeRequirementPreview" />
+           </div>
+         </div>
+       </template>
+     </UModal>
+   </UMain>
+ </template>

@@ -10,7 +10,7 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public OfficeNameEnum Name { get; set; }
 
         [StringLength(255)]
-        public string? CurrentOIC { get; set; }
+        public string? Department { get; set; }
         public string? Honorific {get; set;}
 
         public bool IsDeleted { get; set; } = false;

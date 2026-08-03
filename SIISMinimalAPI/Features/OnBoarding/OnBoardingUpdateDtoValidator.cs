@@ -152,6 +152,13 @@ public class InternshipUpdateDtoValidator : AbstractValidator<InternshipUpdateDt
             .LessThanOrEqualTo(1000)
             .WithMessage("Total hours must be between 1 and 1000");
 
+        RuleFor(x => x.AccumulatedHours)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Accumulated hours must be at least 0")
+            .LessThanOrEqualTo(x => x.InternshipTotalHours)
+            .WithMessage("Accumulated hours cannot exceed total internship hours")
+            .When(x => x.AccumulatedHours != 0);
+
         RuleFor(x => x)
             .Must(HaveValidDuration)
             .WithMessage("Internship duration exceeds reasonable limits for the given hours");

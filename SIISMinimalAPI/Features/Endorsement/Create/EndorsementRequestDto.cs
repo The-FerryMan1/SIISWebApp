@@ -5,5 +5,5 @@ namespace SIISMinimalAPI.Features.Endorsement.Create;
 
 public class EndorsementRequestDto
 {
-    public string CurrentOIC { get; set; }
+    public string Department { get; set; }
 }

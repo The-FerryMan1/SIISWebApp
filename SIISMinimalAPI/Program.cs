@@ -1,7 +1,7 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application;
@@ -14,6 +14,7 @@ using SIISMinimalAPI.Features.OnBoarding;
 using SIISMinimalAPI.Features.RegistrationToken;
 using SIISMinimalAPI.Features.Report.OjtList;
 using SIISMinimalAPI.Features.Report.OjtPerOffice;
+using SIISMinimalAPI.Features.OfficeAccounts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,6 +94,7 @@ builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
 builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
 builder.Services.AddScoped<IOfficeService, OfficeHandler>();
+builder.Services.AddScoped<IOfficeAccountService, OfficeAccountHandler>();
 builder.Services.AddScoped<IOjtService, OjtHandler>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRegistrationTokenService, RegistrationTokenHandler>();
@@ -116,6 +118,7 @@ app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();
 app.MapToOffice();
+app.MapToOfficeAccount();
 app.MapToOjt();
 app.MapToAuth();
 app.MapToUser();
@@ -129,8 +132,47 @@ app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
 //seed
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated();
+    await MigrateSchemaAsync(dbContext);
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
     await SeederAdmin.InitOffices(scope.ServiceProvider);
+    await SeederStudent.InitStudents(scope.ServiceProvider);
+}
+
+static async Task MigrateSchemaAsync(AppDbContext dbContext)
+{
+    try
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE Offices ADD COLUMN Department TEXT NULL");
+    }
+    catch (Microsoft.Data.Sqlite.SqliteException) { }
+
+    try
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE Internship ADD COLUMN AccumulatedHours INTEGER NOT NULL DEFAULT 0");
+    }
+    catch (Microsoft.Data.Sqlite.SqliteException) { }
+
+    var tableExists = await dbContext.Database.SqlQueryRaw<int>("SELECT COUNT(*) as Value FROM sqlite_master WHERE type='table' AND name='OfficeAccounts'").FirstOrDefaultAsync();
+    if (tableExists == 0)
+    {
+        await dbContext.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE OfficeAccounts (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                OfficeId INTEGER NOT NULL,
+                Username TEXT NOT NULL,
+                Email TEXT NOT NULL,
+                PasswordHash TEXT NOT NULL,
+                IsDeleted INTEGER NOT NULL DEFAULT 0,
+                CreateAt TEXT NOT NULL DEFAULT (datetime('now')),
+                UpdatedAt TEXT NULL,
+                DeletedAt TEXT NULL
+            )
+        """);
+        await dbContext.Database.ExecuteSqlRawAsync("CREATE UNIQUE INDEX IX_OfficeAccounts_Email ON OfficeAccounts(Email)");
+        await dbContext.Database.ExecuteSqlRawAsync("CREATE UNIQUE INDEX IX_OfficeAccounts_Username ON OfficeAccounts(Username)");
+    }
 }
 
 app.MapFallbackToFile("index.html");

@@ -355,20 +355,28 @@ watch(fileUploaded, (value)=>{
           />
         </UFormField>
 
-        <UFormField
-          label="Estimated end date"
-          title="Date of Birth"
-          name="DateofBirth"
-          description="Calculated field"
-        >
-          <UInput
-            type="date"
-            v-model="details.internship.estimatedEndDate"
-            placeholder="enter your email address"
-            class="w-full"
-            disabled
-          />
-        </UFormField>
+<UFormField label="Accumulated Hours" title="accumulatedHours" name="AccumulatedHours">
+           <UInput
+             type="number"
+             v-model="details.internship.accumulatedHours"
+             placeholder="Enter accumulated hours"
+             class="w-full"
+           />
+         </UFormField>
+
+         <UFormField
+           label="Estimated end date"
+           title="Date of Birth"
+           name="DateofBirth"
+           description="Calculated field"
+         >
+           <UInput
+             type="date"
+             v-model="details.internship.estimatedEndDate"
+             placeholder="enter your email address"
+             class="w-full"
+           />
+         </UFormField>
       </UPageCard>
 
       <UPageCard
@@ -388,39 +396,7 @@ watch(fileUploaded, (value)=>{
         </UForm>
       </UPageCard>
 
-      <!-- internship details -->
-      <UPageCard
-        v-if="details?.requirements"
-        title="Requirements"
-        description="Requiements"
-        icon="i-lucide-file-text"
-      >
-        <UPageList class="w-full flex justify-start items gap-5">
-          <div
-            class="w-full text-sm text-muted flex p-2 rounded bg-slate-50 items-center justify-between gap-3"
-            v-for="requirements in details.requirements"
-            as="button"
-          >
-            <UIcon name="i-lucide-file" />
-            <p class="italic">
-              {{ getRequirementName(requirements) }}
-            </p>
-
-            <UButton
-              v-if="requirements.id"
-              icon="i-lucide-download"
-              size="sm"
-              variant="ghost"
-              :href="'/api/application/requirements/download/' + requirements.id"
-              target="_blank"
-            />
-          </div>
-
-          <UFileUpload v-model="fileUploaded" multiple  label="Drop your files here" class="min-h-48" />
-        </UPageList>
-      </UPageCard>
-
-      <div class="flex w-full my-5 justify-end">
+<div class="flex w-full my-5 justify-end">
         <UModal
           v-model="open"
           title="Edit Applciation"
