@@ -28,49 +28,37 @@ public class StudentInfo
     public DateOnly DateOfBirth { get; set; }
     public GennderEnum Gender { get; set; }
     public GradeLevelEnum GradeLevel { get; set; }
+    public string SchoolName { get; set; } = string.Empty;
+    public string SchoolAddress { get; set; } = string.Empty;
+    public string SchoolContactPerson { get; set; } = string.Empty;
+    public string SchoolContactPersonEmail { get; set; } = string.Empty;
+    public string SchoolContactPersonPhone { get; set; } = string.Empty;
+    public InternshipNatureEnum InternshipNature { get; set; }
+    public StrandEnum Strand { get; set; }
+    public DegreeEnum Degree { get; set; }
+    public int TotalInternshipHours { get; set; }
     public bool IsDeleted { get; set; } = false;
-    public DateTime CreateAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
-    //navigations
     public long? OfficeId { get; set; }
 }
 
 public class SchoolInfo
 {
-    public long Id { get; set; }
-    public string Name { get; set; }
-    public string Address { get; set; }
-    public string ContactPerson { get; set; }
-    public string Email { get; set; }
-    public string ContactNumber { get; set; }
-    public bool IsDeleted { get; set; } = false;
-    public DateTime CreateAt { get; set; } = DateTime.Now;
-    public DateTime? UpdatedAt { get; set; }
-    public DateTime? DeletedAt { get; set; }
-
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string ContactPerson { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string ContactNumber { get; set; } = string.Empty;
 }
 
 public class InternshipInfo
 {
-    public long Id { get; set; }
-
     public InternshipNatureEnum InternshipNature { get; set; }
-
     public StrandEnum? Strand { get; set; }
-
     public DegreeEnum? Degree { get; set; }
-
-    public DateOnly StartDate { get; set; }
-
-    public DateOnly EstimatedEndDate { get; set; }
     public int InternshipTotalHours { get; set; }
-    public int AccumulatedHours { get; set; } = 0;
-
-    public bool IsDeleted { get; set; } = false;
-    public DateTime CreateAt { get; set; } = DateTime.Now;
-    public DateTime? UpdatedAt { get; set; }
-    public DateTime? DeletedAt { get; set; }
 }
 
 public class RequirementInfo
@@ -80,7 +68,7 @@ public class RequirementInfo
     public string FilePath { get; set; }
     public string FileType { get; set; }
     public bool IsDeleted { get; set; } = false;
-    public DateTime CreateAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 }
@@ -91,7 +79,7 @@ public class ApplicationInfo
         public Guid ApplicationUUID { get; set; }
         public ApplicationStatusEnum Status { get; set; } = ApplicationStatusEnum.Pending;
         public bool IsDeleted { get; set; } = false;
-        public DateTime CreateAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
 }
@@ -99,11 +87,9 @@ public class ApplicationInfo
 public class OfficeInfo
 {
         public long Id { get; set; }
-        public OfficeNameEnum Name { get; set; }
-        public string? Department { get; set; }
+        public string OfficeName { get; set; } = string.Empty;
         public bool IsDeleted { get; set; } = false;
-        public DateTime CreateAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
 }
-

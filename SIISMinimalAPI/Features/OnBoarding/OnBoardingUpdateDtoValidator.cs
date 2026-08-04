@@ -227,7 +227,7 @@ public class OfficeUpdateDtoValidator : AbstractValidator<OfficeUpdateDto>
     public OfficeUpdateDtoValidator()
     {
         RuleFor(x => x.Name)
-            .IsInEnum()
-            .WithMessage("Invalid office name");
+            .NotEmpty()
+            .WithMessage("Office name is required");
     }
 }

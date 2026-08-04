@@ -15,9 +15,9 @@ namespace SIISMinimalAPI.Data
 
             var offices = await dbContext.Offices.ToListAsync();
 
-            var students = new List<StudentModel>
+            var students = new List<Student>
             {
-                new StudentModel
+                new Student
                 {
                     Email = "john.smith@student.com",
                     LastName = "Smith",
@@ -28,31 +28,27 @@ namespace SIISMinimalAPI.Data
                     DateOfBirth = new DateOnly(2005, 3, 15),
                     Gender = GennderEnum.Male,
                     GradeLevel = GradeLevelEnum.Grade11,
-                    OfficeId = offices.Count > 0 ? offices[0].Id : null,
-                    School = new SchoolModel
+                    SchoolName = "Cavite National High School",
+                    SchoolAddress = "Trece Martires City, Cavite",
+                    SchoolContactPerson = "Maria Santos",
+                    SchoolContactPersonEmail = "cnhs@cavite.gov.ph",
+                    SchoolContactPersonPhone = "09876543210",
+                    InternshipNature = InternshipNatureEnum.OJT,
+                    Strand = StrandEnum.STEM,
+                    Degree = DegreeEnum.BSIT,
+                    TotalInternshipHours = 400,
+                    Application = new Application
                     {
-                        Name = "Cavite National High School",
-                        Address = "Trece Martires City, Cavite",
-                        ContactPerson = "Maria Santos",
-                        Email = "cnhs@cavite.gov.ph",
-                        ContactNumber = "09876543210"
+                        Uuid = Guid.NewGuid(),
+                        Status = ApplicationStatusEnum.Approved,
                     },
-                    Internship = new InternshipModel
-                    {
-                        InternshipNature = InternshipNatureEnum.OJT,
-                        Strand = StrandEnum.STEM,
-                        Degree = DegreeEnum.BSIT,
-                        StartDate = new DateOnly(2025, 6, 1),
-                        EstimatedEndDate = new DateOnly(2025, 12, 1),
-                        InternshipTotalHours = 400
-                    },
-                    Application = new ApplicationModel
-                    {
-                        ApplicationUUID = Guid.NewGuid(),
-                        Status = ApplicationStatusEnum.Approved
-                    }
+                    Requirements =
+                    [
+                        new Requirement { FileName = "john_smith_id.pdf", FilePath = "/uploads/Smith/john_smith_id.pdf", FileType = "application/pdf" },
+                        new Requirement { FileName = "john_smith_clearance.pdf", FilePath = "/uploads/Smith/john_smith_clearance.pdf", FileType = "application/pdf" }
+                    ]
                 },
-                new StudentModel
+                new Student
                 {
                     Email = "maria.clara@student.com",
                     LastName = "Clara",
@@ -63,31 +59,26 @@ namespace SIISMinimalAPI.Data
                     DateOfBirth = new DateOnly(2004, 7, 22),
                     Gender = GennderEnum.Female,
                     GradeLevel = GradeLevelEnum.Grade12,
-                    OfficeId = offices.Count > 1 ? offices[1].Id : null,
-                    School = new SchoolModel
+                    SchoolName = "Tagaytay National High School",
+                    SchoolAddress = "Tagaytay City, Cavite",
+                    SchoolContactPerson = "Pedro Reyes",
+                    SchoolContactPersonEmail = "tnhs@tagaytay.gov.ph",
+                    SchoolContactPersonPhone = "09765432109",
+                    InternshipNature = InternshipNatureEnum.Internship,
+                    Strand = StrandEnum.ABM,
+                    Degree = DegreeEnum.BSBA,
+                    TotalInternshipHours = 300,
+                    Application = new Application
                     {
-                        Name = "Tagaytay National High School",
-                        Address = "Tagaytay City, Cavite",
-                        ContactPerson = "Pedro Reyes",
-                        Email = "tnhs@tagaytay.gov.ph",
-                        ContactNumber = "09765432109"
+                        Uuid = Guid.NewGuid(),
+                        Status = ApplicationStatusEnum.Pending,
                     },
-                    Internship = new InternshipModel
-                    {
-                        InternshipNature = InternshipNatureEnum.Internship,
-                        Strand = StrandEnum.ABM,
-                        Degree = DegreeEnum.BSBA,
-                        StartDate = new DateOnly(2025, 7, 15),
-                        EstimatedEndDate = new DateOnly(2026, 1, 15),
-                        InternshipTotalHours = 300
-                    },
-                    Application = new ApplicationModel
-                    {
-                        ApplicationUUID = Guid.NewGuid(),
-                        Status = ApplicationStatusEnum.Pending
-                    }
+                    Requirements =
+                    [
+                        new Requirement { FileName = "maria_clara_id.pdf", FilePath = "/uploads/Clara/maria_clara_id.pdf", FileType = "application/pdf" }
+                    ]
                 },
-                new StudentModel
+                new Student
                 {
                     Email = "robert.juan@student.com",
                     LastName = "Juan",
@@ -98,30 +89,28 @@ namespace SIISMinimalAPI.Data
                     DateOfBirth = new DateOnly(2003, 11, 8),
                     Gender = GennderEnum.Male,
                     GradeLevel = GradeLevelEnum.CollegeThirdYear,
-                    OfficeId = offices.Count > 2 ? offices[2].Id : null,
-                    School = new SchoolModel
+                    SchoolName = "Imus Institute of Science and Technology",
+                    SchoolAddress = "Imus City, Cavite",
+                    SchoolContactPerson = "Ana Delos Santos",
+                    SchoolContactPersonEmail = "iist@imus.edu.ph",
+                    SchoolContactPersonPhone = "09654321098",
+                    InternshipNature = InternshipNatureEnum.Apprenticeship,
+                    Strand = StrandEnum.ICT,
+                    Degree = DegreeEnum.BSCS,
+                    TotalInternshipHours = 500,
+                    Application = new Application
                     {
-                        Name = "Imus Institute of Science and Technology",
-                        Address = "Imus City, Cavite",
-                        ContactPerson = "Ana Delos Santos",
-                        Email = "iist@imus.edu.ph",
-                        ContactNumber = "09654321098"
+                        Uuid = Guid.NewGuid(),
+                        Status = ApplicationStatusEnum.Rejected,
                     },
-                    Internship = new InternshipModel
-                    {
-                        InternshipNature = InternshipNatureEnum.Apprenticeship,
-                        Degree = DegreeEnum.BSCS,
-                        StartDate = new DateOnly(2025, 5, 1),
-                        EstimatedEndDate = new DateOnly(2025, 11, 1),
-                        InternshipTotalHours = 500
-                    },
-                    Application = new ApplicationModel
-                    {
-                        ApplicationUUID = Guid.NewGuid(),
-                        Status = ApplicationStatusEnum.Rejected
-                    }
+                    Requirements =
+                    [
+                        new Requirement { FileName = "robert_juan_id.pdf", FilePath = "/uploads/Juan/robert_juan_id.pdf", FileType = "application/pdf" },
+                        new Requirement { FileName = "robert_juan_transcript.pdf", FilePath = "/uploads/Juan/robert_juan_transcript.pdf", FileType = "application/pdf" },
+                        new Requirement { FileName = "robert_juan_clearance.pdf", FilePath = "/uploads/Juan/robert_juan_clearance.pdf", FileType = "application/pdf" }
+                    ]
                 },
-                new StudentModel
+                new Student
                 {
                     Email = "lorenza.ramos@student.com",
                     LastName = "Ramos",
@@ -132,30 +121,26 @@ namespace SIISMinimalAPI.Data
                     DateOfBirth = new DateOnly(2006, 1, 30),
                     Gender = GennderEnum.Female,
                     GradeLevel = GradeLevelEnum.CollegeFirstYear,
-                    OfficeId = offices.Count > 3 ? offices[3].Id : null,
-                    School = new SchoolModel
+                    SchoolName = "Kawit National High School",
+                    SchoolAddress = "Kawit, Cavite",
+                    SchoolContactPerson = "Roberto Aguilar",
+                    SchoolContactPersonEmail = "knhs@kawit.gov.ph",
+                    SchoolContactPersonPhone = "09543210987",
+                    InternshipNature = InternshipNatureEnum.WorkImmersion,
+                    Strand = StrandEnum.HUMSS,
+                    Degree = DegreeEnum.BSEd,
+                    TotalInternshipHours = 200,
+                    Application = new Application
                     {
-                        Name = "Kawit National High School",
-                        Address = "Kawit, Cavite",
-                        ContactPerson = "Roberto Aguilar",
-                        Email = "knhs@kawit.gov.ph",
-                        ContactNumber = "09543210987"
+                        Uuid = Guid.NewGuid(),
+                        Status = ApplicationStatusEnum.Pending,
                     },
-                    Internship = new InternshipModel
-                    {
-                        InternshipNature = InternshipNatureEnum.WorkImmersion,
-                        Degree = DegreeEnum.BSEd,
-                        StartDate = new DateOnly(2025, 8, 1),
-                        EstimatedEndDate = new DateOnly(2026, 2, 28),
-                        InternshipTotalHours = 200
-                    },
-                    Application = new ApplicationModel
-                    {
-                        ApplicationUUID = Guid.NewGuid(),
-                        Status = ApplicationStatusEnum.Pending
-                    }
+                    Requirements =
+                    [
+                        new Requirement { FileName = "lorenza_ramos_id.pdf", FilePath = "/uploads/Ramos/lorenza_ramos_id.pdf", FileType = "application/pdf" }
+                    ]
                 },
-                new StudentModel
+                new Student
                 {
                     Email = "dennis.velasco@student.com",
                     LastName = "Velasco",
@@ -166,28 +151,25 @@ namespace SIISMinimalAPI.Data
                     DateOfBirth = new DateOnly(2004, 9, 12),
                     Gender = GennderEnum.Male,
                     GradeLevel = GradeLevelEnum.CollegeSecondYear,
-                    OfficeId = offices.Count > 4 ? offices[4].Id : null,
-                    School = new SchoolModel
+                    SchoolName = "Bacoor National High School",
+                    SchoolAddress = "Bacoor City, Cavite",
+                    SchoolContactPerson = "Sonia Mendoza",
+                    SchoolContactPersonEmail = "bnhs@bacoor.gov.ph",
+                    SchoolContactPersonPhone = "09432109876",
+                    InternshipNature = InternshipNatureEnum.OJT,
+                    Strand = StrandEnum.GAS,
+                    Degree = DegreeEnum.BSME,
+                    TotalInternshipHours = 350,
+                    Application = new Application
                     {
-                        Name = "Bacoor National High School",
-                        Address = "Bacoor City, Cavite",
-                        ContactPerson = "Sonia Mendoza",
-                        Email = "bnhs@bacoor.gov.ph",
-                        ContactNumber = "09432109876"
+                        Uuid = Guid.NewGuid(),
+                        Status = ApplicationStatusEnum.Approved,
                     },
-                    Internship = new InternshipModel
-                    {
-                        InternshipNature = InternshipNatureEnum.OJT,
-                        Degree = DegreeEnum.BSME,
-                        StartDate = new DateOnly(2025, 6, 15),
-                        EstimatedEndDate = new DateOnly(2025, 12, 15),
-                        InternshipTotalHours = 350
-                    },
-                    Application = new ApplicationModel
-                    {
-                        ApplicationUUID = Guid.NewGuid(),
-                        Status = ApplicationStatusEnum.Approved
-                    }
+                    Requirements =
+                    [
+                        new Requirement { FileName = "dennis_velasco_id.pdf", FilePath = "/uploads/Velasco/dennis_velasco_id.pdf", FileType = "application/pdf" },
+                        new Requirement { FileName = "dennis_velasco_photo.pdf", FilePath = "/uploads/Velasco/dennis_velasco_photo.jpg", FileType = "image/jpeg" }
+                    ]
                 }
             };
 

@@ -38,8 +38,8 @@ const approvedApplications = computed(
 
 const officeChartData = computed(() => {
   return offices.value.map((office) => ({
-    name: OfficeNameLabels[office.name as OfficeNameEnum] ?? 'Unknown',
-    value: office.students?.length ?? 0,
+    name: office.officeName,
+    value: (office as any).students?.length ?? 0,
   }))
 })
 

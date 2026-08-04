@@ -9,69 +9,97 @@ namespace SIISMinimalAPI.Data
     {
         public static async Task InitAdmin(IServiceProvider service)
         {
-            var userManager = service.GetRequiredService<UserManager<IdentityUser>>();
+            var userManager = service.GetRequiredService<UserManager<User>>();
             var roleManager = service.GetRequiredService<RoleManager<IdentityRole>>();
             var dbContext = service.GetRequiredService<AppDbContext>();
 
             dbContext.Database.EnsureCreated();
 
-            string role = "Admin";
-            string email = "admin@gmail.com";
-            string username = "admin";
-            string password = "Admin123!";
-
-            if (!await roleManager.RoleExistsAsync(role))
+            // Create roles
+            string[] roles = { "Admin", "OPG", "Officer" };
+            foreach (var role in roles)
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
             }
 
-            var defaultAdmin = new IdentityUser
+            // Create admin user
+            string adminEmail = "admin@gmail.com";
+            string adminUsername = "admin";
+            string adminPassword = "Admin123!";
+
+            var defaultAdmin = new User
             {
-                Email = email,
-                UserName = username,
-                EmailConfirmed = true
+                Email = adminEmail,
+                UserName = adminUsername,
+                EmailConfirmed = true,
+                LastName = "Admin",
+                FirstName = "System",
+                MiddleName = ""
             };
-            var result = await userManager.CreateAsync(defaultAdmin, password);
+            var result = await userManager.CreateAsync(defaultAdmin, adminPassword);
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(defaultAdmin, role);
+                await userManager.AddToRoleAsync(defaultAdmin, "Admin");
             }
-        }
 
-        public static async Task InitOffices(IServiceProvider service)
-        {
-            var dbContext = service.GetRequiredService<AppDbContext>();
+            // Create OPG user
+            string opgEmail = "opg@gmail.com";
+            string opgUsername = "opg";
+            var opgUser = new User
+            {
+                Email = opgEmail,
+                UserName = opgUsername,
+                EmailConfirmed = true,
+                LastName = "OPG",
+                FirstName = "User",
+                MiddleName = ""
+            };
+            var opgResult = await userManager.CreateAsync(opgUser, "Admin123!");
+            if (opgResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(opgUser, "OPG");
+            }
 
+            // Create Officer users for each office
             var officeCount = await dbContext.Offices.CountAsync();
             if (officeCount == 0)
             {
                 foreach (OfficeNameEnum office in Enum.GetValues<OfficeNameEnum>())
                 {
-                    await dbContext.Offices.AddAsync(new Features.Shared.Models.OfficeModel
+                    await dbContext.Offices.AddAsync(new Office
                     {
-                        Name = office
+                        OfficeName = OfficeEnumLabels.GetLabel(office),
+                        UserId = null
                     });
                 }
                 await dbContext.SaveChangesAsync();
             }
 
             var offices = await dbContext.Offices.Where(o => !o.IsDeleted).ToListAsync();
-            var hasher = new PasswordHasher<OfficeAccountModel>();
-
             foreach (var office in offices)
             {
-                var existing = await dbContext.OfficeAccounts
-                    .AnyAsync(a => a.OfficeId == office.Id && !a.IsDeleted);
+                string officerUsername = office.OfficeName.ToLower().Replace(" ", "");
+                string officerEmail = $"{office.OfficeName.ToLower().Replace(" ", "")}@siis.local";
+                string officerPassword = "Admin123!";
 
-                if (!existing)
+                var officer = new User
                 {
-                    await dbContext.OfficeAccounts.AddAsync(new Features.Shared.Models.OfficeAccountModel
-                    {
-                        OfficeId = office.Id,
-                        Username = OfficeEnumLabels.GetLabel(office.Name).ToLower().Replace(" ", ""),
-                        Email = $"{office.Name.ToString().ToLower()}@siis.local",
-                        PasswordHash = hasher.HashPassword(null, "Admin123!"),
-                    });
+                    Email = officerEmail,
+                    UserName = officerUsername,
+                    EmailConfirmed = true,
+                    LastName = "Officer",
+                    FirstName = office.OfficeName,
+                    MiddleName = ""
+                };
+
+                var officerResult = await userManager.CreateAsync(officer, officerPassword);
+                if (officerResult.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(officer, "Officer");
+                    office.UserId = officer.Id;
                 }
             }
 

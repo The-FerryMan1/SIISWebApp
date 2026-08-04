@@ -1,11 +1,9 @@
 using System;
-using SIISMinimalAPI.Features.Shared.Enums;
 
 namespace SIISMinimalAPI.Features.Endorsement.Bulk;
 
 public class EndorsementBulkDto
 {
-    public OfficeNameEnum Office { get; set; }
+    public string Office { get; set; } = string.Empty;
     public ICollection<Guid> UUIDS { get; set; } = [];
 }
-

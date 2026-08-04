@@ -5,7 +5,7 @@ import type { Axios, AxiosError } from 'axios'
 
 export type Applicaton = {
   id: number
-  applicationUUID: string
+  uuid: string
   fullName: string
   degreeStrand: string
   status: string
@@ -23,7 +23,10 @@ export const useApplicationStore = defineStore('applicaton', () => {
   const getAllAsync = async () => {
     try {
       const { data } = await useAxios.get('/application')
-      applications.value = data
+      applications.value = data.map((item: any) => ({
+        ...item,
+        uuid: item.applicationUUID ?? item.uuid,
+      }))
     } catch (error) {
       console.log(error)
     }

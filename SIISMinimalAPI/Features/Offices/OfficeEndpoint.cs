@@ -1,7 +1,10 @@
 using System;
 using System.Reflection.Metadata;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Offices.UpdateOffice;
 
 namespace SIISMinimalAPI.Features.Offices;
@@ -23,8 +26,33 @@ public static class OfficeEndpoint
             return TypedResults.Ok(applications);
         }).RequireAuthorization("Admin");
 
+       group.MapGet("/my-office", [Authorize] async Task<IResult> (ClaimsPrincipal user, AppDbContext context, CancellationToken ct) =>
+        {
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return TypedResults.Unauthorized();
+            }
 
-        group.MapPut("/{id}", async Task<IResult> ([FromRoute] long id, UpdateOfficeDto dto, IOfficeService service, CancellationToken ct) =>
+            var office = await context.Offices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.UserId == userId && !o.IsDeleted, ct);
+
+            if (office is null)
+            {
+                return TypedResults.NotFound("No office assigned to this account");
+            }
+
+            return TypedResults.Ok(new
+            {
+                id = office.Id,
+                officeName = office.OfficeName,
+                userId = office.UserId
+            });
+        });
+
+
+       group.MapPut("/{id}", async Task<IResult> ([FromRoute] long id, UpdateOfficeDto dto, IOfficeService service, CancellationToken ct) =>
         {
             try
             {

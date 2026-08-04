@@ -62,6 +62,5 @@ public class RequirementsUpdateDto
 
 public class OfficeUpdateDto
 {
-    public OfficeNameEnum Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 }
-

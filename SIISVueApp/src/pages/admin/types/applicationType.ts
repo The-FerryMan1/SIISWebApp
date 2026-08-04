@@ -5,21 +5,17 @@ export enum ApplicationStatusEnum {
   Pending = 0,
   Approved = 1,
   Rejected = 2
-  // Add other statuses...
 }
 
 export enum GenderEnum {
-  // 0 = ?, 1 = ?, 2 = ?
   Male = 0,
   Female = 1,
   Other = 2,
 }
 
 export enum GradeLevelEnum {
-  // 0 = ?, 1 = ?, 2 = ?
   Grade11 = 11,
   Grade12 = 12,
-
   CollegeFirstYear = 1,
   CollegeSecondYear = 2,
   CollegeThirdYear = 3,
@@ -27,16 +23,13 @@ export enum GradeLevelEnum {
 }
 
 export enum InternshipNatureEnum {
-  // 1 = ?
-  OJT,
-  Apprenticeship,
-  Internship,
-  WorkImmersion,
+  OJT = 0,
+  Apprenticeship = 1,
+  Internship = 2,
+  WorkImmersion = 3,
 }
 
 export enum StrandEnum {
-  // 1 = ?
-
   STEM = 0,
   ABM = 1,
   HUMSS = 2,
@@ -45,29 +38,29 @@ export enum StrandEnum {
 }
 
 export enum DegreeEnum {
-  BSIT,
-  BSCS,
-  BSN,
-  BSA,
-  BSBA,
-  BSEd,
-  BSCE,
-  BSEE,
-  BSME,
-  BSArch,
-  BSPharma,
-  BSPsych,
+  BSIT = 0,
+  BSCS = 1,
+  BSN = 2,
+  BSA = 3,
+  BSBA = 4,
+  BSEd = 5,
+  BSCE = 6,
+  BSEE = 7,
+  BSME = 8,
+  BSArch = 9,
+  BSPharma = 10,
+  BSPsych = 11,
 }
 
 // Types
 export interface ApplicationInfo {
   id: number
-  applicationUUID: string
+  uuid: string
   status: ApplicationStatusEnum
-  isDeleted: boolean
-  createAt: string // or Date if you parse it
-  updatedAt: string | null
-  deletedAt: string | null
+  reason?: string
+  createdAt: string
+  updatedAt: string
+  studentId: number
 }
 
 export interface StudentInfo {
@@ -79,43 +72,36 @@ export interface StudentInfo {
   middleName: string
   contactNumber: string
   address: string
-  dateOfBirth: string // "0001-01-01" format
+  dateOfBirth: string
   gender: GenderEnum
   gradeLevel: GradeLevelEnum
+  schoolName: string
+  schoolAddress: string
+  schoolContactPerson: string
+  schoolContactPersonEmail: string
+  schoolContactPersonPhone: string
+  internshipNature: InternshipNatureEnum
+  strand: StrandEnum
+  degree: DegreeEnum
+  totalInternshipHours: number
   isDeleted: boolean
-  createAt: string
+  createdAt: string
   updatedAt: string | null
   deletedAt: string | null
   officeId: number | null
+  fullName: string
+  age: number
 }
 
-export interface SchoolInfo {
+export interface PlacementInfo {
   id: number
-  name: string
-  address: string
-  contactPerson: string
-  email: string // Bug in data: "Mrs. Elena Garcia" should probably be an email
-  contactNumber: string
-  isDeleted: boolean
-  createAt: string
-  updatedAt: string | null
-  deletedAt: string | null
+  startDate: string
+  estimatedEndDate: string
+  accumulatedHours: number
+  officeId: number
+  officeName: string
+  studentId: number
 }
-
-export interface InternshipInfo {
-   id: number
-   internshipNature: InternshipNatureEnum
-   strand: StrandEnum | null
-   degree: number | null // or DegreeEnum | null
-   startDate: string // "YYYY-MM-DD"
-   estimatedEndDate: string | undefined
-   internshipTotalHours: number
-   accumulatedHours: number
-   isDeleted: boolean
-   createAt: string
-   updatedAt: string | null
-   deletedAt: string | null
- }
 
 export interface RequirementInfo {
   id: number
@@ -123,27 +109,27 @@ export interface RequirementInfo {
   filePath: string
   fileType: string
   isDeleted: boolean
-  createAt: string
+  createdAt: string
   updatedAt: string | null
   deletedAt: string | null
+  studentId: number
 }
 
 export interface OfficeInfo {
-   id: number
-   name: OfficeNameEnum
-   department: string | null
-   isDeleted: boolean
-   createAt: string
-   updatedAt: string | null
-   deletedAt: string | null
- }
+  id: number
+  officeName: string
+  userId: string
+  isDeleted: boolean
+  createdAt: string
+  updatedAt: string | null
+  deletedAt: string | null
+}
 
 // Main response type
 export interface ApplicationGetByIdResponse {
   application: ApplicationInfo
   student: StudentInfo
-  school: SchoolInfo
-  internship: InternshipInfo
+  placement: PlacementInfo | null
   requirements: RequirementInfo[]
   office: OfficeInfo | null
 }

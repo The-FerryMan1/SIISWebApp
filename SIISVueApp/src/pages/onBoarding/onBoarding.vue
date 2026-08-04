@@ -17,21 +17,18 @@ const uploadedReq = ref<File[]>([])
 const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const form = useTemplateRef('form')
-const route = useRoute();
+const route = useRoute()
 const isTokenValid = ref<boolean>(false)
 
-// Store the validated payload from form submit
 const reviewPayload = ref<FormSubmitEvent<OnBoardUpdateDto> | null>(null)
 
-// Computed properties for conditional fields
 const isSeniorHigh = computed(() => [11, 12].includes(state.value.student.gradeLevel))
 const isCollege = computed(() => [1, 2, 3, 4].includes(state.value.student.gradeLevel))
 
-// Estimated end date calculation
 const estimatedEndDate = computed(() => {
-  if (!state.value.internship.startDate || !state.value.internship.internshipTotalHours) return ''
-  const start = new Date(state.value.internship.startDate)
-  const totalDays = Math.ceil(state.value.internship.internshipTotalHours / 8)
+  if (!state.value.student.internshipStartDate || !state.value.student.totalInternshipHours) return ''
+  const start = new Date(state.value.student.internshipStartDate)
+  const totalDays = Math.ceil(state.value.student.totalInternshipHours / 8)
   const end = new Date(start)
   end.setDate(start.getDate() + totalDays)
   return end.toISOString().split('T')[0]
@@ -91,27 +88,9 @@ const degreeItems = [
   { value: 11, label: 'BSPsych' },
 ]
 
-watch(estimatedEndDate, (endDate) => {
-  if (endDate) state.value.internship.estimatedEndDate = endDate
-})
-
 watch(uploadedReq, (value) => {
   state.value.requirements = value
 })
-
-watch(
-  () => state.value.internship.degree,
-  () => {
-    state.value.internship.strand = undefined
-  },
-)
-
-watch(
-  () => state.value.internship.strand,
-  () => {
-    state.value.internship.degree = undefined
-  },
-)
 
 const maxDate = ref(new Date(new Date().setFullYear(new Date().getFullYear() - 15)))
 const minStartDate = computed(() => {
@@ -136,7 +115,6 @@ const onConfirm = useDebounceFn(async () => {
     isOpen.value = false
     isSuccess.value = true
 
-    // Reset everything
     onaboard.stateReset()
     uploadedReq.value = []
     reviewPayload.value = null
@@ -290,39 +268,39 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
           <!-- School Details -->
           <UPageCard title="School Details" icon="i-lucide-building" variant="outline">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField name="school.name" label="Name of School" required>
+              <UFormField name="student.schoolName" label="Name of School" required>
                 <UInput
-                  v-model="state.school.name"
+                  v-model="state.student.schoolName"
                   placeholder="Enter the school name"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="school.contactPerson" label="Contact Person" required>
+              <UFormField name="student.schoolContactPerson" label="Contact Person" required>
                 <UInput
-                  v-model="state.school.contactPerson"
+                  v-model="state.student.schoolContactPerson"
                   placeholder="Enter the contact person"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="school.email" label="Contact Person's Email" required>
+              <UFormField name="student.schoolContactPersonEmail" label="Contact Person's Email" required>
                 <UInput
-                  v-model="state.school.email"
+                  v-model="state.student.schoolContactPersonEmail"
                   type="email"
                   placeholder="Enter the email of the contact person"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="school.contactNumber" label="Contact Person's Number" required>
+              <UFormField name="student.schoolContactPersonPhone" label="Contact Person's Number" required>
                 <UInput
-                  v-model="state.school.contactNumber"
+                  v-model="state.student.schoolContactPersonPhone"
                   placeholder="Enter the contact person's phone number"
                   class="w-full"
                 />
               </UFormField>
             </div>
-            <UFormField name="school.address" label="School Address" required class="mt-4">
+            <UFormField name="student.schoolAddress" label="School Address" required class="mt-4">
               <UTextarea
-                v-model="state.school.address"
+                v-model="state.student.schoolAddress"
                 placeholder="Enter the school address"
                 :rows="3"
                 class="w-full"
@@ -333,45 +311,45 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
           <!-- Internship Details -->
           <UPageCard title="Internship Details" icon="i-lucide-file" variant="outline">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField name="internship.internshipNature" label="Nature of Internship" required>
+              <UFormField name="student.internshipNature" label="Nature of Internship" required>
                 <USelect
-                  v-model.number="state.internship.internshipNature"
+                  v-model.number="state.student.internshipNature"
                   placeholder="Select internship nature"
                   :items="internshipNatureItems"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="internship.strand" v-if="isSeniorHigh" label="Strand" required>
+              <UFormField name="student.strand" v-if="isSeniorHigh" label="Strand" required>
                 <USelect
-                  v-model.number="state.internship.strand"
+                  v-model.number="state.student.strand"
                   placeholder="Select strand"
                   :items="strandItems"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField v-if="isCollege" name="internship.degree" label="Degree" required>
+              <UFormField v-if="isCollege" name="student.degree" label="Degree" required>
                 <USelect
-                  v-model="state.internship.degree"
+                  v-model.number="state.student.degree"
                   placeholder="Select degree"
                   :items="degreeItems"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="internship.startDate" label="Start Date" required>
+              <UFormField name="student.internshipStartDate" label="Start Date" required>
                 <UInput
                   :min="minStartDate.toISOString().split('T')[0]"
-                  v-model="state.internship.startDate"
+                  v-model="state.student.internshipStartDate"
                   type="date"
                   class="w-full"
                 />
               </UFormField>
               <UFormField
-                name="internship.internshipTotalHours"
+                name="student.internshipTotalHours"
                 label="Total Internship Hours"
                 required
               >
                 <UInput
-                  v-model="state.internship.internshipTotalHours"
+                  v-model="state.student.totalInternshipHours"
                   type="number"
                   placeholder="Enter the total hours of internship"
                   min="0"
@@ -383,7 +361,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                 description="Auto-calculated based on start date and total hours"
               >
                 <UInput
-                  v-model="estimatedEndDate"
+                  :model-value="estimatedEndDate"
                   type="date"
                   disabled
                   placeholder="Auto-calculated"
@@ -399,7 +377,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
               <UFileUpload
                 v-model="uploadedReq"
                 file-icon="i-lucide-file"
-                description="Upload requirements (MOA, etc.)"
+                description="Upload requirements (MOA, Resume, etc.)"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 multiple
                 class="w-full"
@@ -435,35 +413,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                     <template v-else-if="key === 'gradeLevel' && typeof value === 'number'">{{
                       gradeLevelFinder(value)
                     }}</template>
-                    <template v-else>{{ value }}</template>
-                  </span>
-                </li>
-              </ul>
-            </UPageCard>
-
-            <UPageCard title="School Details" icon="i-lucide-building">
-              <ul class="space-y-1">
-                <li
-                  v-for="(value, key) in state.school"
-                  :key="key"
-                  class="flex items-center justify-between py-1 border-b border-default last:border-0"
-                >
-                  <span class="text-muted capitalize">{{ key }}:</span>
-                  <span class="font-bold">{{ value }}</span>
-                </li>
-              </ul>
-            </UPageCard>
-
-            <UPageCard title="Internship Details" icon="i-lucide-file">
-              <ul class="space-y-1">
-                <li
-                  v-for="(value, key) in state.internship"
-                  :key="key"
-                  class="flex items-center justify-between py-1 border-b border-default last:border-0"
-                >
-                  <span class="text-muted capitalize">{{ key }}:</span>
-                  <span class="font-bold">
-                    <template v-if="key === 'internshipNature' && typeof value === 'number'">{{
+                    <template v-else-if="key === 'internshipNature' && typeof value === 'number'">{{
                       internshipNatureFinder(value)
                     }}</template>
                     <template v-else-if="key === 'degree' && typeof value === 'number'">{{
@@ -472,7 +422,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                     <template v-else-if="key === 'strand' && typeof value === 'number'">{{
                       strandFinder(value)
                     }}</template>
-                    <template v-else>{{ value ?? 'Not applicable' }}</template>
+                    <template v-else>{{ value }}</template>
                   </span>
                 </li>
               </ul>

@@ -1,11 +1,12 @@
 using System;
 using Microsoft.AspNetCore.Identity;
+using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Features.Auth.User;
 
-public class UserService(UserManager<IdentityUser> userManager) : IUserService
+public class UserService(UserManager<SIISMinimalAPI.Features.Shared.Models.User> userManager) : IUserService
 {
-    private readonly UserManager<IdentityUser> _userManager = userManager;
+    private readonly UserManager<SIISMinimalAPI.Features.Shared.Models.User> _userManager = userManager;
 
     public async Task UserChangeInfo(string userId, UserUpdateDto userUpdateDto)
     {

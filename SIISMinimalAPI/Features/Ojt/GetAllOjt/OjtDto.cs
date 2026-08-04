@@ -9,7 +9,7 @@ public class OjtDto
     public string LastName { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string? MiddleName { get; set; } = string.Empty;
-    public OfficeNameEnum? OfficeName { get; set; }
+    public string? OfficeName { get; set; }
     
     public GennderEnum Gender { get; set; }
 

@@ -193,7 +193,7 @@ function closePreview() {
             </div>
         </UCard>
 
-        <UModal v-model="previewOpen" title="Report Preview">
+        <UModal v-model:open="previewOpen" title="Report Preview">
             <template #body>
                 <div class="w-full h-[70vh] border rounded-lg overflow-hidden bg-gray-50">
                     <embed

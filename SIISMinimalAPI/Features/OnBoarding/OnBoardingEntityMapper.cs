@@ -1,23 +1,22 @@
 using System;
+using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Features.OnBoarding;
 
 public static class OnBoardingEntityMapper
 {
-    public static StudentModel ToStudentModel(OnBoardingDto dto)
+    public static Student ToStudent(OnBoardingDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto.Student);
         ArgumentNullException.ThrowIfNull(dto.School);
         ArgumentNullException.ThrowIfNull(dto.Internship);
 
-      
-
         var student = dto.Student;
         var school = dto.School;
         var internship = dto.Internship;
-     
-        return new StudentModel
+
+        return new Student
         {
             Email = student.Email,
             LastName = student.LastName,
@@ -28,36 +27,26 @@ public static class OnBoardingEntityMapper
             DateOfBirth = student.DateOfBirth,
             Gender = student.Gender,
             GradeLevel = student.GradeLevel,
-            School = new SchoolModel
+            SchoolName = school.Name,
+            SchoolAddress = school.Address,
+            SchoolContactPerson = school.ContactPerson,
+            SchoolContactPersonEmail = school.Email,
+            SchoolContactPersonPhone = school.ContactNumber,
+            InternshipNature = internship.InternshipNature,
+            Strand = internship.Strand ?? StrandEnum.STEM,
+            Degree = internship.Degree ?? DegreeEnum.BSIT,
+            TotalInternshipHours = internship.InternshipTotalHours,
+            Application = new Shared.Models.Application
             {
-                Name = school.Name,
-                Address = school.Address,
-                ContactNumber = school.ContactNumber,
-                ContactPerson = school.ContactPerson,
-                Email = school.Email
+                Uuid = Guid.NewGuid(),
+                Status = ApplicationStatusEnum.Pending,
             },
-             Internship = new InternshipModel
-             {
-                 InternshipNature = internship.InternshipNature,
-                 Degree = internship.Degree,
-                 Strand = internship.Strand,
-                 EstimatedEndDate = internship.EstimatedEndDate,
-                 InternshipTotalHours = internship.InternshipTotalHours,
-                  AccumulatedHours = internship.AccumulatedHours,
-                 StartDate = internship.StartDate,
-             },
-
-             Requirements = dto.RequirementsReg.Select(t => new RequirementModel
-             {
-                 FileName = t.FileName,
-                 FilePath = t.FilePath,
-                 FileType = t.FileType
-             }).ToList(),
-          
-             Application = new ApplicationModel
-             {
-                 ApplicationUUID = Guid.NewGuid(),
-             }
+            Requirements = dto.RequirementsReg.Select(t => new Requirement
+            {
+                FileName = t.FileName,
+                FilePath = t.FilePath,
+                FileType = t.FileType,
+            }).ToList(),
         };
     }
 }

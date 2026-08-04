@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Shared.Models;
 using SIISMinimalAPI.Features.Application;
 using SIISMinimalAPI.Features.Auth.Logout;
 using SIISMinimalAPI.Features.Auth.User;
@@ -14,19 +15,22 @@ using SIISMinimalAPI.Features.OnBoarding;
 using SIISMinimalAPI.Features.RegistrationToken;
 using SIISMinimalAPI.Features.Report.OjtList;
 using SIISMinimalAPI.Features.Report.OjtPerOffice;
-using SIISMinimalAPI.Features.OfficeAccounts;
+using SIISMinimalAPI.Features.Report.OfficeReport;
+using SIISMinimalAPI.Features.OfficeDashboard;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSqlite<AppDbContext>("Data Source=siisdemo.db");
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+    {
+        options.SignIn.RequireConfirmedEmail = false;
+    })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders()
     .AddApiEndpoints();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Events.OnRedirectToLogin = context =>
@@ -60,7 +64,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
-    .AddPolicy("User", policy => policy.RequireRole("User"));
+    .AddPolicy("OPG", policy => policy.RequireRole("OPG"))
+    .AddPolicy("Officer", policy => policy.RequireRole("Officer"));
 
 builder.Services.AddControllers();
 
@@ -94,12 +99,13 @@ builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
 builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
 builder.Services.AddScoped<IOfficeService, OfficeHandler>();
-builder.Services.AddScoped<IOfficeAccountService, OfficeAccountHandler>();
 builder.Services.AddScoped<IOjtService, OjtHandler>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRegistrationTokenService, RegistrationTokenHandler>();
 builder.Services.AddScoped<IOjtListService, OjtListHandler>();
 builder.Services.AddScoped<IOjtPerOfficeService, OjtPerOfficehandler>();
+builder.Services.AddScoped<IOfficeDashboardService, OfficeDashboardHandler>();
+builder.Services.AddScoped<IOfficeReportService, OfficeReportHandler>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -113,67 +119,73 @@ app.UseStaticFiles();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapPost("/login", async (SignInManager<User> signInManager, UserManager<User> userManager, HttpContext context, LoginRequest request) =>
+{
+    var user = await userManager.FindByEmailAsync(request.Email);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var result = await signInManager.PasswordSignInAsync(user, request.Password, isPersistent: true, lockoutOnFailure: false);
+    if (!result.Succeeded)
+    {
+        return Results.Unauthorized();
+    }
+
+    var roles = await userManager.GetRolesAsync(user);
+    return Results.Ok(new
+    {
+        userId = user.Id,
+        email = user.Email,
+        roles = roles.ToArray()
+    });
+})
+.RequireCors("AllowFrontend");
+
+app.MapPost("/register", async (UserManager<User> userManager, RegisterRequest request) =>
+{
+    var user = new User
+    {
+        Email = request.Email,
+        UserName = request.Email,
+        EmailConfirmed = true
+    };
+    var result = await userManager.CreateAsync(user, request.Password);
+    if (!result.Succeeded)
+    {
+        return Results.BadRequest(result.Errors);
+    }
+    return Results.Ok();
+})
+.RequireCors("AllowFrontend");
+
 app.UseRateLimiter();
 app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();
 app.MapToOffice();
-app.MapToOfficeAccount();
 app.MapToOjt();
 app.MapToAuth();
 app.MapToUser();
 app.MapToRegistrationEndpoint();
 app.MapToOjtList();
 app.MapToOjtPerOffice();
-
-app.MapIdentityApi<IdentityUser>().RequireCors("AllowFrontend");
-
+app.MapToOfficeDashboard();
+app.MapToOfficeReport();
 
 //seed
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.EnsureCreated();
-    await MigrateSchemaAsync(dbContext);
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
-    await SeederAdmin.InitOffices(scope.ServiceProvider);
     await SeederStudent.InitStudents(scope.ServiceProvider);
-}
-
-static async Task MigrateSchemaAsync(AppDbContext dbContext)
-{
-    try
-    {
-        await dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE Offices ADD COLUMN Department TEXT NULL");
-    }
-    catch (Microsoft.Data.Sqlite.SqliteException) { }
-
-    try
-    {
-        await dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE Internship ADD COLUMN AccumulatedHours INTEGER NOT NULL DEFAULT 0");
-    }
-    catch (Microsoft.Data.Sqlite.SqliteException) { }
-
-    var tableExists = await dbContext.Database.SqlQueryRaw<int>("SELECT COUNT(*) as Value FROM sqlite_master WHERE type='table' AND name='OfficeAccounts'").FirstOrDefaultAsync();
-    if (tableExists == 0)
-    {
-        await dbContext.Database.ExecuteSqlRawAsync("""
-            CREATE TABLE OfficeAccounts (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                OfficeId INTEGER NOT NULL,
-                Username TEXT NOT NULL,
-                Email TEXT NOT NULL,
-                PasswordHash TEXT NOT NULL,
-                IsDeleted INTEGER NOT NULL DEFAULT 0,
-                CreateAt TEXT NOT NULL DEFAULT (datetime('now')),
-                UpdatedAt TEXT NULL,
-                DeletedAt TEXT NULL
-            )
-        """);
-        await dbContext.Database.ExecuteSqlRawAsync("CREATE UNIQUE INDEX IX_OfficeAccounts_Email ON OfficeAccounts(Email)");
-        await dbContext.Database.ExecuteSqlRawAsync("CREATE UNIQUE INDEX IX_OfficeAccounts_Username ON OfficeAccounts(Username)");
-    }
 }
 
 app.MapFallbackToFile("index.html");
 app.Run();
+
+public record LoginRequest(string Email, string Password);
+public record RegisterRequest(string Email, string Password);

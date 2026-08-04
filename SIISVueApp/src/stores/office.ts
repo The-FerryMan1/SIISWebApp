@@ -2,20 +2,12 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAxios } from '../fetch/axios'
 
-// {
-//     "id": 1,
-//     "name": 0,
-//     "currentOIC": null,
-//     "createAt": "2026-06-30T09:27:19.9312183",
-//     "updatedAt": null
-//   },
-
 export type Office = {
   id: number
-  name: number
-  department: string | null
-  students: []
-  createAt: string
+  officeName: string
+  userId: string
+  userEmail: string | null
+  createdAt: string
   updatedAt: string | null
 }
 
@@ -24,8 +16,15 @@ export const useOfficeStore = defineStore('office', () => {
 
   const officeInit = async () => {
     try {
-      const { data } = await useAxios.get('/office')
-      offices.value = data
+      const { data } = await useAxios.get('office')
+      offices.value = data.map((item: any) => ({
+        id: item.id,
+        officeName: item.name,
+        userId: item.userId,
+        userEmail: item.userEmail,
+        createdAt: item.createAt,
+        updatedAt: item.updatedAt,
+      }))
     } catch (error) {
       console.log(error)
     }

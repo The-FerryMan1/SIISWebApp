@@ -7,13 +7,14 @@ using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Endorsement.Bulk;
 using SIISMinimalAPI.Features.Endorsement.Create;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Features.Endorsement;
 
-public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> userManager) : IEndorsementService
+public class EndorsementHandler(AppDbContext context, UserManager<User> userManager) : IEndorsementService
 {
     private readonly AppDbContext _context = context;
-    private readonly UserManager<IdentityUser> _userManager = userManager;
+    private readonly UserManager<User> _userManager = userManager;
     public async Task<Document?> GenerateEndorsement(Guid uuid, string currentUserId, CancellationToken ct)
     {
 
@@ -22,23 +23,17 @@ public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> 
 
 
         var stud = await _context.Students
-            .Include(t => t.School)
-            .Include(t => t.Internship)
             .Include(t => t.Application)
-            .Include(t => t.Office)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
             .AsSplitQuery()
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
             ?? throw new KeyNotFoundException("Application not found");
 
-        // Guard against null Office
-        if (stud.Office == null)
-            throw new InvalidOperationException("Student has no office assigned.");
-
         QuestPDF.Settings.License = LicenseType.Community; // or Evaluation
         var basePath = Directory.GetCurrentDirectory(); // or Directory.GetCurrentDirectory()
         var imagePath = Path.Combine(basePath, "Features", "Endorsement", "Shared", "logo.png");
-         var officeEnum = stud.Office.Name;
+         var officeName = stud.Placement!.Office!.OfficeName;
         var docs = Document.Create(container =>
         {
             container.Page(page =>
@@ -71,15 +66,15 @@ public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> 
                     // Recipient block
                     content.Item().AlignLeft().Column(recipient =>
                     {
-                        recipient.Item().Text($"{stud.Office.Honorific} {stud.Office.Department}" ?? "The Officer in Charge").Bold().FontSize(12);
-                        recipient.Item().Text($"{OfficeEnumLabels.GetLabel(officeEnum)}").FontSize(12);
+                        recipient.Item().Text("The Officer in Charge").Bold().FontSize(12);
+                        recipient.Item().Text($"{officeName}").FontSize(12);
                         recipient.Item().Text("Trece Martires City").FontSize(12);
                     });
 
                     content.Item().PaddingVertical(5);
 
                     // Salutation
-                    content.Item().AlignLeft().Text($"Dear {stud.Office?.Honorific} {stud.Office?.Department?.Trim().Split(' ').Last() ?? "Sir/Madam"}").FontSize(12);
+                    content.Item().AlignLeft().Text($"Dear Sir/Madam").FontSize(12);
 
                     content.Item().PaddingVertical(5);
 
@@ -92,8 +87,8 @@ public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> 
                     content.Item().AlignLeft().Text(text =>
                     {
                         text.Span("Respectfully endorsing the following student of the ").FontSize(12);
-                        text.Span(stud.School?.Name ?? "the university").Bold().FontSize(12); // Use School.Name not Address
-                        text.Span($", to conduct his/her on-the-job training ({stud.Internship?.InternshipTotalHours ?? 486} hours) in your office:").FontSize(12);
+                        text.Span(stud.SchoolName ?? "the university").Bold().FontSize(12);
+                        text.Span($", to conduct his/her on-the-job training ({stud.TotalInternshipHours} hours) in your office:").FontSize(12);
                     });
 
                     content.Item().PaddingVertical(10);
@@ -101,7 +96,7 @@ public class EndorsementHandler(AppDbContext context, UserManager<IdentityUser> 
                     // Student name
 
 
-                    content.Item().Text($"1. {stud.LastName}, {stud.FirstName} {stud.MiddleName}")
+                    content.Item().Text($"1. {stud.FullName}")
                         .FontSize(12);
 
                     content.Item().PaddingVertical(5);

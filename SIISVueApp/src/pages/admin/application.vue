@@ -83,7 +83,7 @@ const columns: TableColumn<Applicaton>[] = [
   {
     header: 'Actions',
     cell: ({ row }) => {
-      const uuid = row.original.applicationUUID as string
+      const uuid = row.original.uuid as string
 
       return h('div', { class: 'flex items-center gap-2' }, [
         h(UButton, {

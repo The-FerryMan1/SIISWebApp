@@ -136,6 +136,56 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
      }
 
+     const officeMasterlistPdf = async (officeId: number) => {
+         try {
+             const { data } = await useAxios.get('/report/office/masterlist', {
+                 params: { officeId },
+                 responseType: 'blob',
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const officeExpiringPdf = async (officeId: number) => {
+         try {
+             const { data } = await useAxios.get('/report/office/expiring', {
+                 params: { officeId },
+                 responseType: 'blob',
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const officeFinishedPdf = async (officeId: number) => {
+         try {
+             const { data } = await useAxios.get('/report/office/finished', {
+                 params: { officeId },
+                 responseType: 'blob',
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const getMyOffice = async () => {
+         try {
+             const { data } = await useAxios.get('office/my-office')
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+             return null
+         }
+     }
+
      return {
         pdfReport,
         csvExport,
@@ -144,5 +194,9 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
         csvReportFiltered,
         pdfReportPerOfficeFiltered,
         previewPdf,
+        officeMasterlistPdf,
+        officeExpiringPdf,
+        officeFinishedPdf,
+        getMyOffice,
      }
 })

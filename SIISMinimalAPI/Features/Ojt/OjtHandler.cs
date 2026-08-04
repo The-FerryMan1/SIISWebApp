@@ -22,9 +22,7 @@ public class OjtHandler(AppDbContext context) : IOjtService
     {
         var ojts = await _context.Students
         .Include(t => t.Application)
-        .Include(t => t.Internship)
-        .Include(t => t.School)
-        .Include(t => t.Office)
+        .Include(t => t.Placement).ThenInclude(p => p.Office)
         .Where(t => t.Application.Status == Shared.Enums.ApplicationStatusEnum.Approved)
         .AsNoTracking()
         .AsSplitQuery()
@@ -36,13 +34,13 @@ public class OjtHandler(AppDbContext context) : IOjtService
             LastName = t.LastName,
             FirstName = t.FirstName,
             MiddleName = t.MiddleName,
-            OfficeName = t.Office.Name,
+            OfficeName = t.Placement!.Office!.OfficeName,
             DateOfBirth = t.DateOfBirth,
-            UniversitySchool = t.School.Name,
-            EstimatedEndDate = t.Internship.EstimatedEndDate,
-            StartDate = t.Internship.StartDate,
+            UniversitySchool = t.SchoolName,
+            EstimatedEndDate = t.Placement!.EstimatedEndDate,
+            StartDate = t.Placement!.StartDate,
             Gender = t.Gender,
-            CreatedAt = t.CreateAt,
+            CreatedAt = t.CreatedAt,
             UpdatedAt = t.UpdatedAt,
         }).ToList();
 
@@ -51,7 +49,7 @@ public class OjtHandler(AppDbContext context) : IOjtService
 
     public async Task<GetOjtById.GetOjtById>? GetOjtById(Guid guid, CancellationToken ct)
     {
-        var ojt = await _context.Students.Include(t => t.Office).FirstOrDefaultAsync(t => t.StudentUUID == guid, ct)
+        var ojt = await _context.Students.Include(t => t.Placement).ThenInclude(p => p.Office).FirstOrDefaultAsync(t => t.StudentUUID == guid, ct)
         ?? throw new KeyNotFoundException("User not found");
 
         return new GetOjtById.GetOjtById
@@ -66,7 +64,7 @@ public class OjtHandler(AppDbContext context) : IOjtService
           GradeLevel = ojt.GradeLevel,
           LastName = ojt.LastName,
           MiddleName = ojt.MiddleName,
-          Office = ojt.Office.Name
+          Office = ojt.Placement!.Office!.OfficeName
         };
     }
 }

@@ -16,7 +16,7 @@ public static class OjtPerOfficeEndpoint
 
 
 
-        group.MapGet("/", [Authorize] async Task<IResult> (OfficeNameEnum office, CancellationToken ct, IOjtPerOfficeService service) =>
+        group.MapGet("/", [Authorize] async Task<IResult> (string office, CancellationToken ct, IOjtPerOfficeService service) =>
            {
                try
                {
@@ -27,15 +27,15 @@ public static class OjtPerOfficeEndpoint
                {
 
                    return TypedResults.Problem(
-            title: "PDF Generation Failed",
-            detail: ex.Message, // Only the message string, not the whole exception
-            statusCode: StatusCodes.Status500InternalServerError
-        );
+           title: "PDF Generation Failed",
+           detail: ex.Message,
+           statusCode: StatusCodes.Status500InternalServerError
+       );
                }
            }).RequireAuthorization();
 
         group.MapGet("/filtered", [Authorize] async Task<IResult>(
-            [FromQuery] OfficeNameEnum? office,
+            [FromQuery] string? office,
             [FromQuery] ApplicationStatusEnum? status,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
@@ -57,7 +57,7 @@ public static class OjtPerOfficeEndpoint
             }
         }).RequireAuthorization();
 
-            
+        
 
         return app;
     }

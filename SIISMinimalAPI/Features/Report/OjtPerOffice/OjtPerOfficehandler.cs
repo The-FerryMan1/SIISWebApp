@@ -5,7 +5,6 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
-using SIISMinimalAPI.Features.Offices.GetAllOffices;
 using SIISMinimalAPI.Features.Shared.Enums;
 
 namespace SIISMinimalAPI.Features.Report.OjtPerOffice;
@@ -13,14 +12,12 @@ namespace SIISMinimalAPI.Features.Report.OjtPerOffice;
 public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
 {
     private readonly AppDbContext _context = context;
-    public async Task<byte[]> ListAllOjtPerOffice(OfficeNameEnum office, CancellationToken ct)
+    public async Task<byte[]> ListAllOjtPerOffice(string office, CancellationToken ct)
     {
-        // No need for switch - just use the enum directly
         var ojtOffice = await _context.Students
             .Include(t => t.Application)
-            .Include(t => t.Office)
-            .Include(t => t.Internship)
-            .Where(t => t.Office.Name == office) // Direct enum comparison
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office)
             .AsNoTracking()
             .AsSplitQuery()
             .ToListAsync(ct);
@@ -35,7 +32,7 @@ public class OjtPerOfficehandler(AppDbContext context) : IOjtPerOfficeService
             // Header
             page.Header().PaddingBottom(15).Column(col =>
             {
-                col.Item().Text($"OJT Students - {OfficeEnumLabels.GetLabel(office)}")
+                col.Item().Text($"OJT Students - {office}")
                     .FontSize(20).Bold().AlignCenter();
 
                 col.Item().PaddingTop(5).Text($"Generated: {DateTime.Now:MMMM dd, yyyy}")
@@ -87,14 +84,14 @@ columns.RelativeColumn(1.5f);   // Started Date
                 int index = 1;
                 foreach (var ojt in ojtOffice)
                 {
-                    var fullname = $"{ojt.LastName}, {ojt.FirstName} {ojt.MiddleName}".Trim();
+                    var fullname = ojt.FullName;
                     var status = ojt.Application?.Status;
-                    var totalHours = ojt.Internship?.InternshipTotalHours ?? 0;
+                    var totalHours = ojt.TotalInternshipHours;
                     var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
-                    var degree = ojt.Internship?.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
-                    var strand =  ojt.Internship?.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
-                    var startedDate = ojt.Internship.StartDate;
-                    var estimatedDate = ojt.Internship.EstimatedEndDate;
+                    var degree = ojt.Degree.ToString().Humanize(LetterCasing.Title);
+                    var strand =  ojt.Strand.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var startedDate = ojt.Placement!.StartDate;
+                    var estimatedDate = ojt.Placement!.EstimatedEndDate;
 
                     table.Cell().Element(DataCell).AlignCenter()
                         .Text(index++.ToString()).FontSize(9);
@@ -124,7 +121,7 @@ table.Cell().Element(DataCell).AlignCenter()
                         .Text(estimatedDate).FontSize(9);
 
                     table.Cell().Element(DataCell).AlignCenter()
-                        .Text(ojt.Internship?.AccumulatedHours.ToString() ?? "-").FontSize(9);
+                        .Text(ojt.Placement!.AccumulatedHours.ToString() ?? "-").FontSize(9);
                 }
 
                 static IContainer DataCell(IContainer container) => container
@@ -147,18 +144,17 @@ table.Cell().Element(DataCell).AlignCenter()
         return document.GeneratePdf(); // Returns byte[]
     }
 
-    public async Task<byte[]> ListAllOjtPerOfficeFiltered(OfficeNameEnum? office, ApplicationStatusEnum? status, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
+    public async Task<byte[]> ListAllOjtPerOfficeFiltered(string? office, ApplicationStatusEnum? status, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
     {
         var query = _context.Students
             .Include(t => t.Application)
-            .Include(t => t.Office)
-            .Include(t => t.Internship)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
             .AsNoTracking()
             .AsSplitQuery();
 
-        if (office.HasValue)
+        if (!string.IsNullOrEmpty(office))
         {
-            query = query.Where(t => t.Office != null && t.Office.Name == office.Value);
+            query = query.Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office);
         }
 
         if (status.HasValue)
@@ -168,12 +164,12 @@ table.Cell().Element(DataCell).AlignCenter()
 
         if (dateFrom.HasValue)
         {
-            query = query.Where(t => t.Internship != null && t.Internship.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
+            query = query.Where(t => t.Placement != null && t.Placement!.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
         }
 
         if (dateTo.HasValue)
         {
-            query = query.Where(t => t.Internship != null && t.Internship.StartDate <= DateOnly.FromDateTime(dateTo.Value));
+            query = query.Where(t => t.Placement != null && t.Placement!.StartDate <= DateOnly.FromDateTime(dateTo.Value));
         }
 
         var ojtOffice = await query.ToListAsync(ct);
@@ -187,7 +183,7 @@ table.Cell().Element(DataCell).AlignCenter()
 
             page.Header().PaddingBottom(15).Column(col =>
             {
-                var officeLabel = office != null ? OfficeEnumLabels.GetLabel(office.Value) : "All Offices";
+                var officeLabel = office != null ? office : "All Offices";
                 col.Item().Text($"OJT Students - {officeLabel} (Filtered)")
                     .FontSize(20).Bold().AlignCenter();
 
@@ -237,15 +233,15 @@ table.Cell().Element(DataCell).AlignCenter()
                 int index = 1;
                 foreach (var ojt in ojtOffice)
                 {
-                    var fullname = $"{ojt.LastName}, {ojt.FirstName} {ojt.MiddleName}".Trim();
+                    var fullname = ojt.FullName;
                     var status = ojt.Application?.Status;
-                    var totalHours = ojt.Internship?.InternshipTotalHours ?? 0;
-                    var accumulatedHours = ojt.Internship?.AccumulatedHours ?? 0;
+                    var totalHours = ojt.TotalInternshipHours;
+                    var accumulatedHours = ojt.Placement!.AccumulatedHours;
                     var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
-                    var degree = ojt.Internship?.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
-                    var strand =  ojt.Internship?.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
-                    var startedDate = ojt.Internship.StartDate;
-                    var estimatedDate = ojt.Internship.EstimatedEndDate;
+                    var degree = ojt.Degree.ToString().Humanize(LetterCasing.Title);
+                    var strand =  ojt.Strand.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var startedDate = ojt.Placement!.StartDate;
+                    var estimatedDate = ojt.Placement!.EstimatedEndDate;
 
                     table.Cell().Element(DataCell).AlignCenter()
                         .Text(index++.ToString()).FontSize(9);
@@ -295,128 +291,5 @@ table.Cell().Element(DataCell).AlignCenter()
     });
 
         return document.GeneratePdf();
-    }
-
-
-    private static OfficeNameEnum GetOfficeSwitch(OfficeNameEnum office)
-    {
-        var selectedOffice = office switch
-        {
-            OfficeNameEnum.OfficeOfTheProvincialGovernor
-                => OfficeNameEnum.OfficeOfTheProvincialGovernor,
-
-            OfficeNameEnum.OfficeOfTheProvincialViceGovernor
-                => OfficeNameEnum.OfficeOfTheProvincialViceGovernor,
-
-            OfficeNameEnum.OfficeOfTheProvincialAdministrator
-                => OfficeNameEnum.OfficeOfTheProvincialAdministrator,
-
-            OfficeNameEnum.OpgRoadSafetyDivision
-                => OfficeNameEnum.OpgRoadSafetyDivision,
-
-            OfficeNameEnum.BidsAndAwardsCommitteeB
-                => OfficeNameEnum.BidsAndAwardsCommitteeB,
-
-            OfficeNameEnum.BidsAndAwardsCommitteeA
-                => OfficeNameEnum.BidsAndAwardsCommitteeA,
-
-            OfficeNameEnum.CaviteProvincialJail
-                => OfficeNameEnum.CaviteProvincialJail,
-
-            OfficeNameEnum.OpgOfficeOfTheProvincialYouthDevelopmentOfficer
-                => OfficeNameEnum.OpgOfficeOfTheProvincialYouthDevelopmentOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialHealthOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialHealthOfficer,
-
-            OfficeNameEnum.LocalEconomicDevelopmentAndInvestmentPromotionsOffice
-                => OfficeNameEnum.LocalEconomicDevelopmentAndInvestmentPromotionsOffice,
-
-            OfficeNameEnum.CaviteCenterForMentalHealth
-                => OfficeNameEnum.CaviteCenterForMentalHealth,
-
-            OfficeNameEnum.CaviteQualityManagementOffice
-                => OfficeNameEnum.CaviteQualityManagementOffice,
-
-            OfficeNameEnum.OfficeOfTheSangguniangPanlalawigan
-                => OfficeNameEnum.OfficeOfTheSangguniangPanlalawigan,
-
-            OfficeNameEnum.OpgOfficeOfTheProvincialInternalAuditServices
-                => OfficeNameEnum.OpgOfficeOfTheProvincialInternalAuditServices,
-
-            OfficeNameEnum.ProvincialInformationAndCommunicationsTechnologyOffice
-                => OfficeNameEnum.ProvincialInformationAndCommunicationsTechnologyOffice,
-
-            OfficeNameEnum.OfficeOfTheProvincialEnvironmentAndNaturalResourcesOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialEnvironmentAndNaturalResourcesOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialDisasterRiskReductionAndManagementOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialDisasterRiskReductionAndManagementOfficer,
-
-            OfficeNameEnum.PgCaviteOfficeOfPublicSafety
-                => OfficeNameEnum.PgCaviteOfficeOfPublicSafety,
-
-            OfficeNameEnum.OfficeOfTheProvincialEngineer
-                => OfficeNameEnum.OfficeOfTheProvincialEngineer,
-
-            OfficeNameEnum.OfficeOfTheProvincialVeterinarian
-                => OfficeNameEnum.OfficeOfTheProvincialVeterinarian,
-
-            OfficeNameEnum.OfficeOfTheProvincialSocialWelfareAndDevelopmentOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialSocialWelfareAndDevelopmentOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialAgriculturist
-                => OfficeNameEnum.OfficeOfTheProvincialAgriculturist,
-
-            OfficeNameEnum.OfficeOfTheProvincialPopulationOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialPopulationOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialAssessor
-                => OfficeNameEnum.OfficeOfTheProvincialAssessor,
-
-            OfficeNameEnum.OfficeOfTheProvincialTreasurer
-                => OfficeNameEnum.OfficeOfTheProvincialTreasurer,
-
-            OfficeNameEnum.OfficeOfTheProvincialAccountant
-                => OfficeNameEnum.OfficeOfTheProvincialAccountant,
-
-            OfficeNameEnum.OfficeOfTheProvincialBudgetOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialBudgetOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialGeneralServicesOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialGeneralServicesOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialLegalOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialLegalOfficer,
-
-            OfficeNameEnum.OpgOfficeOfTheProvincialPersonsWithDisabilityAffairsOfficer
-                => OfficeNameEnum.OpgOfficeOfTheProvincialPersonsWithDisabilityAffairsOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialPlanningAndDevelopmentCoordinator
-                => OfficeNameEnum.OfficeOfTheProvincialPlanningAndDevelopmentCoordinator,
-
-            OfficeNameEnum.OfficeOfTheProvincialInformationOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialInformationOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialTourismOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialTourismOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialCooperativesDevelopmentOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialCooperativesDevelopmentOfficer,
-
-            OfficeNameEnum.OfficeOfTheProvincialPublicEmploymentServiceManager
-                => OfficeNameEnum.OfficeOfTheProvincialPublicEmploymentServiceManager,
-
-            OfficeNameEnum.ProvincialHousingAndDevelopmentManagementOffice
-                => OfficeNameEnum.ProvincialHousingAndDevelopmentManagementOffice,
-
-            OfficeNameEnum.OfficeOfTheProvincialHumanResourceManagementOfficer
-                => OfficeNameEnum.OfficeOfTheProvincialHumanResourceManagementOfficer,
-
-            _ => office
-        };
-
-
-        return selectedOffice;
     }
 }

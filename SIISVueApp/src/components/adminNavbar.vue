@@ -47,12 +47,6 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: { name: 'office' },
   },
   {
-    label: 'Office Accounts',
-    icon: 'i-lucide-users',
-    active: route.name == 'office-accounts',
-    to: { name: 'office-accounts' },
-  },
-  {
     label: 'Reports',
     icon: 'i-lucide-summary',
     active: route.name == 'report',

@@ -11,6 +11,11 @@ export const routes: RouteRecordRaw[] = [
         name: 'login',
       },
       {
+        path: 'office-login',
+        component: () => import('../pages/auth/officeLogin.vue'),
+        name: 'office-login',
+      },
+      {
         path: 'registration/:token',
         component: () => import('../pages/onBoarding/onBoarding.vue'),
         name: 'registration',
@@ -24,6 +29,30 @@ export const routes: RouteRecordRaw[] = [
         path: '',
         component: () => import('../pages/home/home.vue'),
         name: 'home',
+      },
+    ],
+  },
+  {
+    path: '/office',
+    component: () => import('../layouts/OfficeLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('../pages/office/officeDashboard.vue'),
+        name: 'office-dashboard',
+        meta: { isRequiresOfficeAuth: true },
+      },
+      {
+        path: 'interns',
+        component: () => import('../pages/office/interns.vue'),
+        name: 'office-interns',
+        meta: { isRequiresOfficeAuth: true },
+      },
+      {
+        path: 'reports',
+        component: () => import('../pages/office/reports.vue'),
+        name: 'office-reports',
+        meta: { isRequiresOfficeAuth: true },
       },
     ],
   },
@@ -59,12 +88,6 @@ export const routes: RouteRecordRaw[] = [
         path: '/office',
         component: () => import('../pages/office/office.vue'),
         name: 'office',
-        meta: { isRequiresAuth: true },
-      },
-      {
-        path: '/office-accounts',
-        component: () => import('../pages/admin/officeAccounts.vue'),
-        name: 'office-accounts',
         meta: { isRequiresAuth: true },
       },
       {

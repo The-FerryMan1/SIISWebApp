@@ -136,10 +136,13 @@ public static class  ApplicationEndpoint
                 await service.RejectApplication(uuid, ct);
                 return TypedResults.Ok();
             }
-            catch (System.Exception ex)
+            catch (KeyNotFoundException ex)
             {
-                
-                return TypedResults.BadRequest(ex);
+                return TypedResults.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return TypedResults.BadRequest(ex.Message);
             }
         });
         return app;

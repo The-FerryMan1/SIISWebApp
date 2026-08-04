@@ -18,78 +18,58 @@ export const useOnBoardStore = defineStore('onboard', () => {
       email: '',
       gender: 0,
       gradeLevel: 1,
+      schoolName: '',
+      schoolAddress: '',
+      schoolContactPerson: '',
+      schoolContactPersonEmail: '',
+      schoolContactPersonPhone: '',
+      internshipNature: 0,
+      strand: 0,
+      degree: 0,
+      internshipStartDate: '',
+      totalInternshipHours: 0,
     },
-    school: {
-      address: '',
-      contactNumber: '',
-      contactPerson: '',
-      email: '',
-      name: '',
-    },
-internship: {
-       degree: undefined as number | undefined, // ✅ Properly typed
-       strand: undefined as number | undefined, // ✅ Properly typed
-       estimatedEndDate: '',
-       internshipNature: 0,
-       internshipTotalHours: 0,
-       accumulatedHours: 0,
-       startDate: '',
-     },
-    requirements: [] as any[], // ✅ Use this for files, remove separate `files`
+    requirements: [] as any[],
   })
 
   const toDataForm = (): FormData => {
     const formData = new FormData()
 
-    // --- Student ---
-    formData.append('student.lastName', state.value.student.lastName)
-    formData.append('student.firstName', state.value.student.firstName)
-    formData.append('student.middleName', state.value.student.middleName)
-    formData.append('student.address', state.value.student.address)
-    formData.append('student.contactNumber', state.value.student.contactNumber)
-    formData.append('student.dateOfBirth', state.value.student.dateOfBirth)
-    formData.append('student.email', state.value.student.email)
-    formData.append('student.gender', String(state.value.student.gender))
-    formData.append('student.gradeLevel', String(state.value.student.gradeLevel))
+    const s = state.value.student
 
-    // --- School ---
-    formData.append('school.address', state.value.school.address)
-    formData.append('school.contactNumber', state.value.school.contactNumber)
-    formData.append('school.contactPerson', state.value.school.contactPerson)
-    formData.append('school.email', state.value.school.email)
-    formData.append('school.name', state.value.school.name)
+    formData.append('student.lastName', String(s.lastName))
+    formData.append('student.firstName', String(s.firstName))
+    formData.append('student.middleName', String(s.middleName))
+    formData.append('student.address', String(s.address))
+    formData.append('student.contactNumber', String(s.contactNumber))
+    formData.append('student.dateOfBirth', String(s.dateOfBirth))
+    formData.append('student.email', String(s.email))
+    formData.append('student.gender', String(s.gender))
+    formData.append('student.gradeLevel', String(s.gradeLevel))
 
-    // --- Internship ---
-    // ✅ Send empty string for undefined/null, not "undefined" string
-    formData.append('internship.degree', state.value.internship.degree?.toString() ?? '')
-    formData.append('internship.strand', state.value.internship.strand?.toString() ?? '')
-    formData.append(
-      'internship.estimatedEndDate',
-      state.value.internship.estimatedEndDate?.toString() ?? '',
-    )
-    formData.append('internship.internshipNature', String(state.value.internship.internshipNature))
-    formData.append(
-      'internship.internshipTotalHours',
-      String(state.value.internship.internshipTotalHours),
-    )
-    formData.append('internship.accumulatedHours', String(state.value.internship.accumulatedHours))
-    formData.append('internship.startDate', state.value.internship.startDate?.toString() ?? '')
+    formData.append('school.name', String(s.schoolName))
+    formData.append('school.address', String(s.schoolAddress))
+    formData.append('school.contactPerson', String(s.schoolContactPerson))
+    formData.append('school.email', String(s.schoolContactPersonEmail))
+    formData.append('school.contactNumber', String(s.schoolContactPersonPhone))
 
-    // --- Requirements (Existing) ---
-    let reqIndex = 0
-    if (state.value.requirements && state.value.requirements.length > 0) {
-      state.value.requirements.forEach((req: any) => {
-        if (!(req instanceof File)) {
-          formData.append(`requirements[${reqIndex}].fileName`, req.fileName || '')
-          formData.append(`requirements[${reqIndex}].filePath`, req.filePath || '')
-          formData.append(`requirements[${reqIndex}].fileType`, req.fileType || '')
-          reqIndex++
-        }
-      })
+    formData.append('internship.internshipNature', String(s.internshipNature))
+    formData.append('internship.strand', String(s.strand))
+    formData.append('internship.degree', String(s.degree))
+    formData.append('internship.startDate', String(s.internshipStartDate))
+
+    if (s.internshipStartDate && s.totalInternshipHours) {
+      const start = new Date(s.internshipStartDate)
+      const totalDays = Math.ceil(s.totalInternshipHours / 8)
+      const end = new Date(start)
+      end.setDate(start.getDate() + totalDays)
+      const estimatedEndDate = end.toISOString().split('T')[0]!
+      formData.append('internship.estimatedEndDate', estimatedEndDate)
     }
 
-    // --- Files (New) ---
-    // Use the DTO property name so the backend can bind the uploaded files correctly.
+    formData.append('internship.internshipTotalHours', String(s.totalInternshipHours))
+    formData.append('internship.accumulatedHours', '0')
+
     if (state.value.requirements && state.value.requirements.length > 0) {
       state.value.requirements.forEach((file) => {
         if (file instanceof File) {
@@ -132,24 +112,18 @@ internship: {
         email: '',
         gender: 0,
         gradeLevel: 1,
+        schoolName: '',
+        schoolAddress: '',
+        schoolContactPerson: '',
+        schoolContactPersonEmail: '',
+        schoolContactPersonPhone: '',
+        internshipNature: 0,
+        strand: 0,
+        degree: 0,
+        internshipStartDate: '',
+        totalInternshipHours: 0,
       },
-      school: {
-        address: '',
-        contactNumber: '',
-        contactPerson: '',
-        email: '',
-        name: '',
-      },
-internship: {
-         degree: undefined as number | undefined, // ✅ Properly typed
-         strand: undefined as number | undefined, // ✅ Properly typed
-         estimatedEndDate: '',
-         internshipNature: 0,
-         internshipTotalHours: 0,
-         accumulatedHours: 0,
-         startDate: '',
-       },
-      requirements: [] as any[], // ✅ Use this for files, remove separate `files`
+      requirements: [] as any[],
     }
 
     errorMessage.value = null

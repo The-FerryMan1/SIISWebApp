@@ -3,6 +3,7 @@ using System.Data.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Shared.Enums;
 
 namespace SIISMinimalAPI.Features.OnBoarding
 {
@@ -49,7 +50,7 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 }
 
                 onBoardingDto.RequirementsReg = req;
-                var newOnboadingUser = OnBoardingEntityMapper.ToStudentModel(onBoardingDto);
+                var newOnboadingUser = OnBoardingEntityMapper.ToStudent(onBoardingDto);
                 await _context.AddAsync(newOnboadingUser, ct);
                 await _context.SaveChangesAsync(ct);
             }
@@ -63,9 +64,7 @@ namespace SIISMinimalAPI.Features.OnBoarding
         {
             var exists = await _context.Students
                 .Include(t => t.Application)
-                .Include(t => t.School)
-                .Include(t => t.Internship)
-                .Include(t => t.Office)
+                .Include(t => t.Placement)
                 .Include(t => t.Requirements)
                 .AsSplitQuery()
                 .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
@@ -87,32 +86,32 @@ namespace SIISMinimalAPI.Features.OnBoarding
             }
 
             // School
-            if (dto.School is not null && exists.School is not null)
+            if (dto.School is not null)
             {
-                exists.School.Name = dto.School.Name;
-                exists.School.Address = dto.School.Address;
-                exists.School.ContactPerson = dto.School.ContactPerson;
-                exists.School.Email = dto.School.Email;
-                exists.School.ContactNumber = dto.School.ContactNumber;
-                exists.School.UpdatedAt = DateTime.UtcNow;
+                exists.SchoolName = dto.School.Name;
+                exists.SchoolAddress = dto.School.Address;
+                exists.SchoolContactPerson = dto.School.ContactPerson;
+                exists.SchoolContactPersonEmail = dto.School.Email;
+                exists.SchoolContactPersonPhone = dto.School.ContactNumber;
             }
 
             // Internship
-            if (dto.Internship is not null && exists.Internship is not null)
+            if (dto.Internship is not null)
             {
-                exists.Internship.InternshipNature = dto.Internship.InternshipNature;
-                exists.Internship.Strand = dto.Internship.Strand;
-                exists.Internship.Degree = dto.Internship.Degree;
-                exists.Internship.StartDate = dto.Internship.StartDate;
-                exists.Internship.EstimatedEndDate = dto.Internship.EstimatedEndDate;
-                exists.Internship.InternshipTotalHours = dto.Internship.InternshipTotalHours;
-                exists.Internship.UpdatedAt = DateTime.UtcNow;
+                exists.InternshipNature = dto.Internship.InternshipNature;
+                exists.Strand = dto.Internship.Strand ?? StrandEnum.STEM;
+                exists.Degree = dto.Internship.Degree ?? DegreeEnum.BSIT;
+                exists.TotalInternshipHours = dto.Internship.InternshipTotalHours;
             }
 
-            // Office (optional reassignment)
-            if (dto.Office is not null && exists.Office is not null)
+            // Placement (optional reassignment)
+            if (dto.Office is not null && exists.Placement is not null)
             {
-                exists.Office.Name = dto.Office.Name;
+                var office = await _context.Offices
+                    .FirstOrDefaultAsync(t => t.OfficeName == dto.Office.Name, ct)
+                    ?? throw new KeyNotFoundException("No office found");
+
+                exists.Placement.OfficeId = office.Id;
             }
 
             // Requirements sync (add / update / remove by FilePath)
@@ -130,7 +129,7 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 foreach (var requirement in toRemove)
                 {
                     exists.Requirements.Remove(requirement);
-                    _context.Requirements.Remove(requirement); // adjust DbSet name if different
+                    _context.Requirements.Remove(requirement);
                 }
 
                 foreach (var reqDto in dto.Requirements)
@@ -145,7 +144,7 @@ namespace SIISMinimalAPI.Features.OnBoarding
                     }
                     else
                     {
-                        exists.Requirements.Add(new Shared.Models.RequirementModel // adjust entity type name
+                        exists.Requirements.Add(new Shared.Models.Requirement
                         {
                             FileName = reqDto.FileName,
                             FilePath = reqDto.FilePath,
@@ -167,12 +166,12 @@ namespace SIISMinimalAPI.Features.OnBoarding
                     await using var stream = File.Create(filePath);
                     await file.CopyToAsync(stream, ct);
 
-                    exists.Requirements.Add(new Shared.Models.RequirementModel
+                    exists.Requirements.Add(new Shared.Models.Requirement
                     {
                         FileName = file.FileName,
                         FilePath = filePath,
                         FileType = file.ContentType,
-                        CreateAt = DateTime.Now
+                        CreatedAt = DateTime.Now
                     });
                 }
             }

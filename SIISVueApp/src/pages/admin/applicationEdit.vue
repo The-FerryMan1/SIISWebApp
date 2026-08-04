@@ -3,11 +3,6 @@ import { computed, ref, useTemplateRef, watch } from 'vue'
 import type { ApplicationGetByIdResponse } from './types/applicationType'
 import { useRoute, useRouter } from 'vue-router'
 import { useAxios } from '../../fetch/axios'
-
-const router = useRouter()
-const route = useRoute()
-const toast = useToast()
-const onaboard = useOnBoardStore()
 import { CalendarDate } from '@internationalized/date'
 import { useDebounceFn } from '@vueuse/core'
 import { OfficeNameLabels, OfficesArray } from './types/officeSelectValue'
@@ -15,7 +10,9 @@ import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './types/applicati
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useOnBoardStore } from '../../stores/onaboard'
 import { storeToRefs } from 'pinia'
-import axios from 'axios'
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
 const onboard = useOnBoardStore()
 const {state:bstate} = storeToRefs(onboard)
 
@@ -68,12 +65,12 @@ function calculateEndDate(startDate: string, totalHours: number, hoursPerDay: nu
 
 watch(
   [
-    () => details.value?.internship?.startDate ?? '',
-    () => details.value?.internship?.internshipTotalHours ?? 0,
+    () => details.value?.placement?.startDate ?? '',
+    () => details.value?.student?.totalInternshipHours ?? 0,
   ],
   ([start, total]) => {
-    if (details.value?.internship) {
-      details.value.internship.estimatedEndDate = calculateEndDate(start, total, 8)
+    if (details.value?.placement && start) {
+      details.value.placement.estimatedEndDate = calculateEndDate(start, total, 8) as string
     }
   },
   { immediate: true },
@@ -83,11 +80,7 @@ const onSubmit = async () => {
 
   try {
     loading.value = true
-    await axios.put('/api/onboading/details/' + route.params.uuid, onboard.toDataForm(), {
-       headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-    })
+    await useAxios.put('/onboading/details/' + route.params.uuid, onboard.toDataForm())
     toast.add({ title: 'Application updated successfully', color: 'success' })
   } catch (error) {
     console.log(error)
@@ -226,14 +219,14 @@ watch(fileUploaded, (value)=>{
 
       <!-- school details -->
       <UPageCard
-        v-if="details?.school"
+        v-if="details?.student"
         title="School"
         description="School information"
         icon="i-lucide-building"
       >
         <UFormField label="School name" title="name" name="SchoolName">
           <UInput
-            v-model="details.school.name"
+            v-model="details.student.schoolName"
             placeholder="Enter your school name"
             class="w-full"
           />
@@ -241,7 +234,7 @@ watch(fileUploaded, (value)=>{
 
         <UFormField label="School address" title="address" name="Schooladdress">
           <UInput
-            v-model="details.school.address"
+            v-model="details.student.schoolAddress"
             placeholder="Enter your school addres"
             class="w-full"
           />
@@ -249,7 +242,7 @@ watch(fileUploaded, (value)=>{
 
         <UFormField label="Contact person" title="Contact person" name="ContactPerson">
           <UInput
-            v-model="details.school.contactPerson"
+            v-model="details.student.schoolContactPerson"
             placeholder="Enter school contact person"
             class="w-full"
           />
@@ -261,7 +254,7 @@ watch(fileUploaded, (value)=>{
           name="ContactPersonEmail"
         >
           <UInput
-            v-model="details.school.email"
+            v-model="details.student.schoolContactPersonEmail"
             placeholder="Enter school contact person's email"
             class="w-full"
           />
@@ -274,7 +267,7 @@ watch(fileUploaded, (value)=>{
         >
           <UInput
             type="tel"
-            v-model="details.school.contactNumber"
+            v-model="details.student.schoolContactPersonPhone"
             placeholder="Enter school contact person's number"
             class="w-full"
           />
@@ -283,7 +276,7 @@ watch(fileUploaded, (value)=>{
 
       <!-- internship details -->
       <UPageCard
-        v-if="details?.internship"
+        v-if="details?.placement"
         title="Internship"
         description="Internship details"
         icon="i-lucide-file-text"
@@ -291,7 +284,7 @@ watch(fileUploaded, (value)=>{
         <UFormField label="Internship nature" title="Internship nature" name="InternshipNature">
           <USelect
             class="w-full"
-            v-model="details.internship.internshipNature"
+            v-model="details.student.internshipNature"
             :items="[
               { label: 'OJT', value: 0 },
               { label: 'Apprenticeship', value: 1 },
@@ -301,10 +294,10 @@ watch(fileUploaded, (value)=>{
           />
         </UFormField>
 
-        <UFormField v-if="details.internship.strand" label="Strand" title="strand" name="strand">
+        <UFormField v-if="details.student.strand" label="Strand" title="strand" name="strand">
           <USelect
             class="w-full"
-            v-model="details.internship.strand"
+            v-model="details.student.strand"
             :items="[
               { label: 'STEM', value: 0 },
               { label: 'ABM', value: 1 },
@@ -315,10 +308,10 @@ watch(fileUploaded, (value)=>{
           />
         </UFormField>
 
-        <UFormField v-if="details.internship.degree" label="Degree" title="degree" name="degree">
+        <UFormField v-if="details.student.degree" label="Degree" title="degree" name="degree">
           <USelect
             class="w-full"
-            v-model="details.internship.degree"
+            v-model="details.student.degree"
             :items="[
               { label: 'BSIT', value: 0 },
               { label: 'BSCS', value: 1 },
@@ -339,7 +332,7 @@ watch(fileUploaded, (value)=>{
         <UFormField label="Internhip total hours" title="totalHours" name="TotalHours">
           <UInput
             type="number"
-            v-model="details.internship.internshipTotalHours"
+            v-model="details.student.totalInternshipHours"
             placeholder="Enter school contact person's number"
             class="w-full"
           />
@@ -348,17 +341,17 @@ watch(fileUploaded, (value)=>{
         <UFormField label="Start date" title="Start date" name="startDate">
           <UInput
             type="date"
-            v-model="details.internship.startDate"
+            v-model="details.placement.startDate"
             placeholder="enter your email address"
             class="w-full"
             :min="new Date().toISOString().split('T')[0]"
           />
         </UFormField>
 
-<UFormField label="Accumulated Hours" title="accumulatedHours" name="AccumulatedHours">
+        <UFormField label="Accumulated Hours" title="accumulatedHours" name="AccumulatedHours">
            <UInput
              type="number"
-             v-model="details.internship.accumulatedHours"
+             v-model="details.placement.accumulatedHours"
              placeholder="Enter accumulated hours"
              class="w-full"
            />
@@ -372,7 +365,7 @@ watch(fileUploaded, (value)=>{
          >
            <UInput
              type="date"
-             v-model="details.internship.estimatedEndDate"
+             v-model="details.placement.estimatedEndDate"
              placeholder="enter your email address"
              class="w-full"
            />
@@ -388,7 +381,7 @@ watch(fileUploaded, (value)=>{
         <UForm v-if="details.office" disabled class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <UFormField label="Office Name">
             <UInput
-              :model-value="OfficeNameLabels[details.office.name]"
+              :model-value="details.office.officeName"
               class="w-full"
               variant="soft"
             />
@@ -396,7 +389,7 @@ watch(fileUploaded, (value)=>{
         </UForm>
       </UPageCard>
 
-<div class="flex w-full my-5 justify-end">
+    <div class="flex w-full my-5 justify-end">
         <UModal
           v-model="open"
           title="Edit Applciation"

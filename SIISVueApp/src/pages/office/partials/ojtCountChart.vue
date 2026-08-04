@@ -8,21 +8,15 @@ import { graphic } from 'echarts/core'
 import { computed, ref } from 'vue'
 import { useOfficeStore } from '../../../stores/office'
 import { storeToRefs } from 'pinia'
-import { OfficeNameLabels, type OfficeNameEnum } from '../../admin/types/officeSelectValue'
 
 use([CanvasRenderer, BarChart, GridComponent, TooltipComponent, DataZoomComponent])
 
 const office = useOfficeStore()
 const { offices } = storeToRefs(office)
 
-const values = computed(() => offices.value?.map((t) => t.students.length) ?? [])
+const values = computed(() => offices.value?.map((t) => (t as any).students?.length ?? 0) ?? [])
 const officeName = computed(() => {
-  return (
-    offices.value?.map((t) => {
-      const name = t.name as OfficeNameEnum
-      return OfficeNameLabels[name] ?? 'Unknown'
-    }) ?? []
-  )
+  return offices.value?.map((t) => t.officeName) ?? []
 })
 
 const option = ref({
@@ -31,7 +25,7 @@ const option = ref({
     axisPointer: { type: 'shadow' },
     valueFormatter: (value: number) => Math.round(value).toString(),
   },
-  grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true }, // Increased bottom for labels
+  grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
   xAxis: {
     type: 'category',
     data: officeName,
@@ -62,9 +56,9 @@ const option = ref({
       data: values,
       itemStyle: {
         color: new graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: '#818cf8' }, // indigo-400
-          { offset: 0.5, color: '#6366f1' }, // indigo-500
-          { offset: 1, color: '#312e81' }, // indigo-900
+          { offset: 0, color: '#818cf8' },
+          { offset: 0.5, color: '#6366f1' },
+          { offset: 1, color: '#312e81' },
         ]),
       },
     },

@@ -15,17 +15,30 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
     public async Task AssignAndApprove(Guid uuid, RequestDto requestDto, CancellationToken ct)
     {
         var exists = await _context.Students
-     .Include(t => t.Office)
      .Include(t => t.Application)
+     .Include(t => t.Placement)
      .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
      ?? throw new KeyNotFoundException("Application not found");
 
         var office = await _context.Offices
-            .FirstOrDefaultAsync(t => t.Name == requestDto.Office, ct)
+            .FirstOrDefaultAsync(t => t.OfficeName == requestDto.Office, ct)
             ?? throw new KeyNotFoundException("No office found");
 
 
-        exists.OfficeId = office.Id;
+        if (exists.Placement == null)
+        {
+            exists.Placement = new Shared.Models.Placement
+            {
+                OfficeId = office.Id,
+                StartDate = DateOnly.FromDateTime(DateTime.Now),
+                EstimatedEndDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(3)),
+                AccumulatedHours = 0
+            };
+        }
+        else
+        {
+            exists.Placement.OfficeId = office.Id;
+        }
 
         exists.Application.Status = Shared.Enums.ApplicationStatusEnum.Approved;
         exists.Application.UpdatedAt = DateTime.Now;
@@ -58,22 +71,22 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
     public async Task<ICollection<ApplicationDto>> GetAllAsync(CancellationToken ct)
     {
         var applications = await _context.Students
-        .Include(t => t.Application).Include(t => t.Internship).AsSplitQuery()
-        .AsNoTracking().OrderByDescending(t => t.CreateAt).ToListAsync(cancellationToken: ct);
+        .Include(t => t.Application).AsSplitQuery()
+        .AsNoTracking().OrderByDescending(t => t.CreatedAt).ToListAsync(cancellationToken: ct);
 
         return [.. applications.Select(t => {
 
-           var degreeStrand = t.Internship.Degree?.ToString()
-                ?? t.Internship.Strand?.ToString();
+           var degreeStrand = t.Degree.ToString()
+                ?? t.Strand.ToString();
 
             return new ApplicationDto
         {
             Id = t.Application.Id,
             ApplicationUUID = t.Application.ApplicationUUID,
-            FullName = $"{t.LastName}, {t.FirstName} {t.MiddleName}".Trim(),
+            FullName = t.FullName,
             Status = t.Application.Status.ToString(),
             DegreeStrand = degreeStrand,
-            CreatedAt = t.Application.CreateAt,
+            CreatedAt = t.Application.CreatedAt,
             UpdatedAt = t.Application.UpdatedAt
         };
         })];
@@ -82,11 +95,9 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
     public async Task<ApplicationGetByIdDto> GetByIdAsync(Guid uuid, CancellationToken ct)
     {
         var application = await _context.Students
-         .Include(t => t.School)
-         .Include(t => t.Internship)
          .Include(t => t.Requirements)
          .Include(t => t.Application)
-         .Include(t => t.Office)
+         .Include(t => t.Placement).ThenInclude(p => p.Office)
          .AsSplitQuery()
          .AsNoTracking()
          .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct);
@@ -108,11 +119,20 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
                 DateOfBirth = application.DateOfBirth,
                 Gender = application.Gender,
                 GradeLevel = application.GradeLevel,
+                SchoolName = application.SchoolName,
+                SchoolAddress = application.SchoolAddress,
+                SchoolContactPerson = application.SchoolContactPerson,
+                SchoolContactPersonEmail = application.SchoolContactPersonEmail,
+                SchoolContactPersonPhone = application.SchoolContactPersonPhone,
+                InternshipNature = application.InternshipNature,
+                Strand = application.Strand,
+                Degree = application.Degree,
+                TotalInternshipHours = application.TotalInternshipHours,
                 IsDeleted = application.IsDeleted,
-                CreateAt = application.CreateAt,
+                CreatedAt = application.CreatedAt,
                 UpdatedAt = application.UpdatedAt,
                 DeletedAt = application.DeletedAt,
-                OfficeId = application.OfficeId
+                OfficeId = application.Placement?.OfficeId
             },
 
             Application = new ApplicationInfo
@@ -121,39 +141,27 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
                 ApplicationUUID = application.Application.ApplicationUUID,
                 Status = application.Application.Status,
                 IsDeleted = application.Application.IsDeleted,
-                CreateAt = application.Application.CreateAt,
+                CreatedAt = application.Application.CreatedAt,
                 UpdatedAt = application.Application.UpdatedAt,
                 DeletedAt = application.Application.DeletedAt
             },
-            School = application.School is null ? null : new SchoolInfo
+            School = new SchoolInfo
             {
-                Id = application.School.Id,
-                Name = application.School.Name,
-                Address = application.School.Address,
-                ContactPerson = application.School.ContactPerson,      // Fixed
-                Email = application.School.Email,
-                ContactNumber = application.School.ContactNumber,
-                IsDeleted = application.School.IsDeleted,
-                CreateAt = application.School.CreateAt,
-                UpdatedAt = application.School.UpdatedAt,
-                DeletedAt = application.School.DeletedAt
+                Name = application.SchoolName,
+                Address = application.SchoolAddress,
+                ContactPerson = application.SchoolContactPerson,
+                Email = application.SchoolContactPersonEmail,
+                ContactNumber = application.SchoolContactPersonPhone
             },
-            Internship = application.Internship is null ? null : new InternshipInfo
+            Internship = new InternshipInfo
             {
-                Id = application.Internship.Id,
-                InternshipNature = application.Internship.InternshipNature,
-                Strand = application.Internship.Strand,
-                Degree = application.Internship.Degree,
-                StartDate = application.Internship.StartDate,
-                EstimatedEndDate = application.Internship.EstimatedEndDate,
-                InternshipTotalHours = application.Internship.InternshipTotalHours,
-                IsDeleted = application.Internship.IsDeleted,
-                CreateAt = application.Internship.CreateAt,
-                UpdatedAt = application.Internship.UpdatedAt,
-                DeletedAt = application.Internship.DeletedAt
+                InternshipNature = application.InternshipNature,
+                Strand = application.Strand,
+                Degree = application.Degree,
+                InternshipTotalHours = application.TotalInternshipHours
             },
             Requirements = application.Requirements?
-         .Where(r => !r.IsDeleted)  // Optional: exclude soft-deleted
+         .Where(r => !r.IsDeleted)
          .Select(t => new RequirementInfo
          {
              Id = t.Id,
@@ -161,20 +169,19 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
              FilePath = t.FilePath,
              FileType = t.FileType,
              IsDeleted = t.IsDeleted,
-             CreateAt = t.CreateAt,
+             CreatedAt = t.CreatedAt,
              UpdatedAt = t.UpdatedAt,
              DeletedAt = t.DeletedAt
          }).ToList(),
-            Office = application.Office is null ? null : new OfficeInfo
+            Office = application.Placement?.Office is not null ? new OfficeInfo
             {
-                Id = application.Office.Id,
-                Name = application.Office.Name,
-                Department = application.Office.Department,
-                IsDeleted = application.Office.IsDeleted,
-                CreateAt = application.Office.CreateAt,
-                UpdatedAt = application.Office.UpdatedAt,
-                DeletedAt = application.Office.DeletedAt
-            }
+                Id = application.Placement.Office.Id,
+                OfficeName = application.Placement.Office.OfficeName,
+                IsDeleted = application.Placement.Office.IsDeleted,
+                CreatedAt = application.Placement.Office.CreatedAt,
+                UpdatedAt = application.Placement.Office.UpdatedAt,
+                DeletedAt = application.Placement.Office.DeletedAt
+            } : null
         };
     }
 
@@ -200,15 +207,10 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
     public async Task Trash(Guid uuid, CancellationToken ct)
     {
         var application = await _context.Students
-        .Include(t => t.School)
-        .Include(t => t.Internship)
         .Include(t => t.Requirements)
         .Include(t => t.Application)
         .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct)
         ?? throw new KeyNotFoundException("Application not found");
-
-        application.School.IsDeleted = true;
-        application.School.DeletedAt = DateTime.Now;
 
         application.Application.IsDeleted = true;
         application.Application.DeletedAt = DateTime.Now;
@@ -216,8 +218,6 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         application.IsDeleted = true;
         application.DeletedAt = DateTime.Now;
 
-        application.Internship.IsDeleted = true;
-        application.Internship.DeletedAt = DateTime.Now;
         application.Requirements.Select(t =>
         {
             t.IsDeleted = true;

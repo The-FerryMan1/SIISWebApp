@@ -1,70 +1,27 @@
 <script setup lang="ts">
 import { useOfficeStore, type Office } from '../../stores/office'
-import type { FormSubmitEvent, TableColumn } from '@nuxt/ui'
-import { OfficeNameEnum, OfficeNameLabels } from '../admin/types/officeSelectValue'
+import type { TableColumn } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import OjtCountChart from './partials/ojtCountChart.vue'
-import OfficeUpdateModal from '../../components/officeUpdateModal.vue'
 import { resolveComponent, onMounted, h, computed, ref } from 'vue'
-import z from 'zod'
-import { useBattery, useDebounce, useDebouncedRefHistory, useDebounceFn } from '@vueuse/core'
-import { useAxios } from '../../fetch/axios.ts'
+import { useAxios } from '../../fetch/axios'
 
 const office = useOfficeStore()
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
-const overlay = useOverlay()
-const overlayModal = overlay.create(OfficeUpdateModal)
+const toast = useToast()
 
+const loading = ref<boolean>(false)
 const table = ref()
 const pagination = ref({ pageIndex: 0, pageSize: 5 })
 const globalFilter = ref('')
 const totalOffices = computed(() => office.offices?.length ?? 0)
-const loading = ref<boolean>(false)
-const toast = useToast()
-
-const schema = z.object({
-  department: z.string().min(1),
-})
-type Schema = z.infer<typeof schema>
-const officeOIC = ref<Partial<Schema>>({
-  department: undefined,
-})
 
 onMounted(async () => {
   if (!office.offices) {
     await office.officeInit()
   }
 })
-
-const view = async (id: number) => {
-  const current = office.offices?.find((o) => o.id === id)
-
-  const result = await overlayModal.open({
-    title: 'Edit Office',
-    officeId: current?.id,
-    department: current?.department,
-    loading: loading.value,
-  })
-
-if (result) {
-     await debounceSubmit(result.id, result.department, result.honorific)
-   }
-}
-
-const debounceSubmit = useDebounceFn(async (id: number, department: string, honorific: string) => {
-  try {
-    loading.value = true
-    await useAxios.put('/office/' + id, { department: department, honorific: honorific })
-    await office.officeInit()
-    toast.add({ title: 'Office Updated Successfully', color: 'primary' })
-  } catch (error) {
-    console.log(error)
-    toast.add({ title: 'Office update failed', color: 'error' })
-  } finally {
-    loading.value = false
-  }
-}, 500)
 
 const columns: TableColumn<Office>[] = [
   {
@@ -73,45 +30,30 @@ const columns: TableColumn<Office>[] = [
     cell: ({ row }) => `#${row.getValue('id')}`,
   },
   {
-    accessorKey: 'name',
+    accessorKey: 'officeName',
     header: 'Office name',
-    cell: ({ row }) => {
-      const officeValue = row.getValue('name') as OfficeNameEnum
-      return OfficeNameLabels[officeValue] ?? 'Unknown'
-    },
-  },
-   {
-    accessorKey: 'honorific',
-    header: 'Honorific',
-    cell: ({ row }) => row.getValue('honorific') || 'None',
+    cell: ({ row }) => row.getValue('officeName'),
   },
   {
-    accessorKey: 'department',
-    header: 'Department',
-    cell: ({ row }) => row.getValue('department') || 'No department assigned',
+    accessorKey: 'userId',
+    header: 'Officer Account',
+    cell: ({ row }) => row.getValue('userEmail') || 'Not assigned',
   },
   {
-    accessorKey: 'students',
-    header: 'OJT count',
-    cell: ({ row }) => {
-      const count = (row.getValue('students') as []) ?? []
-      return count.length > 0
-        ? h(UBadge, {}, count.length)
-        : h('span', { class: 'text-muted italic' }, 'No OJT')
-    },
-  },
-  {
-    accessorKey: 'createAt',
+    accessorKey: 'createdAt',
     header: 'Created At',
     cell: ({ row }) => {
-      const value = row.getValue('createAt') as Date
+      const value = row.getValue('createdAt') as string
       return value ? new Date(value).toDateString() : '-'
     },
   },
   {
     accessorKey: 'updatedAt',
     header: 'Updated At',
-    cell: ({ row }) => row.getValue('updatedAt') || 'Not yet updated',
+    cell: ({ row }) => {
+      const value = row.getValue('updatedAt') as string | null
+      return value ? new Date(value).toDateString() : 'Not yet updated'
+    },
   },
   {
     header: 'Actions',
@@ -120,12 +62,26 @@ const columns: TableColumn<Office>[] = [
         icon: 'i-lucide-pen',
         color: 'primary',
         variant: 'ghost',
-        onClick: () => view(row.original.id),
+        onClick: () => editOffice(row.original),
       }),
   },
 ]
 
-const close = () => {}
+const editOffice = async (officeItem: Office) => {
+  const newName = prompt('Edit office name:', officeItem.officeName)
+  if (!newName || newName === officeItem.officeName) return
+  try {
+    loading.value = true
+    await useAxios.put('/office/' + officeItem.id, { officeName: newName })
+    await office.officeInit()
+    toast.add({ title: 'Office updated successfully', color: 'success' })
+  } catch {
+    toast.add({ title: 'Office update failed', color: 'error' })
+  } finally {
+    loading.value = false
+  }
+}
+
 const pageIndex = computed(() => pagination.value.pageIndex)
 const pageSize = computed(() => pagination.value.pageSize)
 
@@ -148,7 +104,7 @@ const setPage = (p: number) => {
     <div class="px-4 py-2 my-5">
       <div>
         <h2 class="text-4xl font-black text-primary">Offices</h2>
-        <p class="text-muted text-sm">Manage department information</p>
+        <p class="text-muted text-sm">Manage office information</p>
       </div>
     </div>
 
@@ -178,7 +134,6 @@ const setPage = (p: number) => {
 
       <template #footer>
         <div class="flex justify-end border-t border-default pt-4 px-4">
-          <!-- ✅ Uses computed refs, not inline tableApi calls -->
           <UPagination
             :page="pageIndex + 1"
             :items-per-page="pageSize"
