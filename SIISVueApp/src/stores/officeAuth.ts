@@ -7,6 +7,9 @@ interface OfficeAccount {
   id: string
   email: string
   userName: string
+  firstName: string
+  lastName: string
+  middleName: string
   roles: string[]
 }
 
@@ -32,6 +35,9 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
         id: data.userId ?? '',
         email: data.email ?? email,
         userName: data.email ?? email,
+        firstName: data.firstName ?? '',
+        lastName: data.lastName ?? '',
+        middleName: data.middleName ?? '',
         roles: data.roles ?? [],
       }
       localStorage.setItem('officeAuth', 'true')

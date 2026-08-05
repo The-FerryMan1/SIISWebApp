@@ -29,12 +29,18 @@ const back = () => {
 const profileSchema = z.object({
   username: z.string('invalid username').min(1, 'username is required'),
   email: z.email('invalid email'),
+  lastName: z.string('invalid lastname').min(1, 'lastname is required'),
+  firstName: z.string('invalid firstname').min(1, 'firstname is required'),
+  middleName: z.string('invalid middlename').min(1, 'middlename is required'),
 })
 type ProfileSchema = z.infer<typeof profileSchema>
 
 const profileState = ref<Partial<ProfileSchema>>({
   email: user.value?.email,
   username: user.value?.username,
+  lastName: user.value?.lastName,
+  firstName: user.value?.firstName,
+  middleName: user.value?.middleName,
 })
 
 const profileSubmit = async (event: FormSubmitEvent<ProfileSchema>) => {
@@ -135,6 +141,20 @@ const changePassRequest = useDebounceFn(async (payload: ChangePassSchema) => {
         @submit="profileSubmit"
         loading-auto
       >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <UFormField name="lastName" label="Last Name" required>
+            <UInput v-model="profileState.lastName" placeholder="Enter last name" class="w-full" />
+          </UFormField>
+
+          <UFormField name="firstName" label="First Name" required>
+            <UInput v-model="profileState.firstName" placeholder="Enter first name" class="w-full" />
+          </UFormField>
+
+          <UFormField name="middleName" label="Middle Name" required>
+            <UInput v-model="profileState.middleName" placeholder="Enter middle name" class="w-full" />
+          </UFormField>
+        </div>
+
         <UFormField name="username" label="Username" required>
           <UInput v-model="profileState.username" placeholder="Enter new username" class="w-full" />
         </UFormField>

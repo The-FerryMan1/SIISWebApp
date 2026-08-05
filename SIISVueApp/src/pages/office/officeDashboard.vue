@@ -17,6 +17,8 @@ const editingStudent = ref<any>(null)
 const editForm = ref({ startDate: '', estimatedEndDate: '', accumulatedHours: 0 })
 const departmentOpen = ref(false)
 const departmentForm = ref('')
+const profileOpen = ref(false)
+const profileForm = ref({ lastName: '', firstName: '', middleName: '', username: '', email: '' })
 
 const columns: TableColumn<any>[] = [
   { accessorKey: 'fullName', header: 'Student Name' },
@@ -132,6 +134,52 @@ async function saveDepartment() {
   }
 }
 
+function openEditProfile() {
+  profileForm.value = {
+    lastName: officeAuth.account?.lastName || '',
+    firstName: officeAuth.account?.firstName || '',
+    middleName: officeAuth.account?.middleName || '',
+    username: officeAuth.account?.userName || '',
+    email: officeAuth.account?.email || '',
+  }
+  profileOpen.value = true
+}
+
+async function saveProfile() {
+  try {
+    await useAxios.put('/user', {
+      lastName: profileForm.value.lastName,
+      firstName: profileForm.value.firstName,
+      middleName: profileForm.value.middleName,
+      username: profileForm.value.username,
+      email: profileForm.value.email,
+    })
+    toast.add({ title: 'Profile updated successfully', color: 'success' })
+    profileOpen.value = false
+    await loadDashboard()
+  } catch {
+    toast.add({ title: 'Failed to update profile', color: 'error' })
+  }
+}
+
+async function refreshAccount() {
+  try {
+    const { data } = await useAxios.get('user')
+    officeAuth.account = {
+      id: officeAuth.account!.id,
+      email: data.email,
+      userName: data.username,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      middleName: data.middleName,
+      roles: officeAuth.account!.roles,
+    }
+    localStorage.setItem('officeAccount', JSON.stringify(officeAuth.account))
+  } catch {
+    // ignore
+  }
+}
+
 function logout() {
   officeAuth.logout()
   router.push({ name: 'office-login' })
@@ -143,7 +191,7 @@ function logout() {
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-4xl font-black text-primary tracking-tight">Office Dashboard</h1>
-        <p class="text-muted text-sm mt-1">Welcome, {{ officeAuth.account?.userName }}</p>
+        <p class="text-muted text-sm mt-1">Welcome, {{ officeAuth.account?.firstName }} {{ officeAuth.account?.lastName }}</p>
       </div>
       <UButton icon="i-lucide-log-out" label="Logout" variant="outline" color="error" @click="logout" />
     </div>
@@ -179,7 +227,10 @@ function logout() {
           </div>
           <div>
             <p class="text-sm font-medium text-muted">Account</p>
-            <p class="text-base">{{ officeAuth.account?.email }}</p>
+            <div class="flex items-center gap-2">
+              <p class="text-base">{{ officeAuth.account?.email }}</p>
+              <UButton icon="i-lucide-pen" size="xs" variant="ghost" color="primary" @click="openEditProfile" />
+            </div>
           </div>
         </div>
       </UPageCard>
@@ -208,6 +259,36 @@ function logout() {
           </template>
         </UTable>
       </UCard>
+
+      <UModal v-model:open="profileOpen" title="Edit Profile">
+        <template #body>
+          <UForm class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <UFormField label="Last Name" required>
+                <UInput v-model="profileForm.lastName" placeholder="Enter last name" class="w-full" />
+              </UFormField>
+              <UFormField label="First Name" required>
+                <UInput v-model="profileForm.firstName" placeholder="Enter first name" class="w-full" />
+              </UFormField>
+              <UFormField label="Middle Name" required>
+                <UInput v-model="profileForm.middleName" placeholder="Enter middle name" class="w-full" />
+              </UFormField>
+            </div>
+            <UFormField label="Username" required>
+              <UInput v-model="profileForm.username" placeholder="Enter username" class="w-full" />
+            </UFormField>
+            <UFormField label="Email" required>
+              <UInput v-model="profileForm.email" placeholder="Enter email" class="w-full" disabled />
+            </UFormField>
+          </UForm>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton label="Cancel" variant="ghost" color="neutral" @click="profileOpen = false" />
+            <UButton label="Save" variant="solid" color="primary" @click="saveProfile" />
+          </div>
+        </template>
+      </UModal>
 
       <UModal v-model:open="departmentOpen" title="Edit Department">
         <template #body>

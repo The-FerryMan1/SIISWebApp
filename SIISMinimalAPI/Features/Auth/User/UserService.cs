@@ -12,7 +12,33 @@ public class UserService(UserManager<SIISMinimalAPI.Features.Shared.Models.User>
     {
         var user = await _userManager.FindByIdAsync(userId)
         ?? throw new KeyNotFoundException("User not found");
-        await _userManager.SetUserNameAsync(user, userUpdateDto.Username);
+        
+        if (!string.IsNullOrEmpty(userUpdateDto.Username))
+        {
+            await _userManager.SetUserNameAsync(user, userUpdateDto.Username);
+        }
+        
+        if (!string.IsNullOrEmpty(userUpdateDto.Email))
+        {
+            await _userManager.SetEmailAsync(user, userUpdateDto.Email);
+        }
+        
+        if (!string.IsNullOrEmpty(userUpdateDto.LastName))
+        {
+            user.LastName = userUpdateDto.LastName;
+        }
+        
+        if (!string.IsNullOrEmpty(userUpdateDto.FirstName))
+        {
+            user.FirstName = userUpdateDto.FirstName;
+        }
+        
+        if (!string.IsNullOrEmpty(userUpdateDto.MiddleName))
+        {
+            user.MiddleName = userUpdateDto.MiddleName;
+        }
+        
+        await _userManager.UpdateAsync(user);
     }
 
     public async Task UserChangePassword(string userId, UserChangePass userChangePass)
@@ -38,6 +64,9 @@ public class UserService(UserManager<SIISMinimalAPI.Features.Shared.Models.User>
             UserId = currUser.Id,
             Email = currUser.Email,
             Username = currUser.UserName,
+            LastName = currUser.LastName,
+            FirstName = currUser.FirstName,
+            MiddleName = currUser.MiddleName,
             IsEmailVerified = currUser.EmailConfirmed  
         };
     }

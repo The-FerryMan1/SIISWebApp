@@ -9,6 +9,9 @@ interface User {
   userId: string
   email: string
   username: string
+  lastName: string
+  firstName: string
+  middleName: string
   isEmailVerified: boolean
 }
 
@@ -60,6 +63,9 @@ export const UseAuthStore = defineStore('auth', () => {
         userId: data.userId,
         email: data.email,
         username: data.username,
+        lastName: data.lastName,
+        firstName: data.firstName,
+        middleName: data.middleName,
         isEmailVerified: data.isEmailVerified,
       }
       authenticate(user)
