@@ -109,6 +109,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { isRequiresAuth: true },
       },
       {
+        path: '/endorsement-by-school',
+        component: () => import('../pages/admin/endorsementBySchool.vue'),
+        name: 'endorsement-by-school',
+        meta: { isRequiresAuth: true },
+      },
+      {
         path: '/profile',
         component: () => import('../pages/user/profile.vue'),
         name: 'profile',

@@ -15,6 +15,8 @@ const dashboard = ref<any>(null)
 const editOpen = ref(false)
 const editingStudent = ref<any>(null)
 const editForm = ref({ startDate: '', estimatedEndDate: '', accumulatedHours: 0 })
+const departmentOpen = ref(false)
+const departmentForm = ref('')
 
 const columns: TableColumn<any>[] = [
   { accessorKey: 'fullName', header: 'Student Name' },
@@ -112,6 +114,24 @@ async function saveDates() {
   }
 }
 
+function openEditDepartment() {
+  departmentForm.value = dashboard.value?.department || ''
+  departmentOpen.value = true
+}
+
+async function saveDepartment() {
+  try {
+    await useAxios.put('/office/my-department', {
+      department: departmentForm.value
+    })
+    toast.add({ title: 'Department updated successfully', color: 'success' })
+    departmentOpen.value = false
+    await loadDashboard()
+  } catch {
+    toast.add({ title: 'Failed to update department', color: 'error' })
+  }
+}
+
 function logout() {
   officeAuth.logout()
   router.push({ name: 'office-login' })
@@ -152,7 +172,10 @@ function logout() {
           </div>
           <div>
             <p class="text-sm font-medium text-muted">Department</p>
-            <p class="text-base">{{ dashboard.department || 'Not assigned' }}</p>
+            <div class="flex items-center gap-2">
+              <p class="text-base">{{ dashboard.department || 'Not assigned' }}</p>
+              <UButton icon="i-lucide-pen" size="xs" variant="ghost" color="primary" @click="openEditDepartment" />
+            </div>
           </div>
           <div>
             <p class="text-sm font-medium text-muted">Account</p>
@@ -185,6 +208,20 @@ function logout() {
           </template>
         </UTable>
       </UCard>
+
+      <UModal v-model:open="departmentOpen" title="Edit Department">
+        <template #body>
+          <UFormField label="Department" required>
+            <UInput v-model="departmentForm" placeholder="Enter department name" class="w-full" />
+          </UFormField>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton label="Cancel" variant="ghost" color="neutral" @click="departmentOpen = false" />
+            <UButton label="Save" variant="solid" color="primary" @click="saveDepartment" />
+          </div>
+        </template>
+      </UModal>
 
       <UModal v-model:open="editOpen" title="Edit Internship Dates">
         <template #body>

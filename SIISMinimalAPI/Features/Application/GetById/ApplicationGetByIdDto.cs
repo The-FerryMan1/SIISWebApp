@@ -10,9 +10,21 @@ public class ApplicationGetByIdDto
     public StudentInfo? Student { get; set; }
     public SchoolInfo? School { get; set; }
     public InternshipInfo? Internship { get; set; }
+    public PlacementInfo? Placement { get; set; }
     public ICollection<RequirementInfo>? Requirements { get; set; }
     public OfficeInfo? Office { get; set; }
 
+}
+
+public class PlacementInfo
+{
+    public long Id { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EstimatedEndDate { get; set; }
+    public int AccumulatedHours { get; set; }
+    public long OfficeId { get; set; }
+    public string OfficeName { get; set; } = string.Empty;
+    public long StudentId { get; set; }
 }
 
 public class StudentInfo

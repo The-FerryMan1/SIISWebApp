@@ -129,7 +129,24 @@ export interface OfficeInfo {
 export interface ApplicationGetByIdResponse {
   application: ApplicationInfo
   student: StudentInfo
+  school: SchoolInfo
+  internship: InternshipInfo
   placement: PlacementInfo | null
   requirements: RequirementInfo[]
   office: OfficeInfo | null
+}
+
+export interface SchoolInfo {
+  name: string
+  address: string
+  contactPerson: string
+  email: string
+  contactNumber: string
+}
+
+export interface InternshipInfo {
+  internshipNature: InternshipNatureEnum
+  strand: StrandEnum
+  degree: DegreeEnum
+  internshipTotalHours: number
 }

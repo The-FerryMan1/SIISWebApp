@@ -45,8 +45,8 @@ public class InternshipUpdateDto
     public InternshipNatureEnum InternshipNature { get; set; }
     public StrandEnum? Strand { get; set; }
     public DegreeEnum? Degree { get; set; }
-    public DateOnly StartDate { get; set; }
-    public DateOnly EstimatedEndDate { get; set; }
+    public DateOnly? StartDate { get; set; }
+    public DateOnly? EstimatedEndDate { get; set; }
     public int InternshipTotalHours { get; set; }
     public int AccumulatedHours { get; set; }
 

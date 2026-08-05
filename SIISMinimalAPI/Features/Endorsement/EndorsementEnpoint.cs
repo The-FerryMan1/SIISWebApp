@@ -21,7 +21,6 @@ public static class EndorsementEnpoint
 
         group.MapGet("/{uuid}", [Authorize]  async Task<IResult>(Guid uuid, ClaimsPrincipal user,  CancellationToken ct, IEndorsementService service) =>
         {   
-           
             
 
             try
@@ -40,6 +39,25 @@ public static class EndorsementEnpoint
                 return TypedResults.InternalServerError(ex.Message);
             }
         });
+
+        group.MapGet("/school/{schoolName}", [Authorize] async Task<IResult>(string schoolName, [FromQuery] string? office, ClaimsPrincipal user, CancellationToken ct, IEndorsementService service) =>
+        {
+            try
+            {
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var result = await service.GenerateEndorsementBySchool(schoolName, office, userId!, ct);
+                return TypedResults.File(result.GeneratePdf(), "application/pdf", $"endorsement-{schoolName}-{DateTime.Now:yyyyMMdd}.pdf");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return TypedResults.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return TypedResults.InternalServerError(ex.Message);
+            }
+        });
+
         return app;
     }
 }

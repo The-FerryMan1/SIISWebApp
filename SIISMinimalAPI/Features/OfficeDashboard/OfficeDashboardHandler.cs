@@ -32,7 +32,7 @@ public class OfficeDashboardHandler(AppDbContext context) : IOfficeDashboardServ
         {
             OfficeId = office.Id,
             OfficeName = office.OfficeName,
-            Department = string.Empty,
+            Department = office.Department ?? string.Empty,
             TotalStudents = students.Count,
             ApprovedCount = approvedCount,
             PendingCount = pendingCount,

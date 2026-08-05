@@ -13,9 +13,6 @@ const toast = useToast()
 
 const reportType = ref<'masterlist' | 'expiring' | 'finished'>('masterlist')
 const loading = ref(false)
-const previewOpen = ref(false)
-const previewUrl = ref<string | null>(null)
-const previewFileName = ref<string>('')
 
 const reportTypeOptions: SelectItem[] = [
   { label: 'Masterlist', value: 'masterlist' },
@@ -65,38 +62,16 @@ async function generateReport() {
     }
 
     if (blob) {
-      previewFileName.value = `${filename}_${new Date().toISOString().split('T')[0]}.pdf`
       const url = URL.createObjectURL(blob)
-      previewUrl.value = url
-      previewOpen.value = true
+      const win = window.open(url, '_blank')
+      win?.print()
+      URL.revokeObjectURL(url)
     }
   } catch {
     toast.add({ title: 'Failed to generate report', color: 'error' })
   } finally {
     loading.value = false
   }
-}
-
-function downloadPreview() {
-  if (!previewUrl.value) return
-  const a = document.createElement('a')
-  a.href = previewUrl.value
-  a.download = previewFileName.value
-  a.click()
-}
-
-function printPreview() {
-  if (!previewUrl.value) return
-  const win = window.open(previewUrl.value, '_blank')
-  win?.print()
-}
-
-function closePreview() {
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-  }
-  previewUrl.value = null
-  previewOpen.value = false
 }
 
 function logout() {
@@ -127,38 +102,15 @@ function logout() {
           />
         </UFormField>
 
-        <UButton
-          icon="i-lucide-file-text"
-          label="Generate Report"
-          color="primary"
-          variant="solid"
-          :loading="loading"
-          @click="generateReport"
-        />
-      </div>
-    </UCard>
-
-    <UModal v-model:open="previewOpen" title="Report Preview">
-      <template #body>
-        <div class="w-full h-[70vh] border rounded-lg overflow-hidden bg-gray-50">
-          <embed
-            v-if="previewUrl"
-            :src="previewUrl"
-            type="application/pdf"
-            class="w-full h-full"
-          />
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="flex justify-between w-full">
-          <UButton label="Close" variant="ghost" color="neutral" @click="closePreview" />
-          <div class="flex gap-2">
-            <UButton icon="i-lucide-download" label="Download" variant="solid" color="primary" @click="downloadPreview" />
-            <UButton icon="i-lucide-printer" label="Print" variant="solid" color="info" @click="printPreview" />
-          </div>
-        </div>
-      </template>
-    </UModal>
+      <UButton
+        icon="i-lucide-file-text"
+        label="Generate Report"
+        color="primary"
+        variant="solid"
+        :loading="loading"
+        @click="generateReport"
+      />
+    </div>
+  </UCard>
   </UMain>
 </template>

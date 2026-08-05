@@ -47,29 +47,52 @@ public static class OfficeEndpoint
             {
                 id = office.Id,
                 officeName = office.OfficeName,
-                userId = office.UserId
+                userId = office.UserId,
+                department = office.Department
             });
         });
 
 
        group.MapPut("/{id}", async Task<IResult> ([FromRoute] long id, UpdateOfficeDto dto, IOfficeService service, CancellationToken ct) =>
-        {
-            try
-            {
-                await service.UpdateOfficeAsync(id, dto, ct);
-                return TypedResults.Ok();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                
-                return TypedResults.BadRequest(ex.Message);
-            }
-            catch(Exception ex)
-            {
-                return TypedResults.InternalServerError(ex.Message);
-            }
+       {
+           try
+           {
+               await service.UpdateOfficeAsync(id, dto, ct);
+               return TypedResults.Ok();
+           }
+           catch (KeyNotFoundException ex)
+           {
+               
+               return TypedResults.BadRequest(ex.Message);
+           }
+           catch(Exception ex)
+           {
+               return TypedResults.InternalServerError(ex.Message);
+           }
 
-        });
+       });
+
+       group.MapPut("/my-department", [Authorize] async Task<IResult> (ClaimsPrincipal user, [FromBody] UpdateOfficeDto dto, AppDbContext context, CancellationToken ct) =>
+       {
+           var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+           if (string.IsNullOrEmpty(userId))
+           {
+               return TypedResults.Unauthorized();
+           }
+
+           var office = await context.Offices.FirstOrDefaultAsync(o => o.UserId == userId && !o.IsDeleted, ct);
+           if (office is null)
+           {
+               return TypedResults.NotFound("No office assigned to this account");
+           }
+
+           office.Department = dto.Department;
+           office.UpdatedAt = DateTime.Now;
+           context.Offices.Update(office);
+           await context.SaveChangesAsync(ct);
+
+           return TypedResults.Ok();
+       });
 
         return app;
     }

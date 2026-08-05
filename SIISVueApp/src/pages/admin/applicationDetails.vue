@@ -7,7 +7,6 @@ import { ApplicationStatusEnum, type ApplicationGetByIdResponse } from './types/
 import { useAxios } from '../../fetch/axios'
 import { OfficeNameLabels, OfficesArray, OfficeNameEnum } from './types/officeSelectValue'
 import z from 'zod'
-import { PDFViewer } from '@embedpdf/vue-pdf-viewer'
 import ConfirmationModal from '../../components/confirmationModal.vue'
 import { useApplicationStore } from '../../stores/application.ts'
 
@@ -29,7 +28,6 @@ const isPending = computed(
   () => details.value?.application?.status === ApplicationStatusEnum.Pending,
 )
 const application = useApplicationStore()
-const pdfSource = ref<string>('')
 const previewOpen = ref(false)
 const previewUrl = ref<string>('')
 
@@ -202,44 +200,30 @@ const disableForm = () => {
   isDisabled.value = !isDisabled.value
 }
 
-const generateEndorsement = async () => {
+const printEndorsement = async () => {
   try {
     const { data } = await useAxios.get('/endorsement/' + route.params.uuid, {
       responseType: 'blob',
     })
 
-    pdfSource.value = URL.createObjectURL(data)
+    const url = URL.createObjectURL(data)
+    const win = window.open(url, '_blank')
+    win?.print()
+    URL.revokeObjectURL(url)
 
     toast.add({
-      title: 'Preview Ready',
-      description: 'Endorsement letter loaded',
-      color: 'info',
+      title: 'Print initiated',
+      description: 'Endorsement letter sent to printer',
+      color: 'success',
     })
   } catch (error) {
     toast.add({
       title: 'Failed',
-      description: 'Could not load preview',
+      description: 'Could not load endorsement',
       color: 'error',
     })
-    console.error('Preview failed:', error)
+    console.error('Print failed:', error)
   }
-}
-
-const downloadPdf = () => {
-  if (!pdfSource.value) return
-
-  const link = document.createElement('a')
-  link.href = pdfSource.value
-  link.download = `endorsement-letter-${route.params.uuid}.pdf`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
-
-const closeEndorsementPreview = () => {
-  if (!pdfSource.value) return
-  if (typeof pdfSource.value === 'string') URL.revokeObjectURL(pdfSource.value)
-  pdfSource.value = ''
 }
 
 const openPreview = (filePath: string) => {
@@ -262,13 +246,7 @@ const closeRequirementPreview = () => {
   previewOpen.value = false
 }
 
-onBeforeUnmount(() => {
-  if (typeof pdfSource.value === 'string') URL.revokeObjectURL(pdfSource.value)
-})
-
-const debounceGenerateEndorsement = useDebounceFn(generateEndorsement, 1000)
-const debounceDownloadEndorsement = useDebounceFn(downloadPdf, 1000)
-const debounceClosePreview = useDebounceFn(closeEndorsementPreview, 500)
+const debounceGenerateEndorsement = useDebounceFn(printEndorsement, 1000)
 const debouncedRejectApi = useDebounceFn((uuid: string) => {
   application.rejectApplication(uuid)
 }, 500)
@@ -461,22 +439,11 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
         </UModal>
       </div>
     </template>
-<UPageCard v-if="isApproved" :class="pdfSource ? 'min-h-125 md:min-h-150' : ''">
-       <!-- Minimum height, can grow -->
-       <template #header>
-         <div v-if="pdfSource" class="flex items-center gap-2 justify-end">
-           <UButton icon="i-lucide-download" variant="soft" label="Download pdf" @click="debounceDownloadEndorsement" />
-           <UButton icon="i-lucide-x" variant="soft" label="Close preview" @click="debounceClosePreview" />
-         </div>
-       </template>
-
-
-
-
-       <PDFViewer class="h-full" v-if="pdfSource" :config="{ src: pdfSource, theme: { preference: 'light' } }"
-         :style="{ width: '100%', height: '100%' }" />
-       <UAlert v-else description="No preview" />
-     </UPageCard>
+      <div v-if="isApproved" class="flex justify-end gap-3 pt-4">
+        <UButton @click="debounceGenerateEndorsement" color="primary" icon="i-lucide-printer" variant="solid" size="sm">
+          Print Endorsement
+        </UButton>
+      </div>
 
      <!-- Requirements File Preview Modal -->
       <UModal v-model:open="previewOpen" title="File Preview" size="xl">

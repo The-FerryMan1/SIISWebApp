@@ -7,6 +7,7 @@ export type Office = {
   officeName: string
   userId: string
   userEmail: string | null
+  department: string | null
   createdAt: string
   updatedAt: string | null
 }
@@ -22,6 +23,7 @@ export const useOfficeStore = defineStore('office', () => {
         officeName: item.name,
         userId: item.userId,
         userEmail: item.userEmail,
+        department: item.department,
         createdAt: item.createAt,
         updatedAt: item.updatedAt,
       }))

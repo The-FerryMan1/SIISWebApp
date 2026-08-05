@@ -71,7 +71,9 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
     public async Task<ICollection<ApplicationDto>> GetAllAsync(CancellationToken ct)
     {
         var applications = await _context.Students
-        .Include(t => t.Application).AsSplitQuery()
+        .Include(t => t.Application)
+        .Include(t => t.Placement).ThenInclude(p => p.Office)
+        .AsSplitQuery()
         .AsNoTracking().OrderByDescending(t => t.CreatedAt).ToListAsync(cancellationToken: ct);
 
         return [.. applications.Select(t => {
@@ -86,6 +88,8 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
             FullName = t.FullName,
             Status = t.Application.Status.ToString(),
             DegreeStrand = degreeStrand,
+            SchoolName = t.SchoolName,
+            OfficeName = t.Placement?.Office?.OfficeName,
             CreatedAt = t.Application.CreatedAt,
             UpdatedAt = t.Application.UpdatedAt
         };
@@ -160,6 +164,16 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
                 Degree = application.Degree,
                 InternshipTotalHours = application.TotalInternshipHours
             },
+            Placement = application.Placement is not null ? new PlacementInfo
+            {
+                Id = application.Placement.Id,
+                StartDate = application.Placement.StartDate,
+                EstimatedEndDate = application.Placement.EstimatedEndDate,
+                AccumulatedHours = application.Placement.AccumulatedHours,
+                OfficeId = application.Placement.OfficeId,
+                OfficeName = application.Placement.Office?.OfficeName ?? string.Empty,
+                StudentId = application.Placement.StudentId
+            } : null,
             Requirements = application.Requirements?
          .Where(r => !r.IsDeleted)
          .Select(t => new RequirementInfo

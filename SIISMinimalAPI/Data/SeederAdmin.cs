@@ -83,24 +83,30 @@ namespace SIISMinimalAPI.Data
             {
                 string officerUsername = office.OfficeName.ToLower().Replace(" ", "");
                 string officerEmail = $"{office.OfficeName.ToLower().Replace(" ", "")}@siis.local";
-                string officerPassword = "Admin123!";
+                var officer = await userManager.FindByEmailAsync(officerEmail);
 
-                var officer = new User
+                if (officer is null)
                 {
-                    Email = officerEmail,
-                    UserName = officerUsername,
-                    EmailConfirmed = true,
-                    LastName = "Officer",
-                    FirstName = office.OfficeName,
-                    MiddleName = ""
-                };
+                    officer = new User
+                    {
+                        Email = officerEmail,
+                        UserName = officerUsername,
+                        EmailConfirmed = true,
+                        LastName = "Officer",
+                        FirstName = office.OfficeName,
+                        MiddleName = ""
+                    };
 
-                var officerResult = await userManager.CreateAsync(officer, officerPassword);
-                if (officerResult.Succeeded)
-                {
+                    var officerResult = await userManager.CreateAsync(officer, "Admin123!");
+                    if (!officerResult.Succeeded)
+                    {
+                        continue;
+                    }
+
                     await userManager.AddToRoleAsync(officer, "Officer");
-                    office.UserId = officer.Id;
                 }
+
+                office.UserId = officer.Id;
             }
 
             await dbContext.SaveChangesAsync();

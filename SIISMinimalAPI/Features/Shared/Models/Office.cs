@@ -14,5 +14,6 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
+        public string? Department { get; set; }
     }
 }

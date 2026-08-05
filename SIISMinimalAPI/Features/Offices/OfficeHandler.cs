@@ -31,6 +31,7 @@ public class OfficeHandler(AppDbContext context, UserManager<User> userManager) 
                 Name = o.OfficeName,
                 UserId = o.UserId,
                 UserEmail = userEmail,
+                Department = o.Department,
                 CreateAt = o.CreatedAt,
                 UpdatedAt = o.UpdatedAt,
                 Students = [.. o.Placements.Select(s => new StudentCount
@@ -47,6 +48,7 @@ public class OfficeHandler(AppDbContext context, UserManager<User> userManager) 
         var exist = await _context.Offices.FirstOrDefaultAsync(t => t.Id == id, ct)
         ?? throw new KeyNotFoundException("Office not found");
         exist.OfficeName = dto.OfficeName;
+        exist.Department = dto.Department;
         _context.Offices.Update(exist);
         await _context.SaveChangesAsync(ct);
     }

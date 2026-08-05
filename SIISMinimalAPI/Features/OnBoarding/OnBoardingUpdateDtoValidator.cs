@@ -135,15 +135,13 @@ public class InternshipUpdateDtoValidator : AbstractValidator<InternshipUpdateDt
             .WithMessage("Invalid degree value");
 
         RuleFor(x => x.StartDate)
-            .NotEmpty()
-            .Must(BeNotInPast)
+            .Must((dto, startDate) => !startDate.HasValue || BeNotInPast(startDate.Value))
             .WithMessage("Start date cannot be in the past")
-            .Must(BeWithinOneYear)
+            .Must((dto, startDate) => !startDate.HasValue || BeWithinOneYear(startDate.Value))
             .WithMessage("Start date must be within one year from today");
 
         RuleFor(x => x.EstimatedEndDate)
-            .NotEmpty()
-            .GreaterThan(x => x.StartDate)
+            .Must((dto, endDate) => !endDate.HasValue || endDate.Value > dto.StartDate)
             .WithMessage("End date must be after start date");
 
         RuleFor(x => x.InternshipTotalHours)
@@ -176,10 +174,10 @@ public class InternshipUpdateDtoValidator : AbstractValidator<InternshipUpdateDt
 
     private static bool HaveValidDuration(InternshipUpdateDto dto)
     {
-        if (dto.StartDate == default || dto.EstimatedEndDate == default)
+        if (!dto.StartDate.HasValue || !dto.EstimatedEndDate.HasValue)
             return true;
 
-        var duration = dto.EstimatedEndDate.DayNumber - dto.StartDate.DayNumber;
+        var duration = dto.EstimatedEndDate.Value.DayNumber - dto.StartDate.Value.DayNumber;
         var maxDays = (dto.InternshipTotalHours / 4) + 30;
         return duration <= maxDays;
     }

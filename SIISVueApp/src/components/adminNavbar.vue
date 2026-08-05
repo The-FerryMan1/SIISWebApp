@@ -34,12 +34,12 @@ const items = computed<NavigationMenuItem[]>(() => [
     active: route.name == 'registration-generator',
     to: { name: 'registration-generator' },
   },
-  // {
-  //   label: 'Endorsement',
-  //   icon: 'i-lucide-file',
-  //   active: route.name == 'endorsement',
-  //   to: { name: 'endorsement' },
-  // },
+  {
+    label: 'Endorsement',
+    icon: 'i-lucide-file',
+    active: route.name == 'endorsement' || route.name == 'endorsement-by-school',
+    to: { name: 'endorsement-by-school' },
+  },
   {
     label: 'Offices',
     icon: 'i-lucide-building',

@@ -40,6 +40,11 @@ const columns: TableColumn<Office>[] = [
     cell: ({ row }) => row.getValue('userEmail') || 'Not assigned',
   },
   {
+    accessorKey: 'department',
+    header: 'Department',
+    cell: ({ row }) => row.getValue('department') || 'Not set',
+  },
+  {
     accessorKey: 'createdAt',
     header: 'Created At',
     cell: ({ row }) => {
@@ -69,10 +74,13 @@ const columns: TableColumn<Office>[] = [
 
 const editOffice = async (officeItem: Office) => {
   const newName = prompt('Edit office name:', officeItem.officeName)
-  if (!newName || newName === officeItem.officeName) return
+  if (newName === null) return
   try {
     loading.value = true
-    await useAxios.put('/office/' + officeItem.id, { officeName: newName })
+    await useAxios.put('/office/' + officeItem.id, {
+      officeName: newName || officeItem.officeName,
+      department: officeItem.department || ''
+    })
     await office.officeInit()
     toast.add({ title: 'Office updated successfully', color: 'success' })
   } catch {

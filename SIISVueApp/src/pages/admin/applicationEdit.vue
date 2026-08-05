@@ -18,7 +18,6 @@ const {state:bstate} = storeToRefs(onboard)
 
 const loading = ref<boolean>(false)
 const error = ref()
-const open = ref<boolean>(false)
 const details = ref<ApplicationGetByIdResponse | null>(null)
 const form = useTemplateRef('form')
 const fileUploaded = ref<File[]>([])
@@ -77,30 +76,75 @@ watch(
 )
 
 const onSubmit = async () => {
-
+  console.log('onSubmit called, details:', details.value)
   try {
     loading.value = true
-    await useAxios.put('/onboading/details/' + route.params.uuid, onboard.toDataForm(), {
+    const formData = new FormData()
+
+    const student = details.value?.student
+    const placement = details.value?.placement
+
+    if (!student) {
+      toast.add({ title: 'Missing student data', color: 'warning' })
+      return
+    }
+
+    formData.append('student.lastName', student.lastName)
+    formData.append('student.firstName', student.firstName)
+    formData.append('student.middleName', student.middleName)
+    formData.append('student.contactNumber', student.contactNumber)
+    formData.append('student.address', student.address)
+    formData.append('student.dateOfBirth', student.dateOfBirth)
+    formData.append('student.email', student.email)
+    formData.append('student.gender', String(student.gender))
+    formData.append('student.gradeLevel', String(student.gradeLevel))
+
+    formData.append('school.name', student.schoolName)
+    formData.append('school.address', student.schoolAddress)
+    formData.append('school.contactPerson', student.schoolContactPerson)
+    formData.append('school.email', student.schoolContactPersonEmail)
+    formData.append('school.contactNumber', student.schoolContactPersonPhone)
+
+    formData.append('internship.internshipNature', String(student.internshipNature))
+    formData.append('internship.strand', String(student.strand))
+    formData.append('internship.degree', String(student.degree))
+    formData.append('internship.internshipTotalHours', String(student.totalInternshipHours))
+
+    if (placement) {
+      formData.append('internship.startDate', placement.startDate)
+      formData.append('internship.estimatedEndDate', placement.estimatedEndDate)
+      formData.append('internship.accumulatedHours', String(placement.accumulatedHours))
+    }
+
+    if (fileUploaded.value.length > 0) {
+      fileUploaded.value.forEach((file) => {
+        if (file instanceof File) {
+          formData.append('files', file)
+        }
+      })
+    }
+
+    const uuid = route.params.uuid as string
+    console.log('Submitting to:', '/onboading/details/' + uuid)
+
+    await useAxios.put('/onboading/details/' + uuid, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
     toast.add({ title: 'Application updated successfully', color: 'success' })
   } catch (error) {
-    console.log(error)
+    console.log('Error:', error)
     toast.add({ title: 'Update failed', color: 'error' })
   } finally {
     loading.value = false
-    open.value = false
-    console.log(loading.value)
   }
 }
 
 const save = () => {
-  debounceOnSubmit()
+  console.log('save clicked, details:', details.value)
+  onSubmit()
 }
-
-const debounceOnSubmit = useDebounceFn(onSubmit, 1000)
 
 const getRequirementName = (req: any): string => {
   return req.fileName || req.name || ''
@@ -127,8 +171,8 @@ watch(fileUploaded, (value)=>{
 
   <template v-if="loading"> loading </template>
 
-  <template v-else>
-    <UForm :schema="OnBoardUpdateDtoSchema" :state="state" ref="form" @submit="debounceOnSubmit">
+    <template v-else>
+      <UForm :schema="OnBoardUpdateDtoSchema" :state="state" ref="form">
       <UPageCard
         v-if="details?.student"
         title="Student"
@@ -392,34 +436,16 @@ watch(fileUploaded, (value)=>{
           </UFormField>
         </UForm>
       </UPageCard>
-
-    <div class="flex w-full my-5 justify-end">
-        <UModal
-          v-model="open"
-          title="Edit Applciation"
-          description="Are you sure you want to modify the details of this application?"
-        >
-          <UButton
-            v-model="open"
-            icon="i-lucide-save"
-            label="Save"
-            color="primary"
-            variant="subtle"
-          />
-          <template #footer>
-            <div class="flex justify-end w-full gap-3 items-center">
-              <UButton
-                :loading="loading"
-                @click="save"
-                icon="i-lucide-save"
-                label="Save"
-                variant="soft"
-                color="info"
-              />
-            </div>
-          </template>
-        </UModal>
-      </div>
     </UForm>
+
+    <div class="flex w-full my-5 justify-end" v-if="!loading">
+      <button
+        type="button"
+        @click="save"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+      >
+        Save
+      </button>
+    </div>
   </template>
 </template>
