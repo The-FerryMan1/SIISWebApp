@@ -121,6 +121,8 @@ function logout() {
           <USelect
             v-model="reportType"
             :items="reportTypeOptions"
+            placeholder="Select report type"
+            :allow-clear="false"
             class="w-full md:w-80"
           />
         </UFormField>

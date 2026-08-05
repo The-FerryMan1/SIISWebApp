@@ -80,7 +80,11 @@ const onSubmit = async () => {
 
   try {
     loading.value = true
-    await useAxios.put('/onboading/details/' + route.params.uuid, onboard.toDataForm())
+    await useAxios.put('/onboading/details/' + route.params.uuid, onboard.toDataForm(), {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
     toast.add({ title: 'Application updated successfully', color: 'success' })
   } catch (error) {
     console.log(error)

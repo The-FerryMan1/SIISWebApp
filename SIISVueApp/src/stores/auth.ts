@@ -75,5 +75,6 @@ export const UseAuthStore = defineStore('auth', () => {
     user,
     useVerify,
     authInit,
+    unauthenticate,
   }
 })

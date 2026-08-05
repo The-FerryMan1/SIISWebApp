@@ -29,7 +29,8 @@ const items = computed<DropdownMenuItem[]>(() => [
 
 const deboundLogout = useDebounceFn(async () => {
   try {
-    await useAxios.post('/logout')
+    await useAxios.post('/auth/logout')
+    auth.unauthenticate()
     toast.add({ title: 'You have logged out successfully', color: 'primary' })
     router.push({ name: 'login' })
   } catch (error) {

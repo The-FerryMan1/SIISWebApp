@@ -48,6 +48,7 @@ public static class OfficeDashboardEndpoint
 
                 student.Placement.StartDate = dto.StartDate;
                 student.Placement.EstimatedEndDate = dto.EstimatedEndDate;
+                student.Placement.AccumulatedHours = dto.AccumulatedHours;
                 student.Placement.UpdatedAt = DateTime.Now;
 
                 await context.SaveChangesAsync(ct);

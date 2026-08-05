@@ -14,7 +14,7 @@ const loading = ref(false)
 const dashboard = ref<any>(null)
 const editOpen = ref(false)
 const editingStudent = ref<any>(null)
-const editForm = ref({ startDate: '', estimatedEndDate: '' })
+const editForm = ref({ startDate: '', estimatedEndDate: '', accumulatedHours: 0 })
 
 const columns: TableColumn<any>[] = [
   { accessorKey: 'fullName', header: 'Student Name' },
@@ -91,6 +91,7 @@ function openEditDates(student: any) {
   editForm.value = {
     startDate: student.startDate || '',
     estimatedEndDate: student.estimatedEndDate || '',
+    accumulatedHours: student.accumulatedHours ?? 0,
   }
   editOpen.value = true
 }
@@ -98,9 +99,10 @@ function openEditDates(student: any) {
 async function saveDates() {
   if (!editingStudent.value) return
   try {
-    await useAxios.put(`/office-dashboard/internship/${editingStudent.value.studentUuid}`, {
+    await useAxios.put(`/office-dashboard/placement/${editingStudent.value.studentUuid}`, {
       startDate: editForm.value.startDate,
       estimatedEndDate: editForm.value.estimatedEndDate,
+      accumulatedHours: editForm.value.accumulatedHours,
     })
     toast.add({ title: 'Dates updated successfully', color: 'success' })
     editOpen.value = false
@@ -192,6 +194,9 @@ function logout() {
             </UFormField>
             <UFormField label="Estimated End Date">
               <UInput type="date" v-model="editForm.estimatedEndDate" class="w-full" />
+            </UFormField>
+            <UFormField label="Accumulated Hours">
+              <UInput type="number" v-model="editForm.accumulatedHours" min="0" class="w-full" />
             </UFormField>
           </UForm>
         </template>

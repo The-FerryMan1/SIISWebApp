@@ -405,6 +405,26 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
           </UPageCard>
         </template>
 
+        <!-- Internship Tab -->
+        <template #internship>
+          <UPageCard title="Internship Information" icon="i-lucide-briefcase" variant="outline" class="mt-4">
+            <UForm ref="form" :disabled="isDisabled" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <UFormField label="Internship Nature">
+                <UInput :model-value="natureLabel(details.student.internshipNature)" class="w-full" variant="soft" />
+              </UFormField>
+              <UFormField label="Strand">
+                <UInput :model-value="strandLabel(details.student.strand)" class="w-full" variant="soft" />
+              </UFormField>
+              <UFormField label="Degree">
+                <UInput :model-value="degreeLabel(details.student.degree)" class="w-full" variant="soft" />
+              </UFormField>
+              <UFormField label="Total Internship Hours">
+                <UInput :model-value="details.student.totalInternshipHours" class="w-full" variant="soft" />
+              </UFormField>
+            </UForm>
+          </UPageCard>
+        </template>
+
         <!-- Office Tab -->
         <template #office>
           <UPageCard :title="details.office ? 'Assigned Office' : 'No Office Assigned'"

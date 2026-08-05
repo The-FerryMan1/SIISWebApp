@@ -29,4 +29,5 @@ public class UpdateInternshipDatesDto
 {
     public DateOnly StartDate { get; set; }
     public DateOnly EstimatedEndDate { get; set; }
+    public int AccumulatedHours { get; set; }
 }

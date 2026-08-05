@@ -15,7 +15,7 @@ public static class LogoutEndpoint
         .RequireCors("AllowFrontend");
 
 
-        app.MapPost("/logout", [Authorize] async (HttpContext context) =>
+        group.MapPost("/logout", [Authorize] async (HttpContext context) =>
         {
             await context.SignOutAsync(IdentityConstants.ApplicationScheme);
             return Results.Ok();

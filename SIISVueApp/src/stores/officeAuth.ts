@@ -19,10 +19,15 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data } = await axios.post('/login', {
-        email,
-        password,
-      })
+      const { data } = await axios.post(
+        '/login',
+        { email, password },
+        {
+          params: {
+            useCookies: true,
+          },
+        },
+      )
       account.value = {
         id: data.userId ?? '',
         email: data.email ?? email,
@@ -40,7 +45,7 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
 
   const logout = async () => {
     try {
-      await axios.post('/logout')
+      await useAxios.post('/auth/logout')
     } catch {
       // ignore logout errors
     }
