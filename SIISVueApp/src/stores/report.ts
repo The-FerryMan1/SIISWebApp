@@ -175,7 +175,24 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const getMyOffice = async () => {
+      const adminExpiringPdf = async (officeId?: number, days: number = 30) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/expiring', {
+                  params: {
+                      officeId: officeId,
+                      days: days,
+                  },
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/pdf' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const getMyOffice = async () => {
          try {
              const { data } = await useAxios.get('office/my-office')
              return data
@@ -186,17 +203,18 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     return {
-        pdfReport,
-        csvExport,
-        pdfReportPerOffice,
-        pdfReportFiltered,
-        csvReportFiltered,
-        pdfReportPerOfficeFiltered,
-        previewPdf,
-        officeMasterlistPdf,
-        officeExpiringPdf,
-        officeFinishedPdf,
-        getMyOffice,
-     }
+      return {
+         pdfReport,
+         csvExport,
+         pdfReportPerOffice,
+         pdfReportFiltered,
+         csvReportFiltered,
+         pdfReportPerOfficeFiltered,
+         previewPdf,
+         officeMasterlistPdf,
+         officeExpiringPdf,
+         officeFinishedPdf,
+         adminExpiringPdf,
+         getMyOffice,
+      }
 })

@@ -16,6 +16,7 @@ using SIISMinimalAPI.Features.RegistrationToken;
 using SIISMinimalAPI.Features.Report.OjtList;
 using SIISMinimalAPI.Features.Report.OjtPerOffice;
 using SIISMinimalAPI.Features.Report.OfficeReport;
+using SIISMinimalAPI.Features.Report.AdminReport;
 using SIISMinimalAPI.Features.OfficeDashboard;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -106,6 +107,7 @@ builder.Services.AddScoped<IOjtListService, OjtListHandler>();
 builder.Services.AddScoped<IOjtPerOfficeService, OjtPerOfficehandler>();
 builder.Services.AddScoped<IOfficeDashboardService, OfficeDashboardHandler>();
 builder.Services.AddScoped<IOfficeReportService, OfficeReportHandler>();
+builder.Services.AddScoped<IAdminReportService, AdminReportHandler>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -174,6 +176,7 @@ app.MapToOjtList();
 app.MapToOjtPerOffice();
 app.MapToOfficeDashboard();
 app.MapToOfficeReport();
+app.MapToAdminReport();
 
 //seed
 using (var scope = app.Services.CreateScope())

@@ -3,19 +3,20 @@ import { useOfficeStore, type Office } from '../../stores/office'
 import type { TableColumn } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import OjtCountChart from './partials/ojtCountChart.vue'
-import { resolveComponent, onMounted, h, computed, ref } from 'vue'
+import { onMounted, computed, ref, h } from 'vue'
 import { useAxios } from '../../fetch/axios'
 
 const office = useOfficeStore()
-const UButton = resolveComponent('UButton')
-const UBadge = resolveComponent('UBadge')
 const toast = useToast()
 
 const loading = ref<boolean>(false)
-const table = ref()
 const pagination = ref({ pageIndex: 0, pageSize: 5 })
 const globalFilter = ref('')
 const totalOffices = computed(() => office.offices?.length ?? 0)
+
+const editDialogOpen = ref(false)
+const editingOffice = ref<Office | null>(null)
+const editForm = ref({ officeName: '', department: '' })
 
 onMounted(async () => {
   if (!office.offices) {
@@ -35,7 +36,7 @@ const columns: TableColumn<Office>[] = [
     cell: ({ row }) => row.getValue('officeName'),
   },
   {
-    accessorKey: 'userId',
+    accessorKey: 'userEmail',
     header: 'Officer Account',
     cell: ({ row }) => row.getValue('userEmail') || 'Not assigned',
   },
@@ -49,7 +50,7 @@ const columns: TableColumn<Office>[] = [
     header: 'Created At',
     cell: ({ row }) => {
       const value = row.getValue('createdAt') as string
-      return value ? new Date(value).toDateString() : '-'
+      return value ? new Date(value).toLocaleDateString() : '-'
     },
   },
   {
@@ -57,31 +58,40 @@ const columns: TableColumn<Office>[] = [
     header: 'Updated At',
     cell: ({ row }) => {
       const value = row.getValue('updatedAt') as string | null
-      return value ? new Date(value).toDateString() : 'Not yet updated'
+      return value ? new Date(value).toLocaleDateString() : 'Not yet updated'
     },
   },
   {
     header: 'Actions',
     cell: ({ row }) =>
-      h(UButton, {
+      h('UButton', {
         icon: 'i-lucide-pen',
         color: 'primary',
         variant: 'ghost',
-        onClick: () => editOffice(row.original),
+        onClick: () => openEdit(row.original),
       }),
   },
 ]
 
-const editOffice = async (officeItem: Office) => {
-  const newName = prompt('Edit office name:', officeItem.officeName)
-  if (newName === null) return
+const openEdit = (officeItem: Office) => {
+  editingOffice.value = officeItem
+  editForm.value = {
+    officeName: officeItem.officeName,
+    department: officeItem.department || '',
+  }
+  editDialogOpen.value = true
+}
+
+const saveEdit = async () => {
+  if (!editingOffice.value) return
   try {
     loading.value = true
-    await useAxios.put('/office/' + officeItem.id, {
-      officeName: newName || officeItem.officeName,
-      department: officeItem.department || ''
+    await useAxios.put('/office/' + editingOffice.value.id, {
+      officeName: editForm.value.officeName,
+      department: editForm.value.department,
     })
     await office.officeInit()
+    editDialogOpen.value = false
     toast.add({ title: 'Office updated successfully', color: 'success' })
   } catch {
     toast.add({ title: 'Office update failed', color: 'error' })
@@ -128,7 +138,6 @@ const setPage = (p: number) => {
       </template>
 
       <UTable
-        ref="table"
         sticky
         class="w-full max-h-96 flex-1"
         :pagination-options="{
@@ -151,6 +160,26 @@ const setPage = (p: number) => {
         </div>
       </template>
     </UCard>
+
+    <UModal v-model:open="editDialogOpen" title="Edit Office">
+      <template #body>
+        <div class="space-y-4">
+          <UFormField label="Office Name">
+            <UInput v-model="editForm.officeName" />
+          </UFormField>
+          <UFormField label="Department">
+            <UInput v-model="editForm.department" />
+          </UFormField>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton label="Cancel" variant="ghost" color="neutral" @click="editDialogOpen = false" />
+          <UButton label="Save" color="primary" :loading="loading" @click="saveEdit" />
+        </div>
+      </template>
+    </UModal>
 
     <OjtCountChart />
   </UMain>

@@ -8,16 +8,14 @@ import type { SelectItem } from '@nuxt/ui'
 const report = useReportStore()
 const toast = useToast()
 
-const reportType = ref<'ojtList' | 'ojtPerOffice'>('ojtList')
+const reportType = ref<'ojtList' | 'ojtPerOffice' | 'expiringInternships'>('ojtList')
 const selectedOffice = ref<string>('')
 const selectedStatus = ref<string>('')
 const dateFrom = ref<string>('')
 const dateTo = ref<string>('')
+const days = ref<number>(30)
 
 const loading = ref(false)
-const previewOpen = ref(false)
-const previewUrl = ref<string | null>(null)
-const previewFileName = ref<string>('')
 
 const statusOptions: SelectItem[] = [
     { label: 'All', value: '' },
@@ -29,12 +27,14 @@ const statusOptions: SelectItem[] = [
 const reportTypeOptions: SelectItem[] = [
     { label: 'OJT List (All Offices)', value: 'ojtList' },
     { label: 'OJT Per Office', value: 'ojtPerOffice' },
+    { label: 'Expiring Internships', value: 'expiringInternships' },
 ]
 
 const isOjtList = computed(() => reportType.value === 'ojtList')
+const isExpiring = computed(() => reportType.value === 'expiringInternships')
 const officeSelectItems = computed(() => {
-    if (!isOjtList.value) return OfficeOptions
-    return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
+    if (isOjtList.value || isExpiring.value) return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
+    return OfficeOptions
 })
 
 async function generatePreview() {
@@ -48,7 +48,11 @@ async function generatePreview() {
         let blob: Blob | undefined
         let filename = 'report'
 
-        if (isOjtList.value) {
+        if (reportType.value === 'expiringInternships') {
+            const officeId = selectedOffice.value ? parseInt(selectedOffice.value) : undefined
+            blob = await report.adminExpiringPdf(officeId, days.value)
+            filename = `expiring-internships-${days.value}days`
+        } else if (isOjtList.value) {
             const hasFilters = selectedOffice.value || selectedStatus.value || dateFrom.value || dateTo.value
             if (hasFilters) {
                 blob = await report.pdfReportFiltered('/report/ojtList', {
@@ -77,43 +81,16 @@ async function generatePreview() {
         }
 
         if (blob) {
-            previewFileName.value = `${filename}-${new Date().toLocaleDateString()}.pdf`
             const url = URL.createObjectURL(blob)
-            previewUrl.value = url
-            previewOpen.value = true
-
-            setTimeout(() => {
-                const win = window.open(url, '_blank')
-                win?.print()
-            }, 500)
+            const win = window.open(url, '_blank')
+            win?.print()
+            setTimeout(() => URL.revokeObjectURL(url), 1000)
         }
     } catch {
         toast.add({ title: 'Failed to generate report', color: 'error' })
     } finally {
         loading.value = false
     }
-}
-
-function downloadPreview() {
-    if (!previewUrl.value) return
-    const a = document.createElement('a')
-    a.href = previewUrl.value
-    a.download = previewFileName.value
-    a.click()
-}
-
-function printPreview() {
-    if (!previewUrl.value) return
-    const win = window.open(previewUrl.value, '_blank')
-    win?.print()
-}
-
-function closePreview() {
-    if (previewUrl.value) {
-        URL.revokeObjectURL(previewUrl.value)
-    }
-    previewUrl.value = null
-    previewOpen.value = false
 }
 </script>
 
@@ -138,7 +115,7 @@ function closePreview() {
             </template>
 
             <div class="flex flex-wrap gap-4 items-end">
-                <UFormField v-if="isOjtList" label="Office">
+                <UFormField v-if="isOjtList || isExpiring" label="Office">
                     <USelect
                         v-model="selectedOffice"
                         :items="officeSelectItems"
@@ -147,7 +124,7 @@ function closePreview() {
                     />
                 </UFormField>
 
-                <UFormField v-if="!isOjtList" label="Office" required>
+                <UFormField v-if="!isOjtList && !isExpiring" label="Office" required>
                     <USelect
                         v-model="selectedOffice"
                         :items="OfficeOptions"
@@ -156,7 +133,16 @@ function closePreview() {
                     />
                 </UFormField>
 
-                <UFormField label="Status">
+                <UFormField v-if="isExpiring" label="Days Threshold">
+                    <UInput
+                        type="number"
+                        v-model="days"
+                        :min="1"
+                        class="w-full md:w-32"
+                    />
+                </UFormField>
+
+                <UFormField v-if="!isExpiring" label="Status">
                     <USelect
                         v-model="selectedStatus"
                         :items="statusOptions"
@@ -165,7 +151,7 @@ function closePreview() {
                     />
                 </UFormField>
 
-                <UFormField label="Date From">
+                <UFormField v-if="!isExpiring" label="Date From">
                     <UInput
                         type="date"
                         v-model="dateFrom"
@@ -173,7 +159,7 @@ function closePreview() {
                     />
                 </UFormField>
 
-                <UFormField label="Date To">
+                <UFormField v-if="!isExpiring" label="Date To">
                     <UInput
                         type="date"
                         v-model="dateTo"
@@ -187,33 +173,9 @@ function closePreview() {
                     color="primary"
                     variant="solid"
                     :loading="loading"
-                    :disabled="reportType === 'ojtPerOffice' && !selectedOffice"
                     @click="generatePreview"
                 />
             </div>
         </UCard>
-
-        <UModal v-model:open="previewOpen" title="Report Preview">
-            <template #body>
-                <div class="w-full h-[70vh] border rounded-lg overflow-hidden bg-gray-50">
-                    <embed
-                        v-if="previewUrl"
-                        :src="previewUrl"
-                        type="application/pdf"
-                        class="w-full h-full"
-                    />
-                </div>
-            </template>
-
-            <template #footer>
-                <div class="flex justify-between w-full">
-                    <UButton label="Close" variant="ghost" color="neutral" @click="closePreview" />
-                    <div class="flex gap-3">
-                        <UButton icon="i-lucide-printer" label="Print" variant="outline" @click="printPreview" />
-                        <UButton icon="i-lucide-download" label="Download" variant="solid" color="primary" @click="downloadPreview" />
-                    </div>
-                </div>
-            </template>
-        </UModal>
     </UMain>
 </template>
