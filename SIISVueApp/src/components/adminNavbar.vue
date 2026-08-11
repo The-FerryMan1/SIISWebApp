@@ -41,6 +41,12 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: { name: 'endorsement-by-school' },
   },
   {
+    label: 'Student Import',
+    icon: 'i-lucide-upload',
+    active: route.name == 'student-import',
+    to: { name: 'student-import' },
+  },
+  {
     label: 'Offices',
     icon: 'i-lucide-building',
     active: route.name == 'office',

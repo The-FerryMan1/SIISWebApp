@@ -37,7 +37,7 @@ public class StudentInfo
     public string MiddleName { get; set; } = string.Empty;
     public string ContactNumber { get; set; }
     public string Address { get; set; }
-    public DateOnly DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public GennderEnum Gender { get; set; }
     public GradeLevelEnum GradeLevel { get; set; }
     public string SchoolName { get; set; } = string.Empty;

@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAxios } from '../../fetch/axios'
 import { CalendarDate } from '@internationalized/date'
 import { useDebounceFn } from '@vueuse/core'
-import { OfficeNameLabels, OfficesArray } from './types/officeSelectValue'
+import { OfficesArray } from './types/officeSelectValue'
 import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './types/applicationUpdateValidator'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useOnBoardStore } from '../../stores/onaboard'
@@ -127,11 +127,7 @@ const onSubmit = async () => {
     const uuid = route.params.uuid as string
     console.log('Submitting to:', '/onboading/details/' + uuid)
 
-    await useAxios.put('/onboading/details/' + uuid, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    await useAxios.put('/onboading/details/' + uuid, formData)
     toast.add({ title: 'Application updated successfully', color: 'success' })
   } catch (error) {
     console.log('Error:', error)
@@ -246,12 +242,8 @@ watch(fileUploaded, (value)=>{
             class="w-full"
             v-model="details.student.gradeLevel"
             :items="[
-              { label: 'College First Year', value: 1 },
-              { label: 'College Second Year', value: 2 },
-              { label: 'College Third Year', value: 3 },
-              { label: 'College Fourth Year', value: 4 },
-              { label: 'Grade 11', value: 11 },
-              { label: 'Grade 12', value: 12 },
+              { label: 'Senior High School', value: 0 },
+              { label: 'College', value: 1 },
             ]"
           />
         </UFormField>
@@ -334,10 +326,8 @@ watch(fileUploaded, (value)=>{
             class="w-full"
             v-model="details.student.internshipNature"
             :items="[
-              { label: 'OJT', value: 0 },
-              { label: 'Apprenticeship', value: 1 },
-              { label: 'Internship', value: 2 },
-              { label: 'Work Immersion', value: 3 },
+              { label: 'On-the-Job-Training', value: 0 },
+              { label: 'Work Immersion', value: 1 },
             ]"
           />
         </UFormField>

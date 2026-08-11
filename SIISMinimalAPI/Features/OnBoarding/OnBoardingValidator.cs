@@ -47,11 +47,8 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
 
         return (dto.Student.GradeLevel, dto.Internship.InternshipNature) switch
         {
-            (GradeLevelEnum.Grade11 or GradeLevelEnum.Grade12, 
-             InternshipNatureEnum.WorkImmersion) => true,
-            (GradeLevelEnum.CollegeFirstYear or GradeLevelEnum.CollegeSecondYear 
-             or GradeLevelEnum.CollegeThirdYear or GradeLevelEnum.CollegeFourthYear, 
-             InternshipNatureEnum.OJT) => true,
+            (GradeLevelEnum.SeniorHighSchool, InternshipNatureEnum.WorkImmersion) => true,
+            (GradeLevelEnum.College, InternshipNatureEnum.OnTheJobTraining) => true,
             _ => false
         };
     }

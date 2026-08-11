@@ -224,7 +224,7 @@ const back = () => {
                     <UModal class="ms-auto" v-model:open="isOpen" title="Add expiration date">
                         <UButton label="Generate registration token" />
                         <template #content>
-                            <UForm @error="(r) => console.log(r)" @submit="submitDebounce" :state="state"
+                            <UForm @error="(r: any) => console.log(r)" @submit="submitDebounce" :state="state"
                                 :schema="expirySchema" class="p-4 w-full">
                                 <UFormField name="expDate" label="Expiration date">
                                     <UInput v-model="state.expDate" type="date" class="w-full" :min="minDate" />
@@ -238,7 +238,7 @@ const back = () => {
                     <UModal v-model:open="isExtendOpen" title="Extend expiration date">
                         <template #content>
                             <UForm 
-                                @error="(r) => console.log(r)" 
+                                @error="(r: any) => console.log(r)" 
                                 @submit="extendDebounce" 
                                 :state="state"
                                 :schema="expirySchema" 
@@ -285,7 +285,7 @@ const back = () => {
                         :default-page="(pagination.pageIndex || 0) + 1" 
                         :items-per-page="pagination.pageSize"
                         :total="tokens?.length ?? 0" 
-                        @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" 
+                        @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)" 
                     />
                 </div>
             </template>

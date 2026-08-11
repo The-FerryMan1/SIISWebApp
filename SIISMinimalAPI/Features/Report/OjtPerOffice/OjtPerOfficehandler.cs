@@ -90,8 +90,9 @@ columns.RelativeColumn(1.5f);   // Started Date
                     var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
                     var degree = ojt.Degree.ToString().Humanize(LetterCasing.Title);
                     var strand =  ojt.Strand.ToString().Humanize(LetterCasing.Title) ?? "N/A";
-                    var startedDate = ojt.Placement!.StartDate;
-                    var estimatedDate = ojt.Placement!.EstimatedEndDate;
+                    var startedDate = ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-";
+                    var estimatedDate = ojt.Placement?.EstimatedEndDate.ToString("MM/dd/yyyy") ?? "-";
+                    var accumulatedHours = ojt.Placement?.AccumulatedHours.ToString() ?? "-";
 
                     table.Cell().Element(DataCell).AlignCenter()
                         .Text(index++.ToString()).FontSize(9);
@@ -117,11 +118,11 @@ columns.RelativeColumn(1.5f);   // Started Date
                     table.Cell().Element(DataCell).AlignCenter()
                        .Text(startedDate).FontSize(9);
 
-table.Cell().Element(DataCell).AlignCenter()
+                   table.Cell().Element(DataCell).AlignCenter()
                         .Text(estimatedDate).FontSize(9);
 
                     table.Cell().Element(DataCell).AlignCenter()
-                        .Text(ojt.Placement!.AccumulatedHours.ToString() ?? "-").FontSize(9);
+                        .Text(accumulatedHours).FontSize(9);
                 }
 
                 static IContainer DataCell(IContainer container) => container
@@ -149,6 +150,7 @@ table.Cell().Element(DataCell).AlignCenter()
         var query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .Where(t => t.Placement != null)
             .AsNoTracking()
             .AsSplitQuery();
 
@@ -157,9 +159,9 @@ table.Cell().Element(DataCell).AlignCenter()
             query = query.Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office);
         }
 
-        if (status.HasValue)
+        if (status is { } selectedStatus)
         {
-            query = query.Where(t => t.Application.Status == status.Value);
+            query = query.Where(t => t.Application.Status == selectedStatus);
         }
 
         if (dateFrom.HasValue)
@@ -236,12 +238,12 @@ table.Cell().Element(DataCell).AlignCenter()
                     var fullname = ojt.FullName;
                     var status = ojt.Application?.Status;
                     var totalHours = ojt.TotalInternshipHours;
-                    var accumulatedHours = ojt.Placement!.AccumulatedHours;
+                    var accumulatedHours = ojt.Placement?.AccumulatedHours.ToString() ?? "-";
                     var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
                     var degree = ojt.Degree.ToString().Humanize(LetterCasing.Title);
                     var strand =  ojt.Strand.ToString().Humanize(LetterCasing.Title) ?? "N/A";
-                    var startedDate = ojt.Placement!.StartDate;
-                    var estimatedDate = ojt.Placement!.EstimatedEndDate;
+                    var startedDate = ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-";
+                    var estimatedDate = ojt.Placement?.EstimatedEndDate.ToString("MM/dd/yyyy") ?? "-";
 
                     table.Cell().Element(DataCell).AlignCenter()
                         .Text(index++.ToString()).FontSize(9);
@@ -271,7 +273,7 @@ table.Cell().Element(DataCell).AlignCenter()
                        .Text(estimatedDate).FontSize(9);
 
                     table.Cell().Element(DataCell).AlignCenter()
-                       .Text(accumulatedHours.ToString()).FontSize(9);
+                       .Text(accumulatedHours).FontSize(9);
                 }
 
                 static IContainer DataCell(IContainer container) => container

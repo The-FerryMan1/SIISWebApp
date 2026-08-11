@@ -13,7 +13,7 @@ export interface Ojt {
   dateOfBirth: string | Date
   createdAt: string
   updatedAt: string | null
-  officeName: number
+  officeName: string
   estimatedEndDate: string
   startDate: string
 }

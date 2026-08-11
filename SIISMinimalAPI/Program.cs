@@ -18,6 +18,7 @@ using SIISMinimalAPI.Features.Report.OjtPerOffice;
 using SIISMinimalAPI.Features.Report.OfficeReport;
 using SIISMinimalAPI.Features.Report.AdminReport;
 using SIISMinimalAPI.Features.OfficeDashboard;
+using SIISMinimalAPI.Features.StudentImport;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,6 +109,7 @@ builder.Services.AddScoped<IOjtPerOfficeService, OjtPerOfficehandler>();
 builder.Services.AddScoped<IOfficeDashboardService, OfficeDashboardHandler>();
 builder.Services.AddScoped<IOfficeReportService, OfficeReportHandler>();
 builder.Services.AddScoped<IAdminReportService, AdminReportHandler>();
+builder.Services.AddScoped<IStudentImportService, StudentImportHandler>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -177,12 +179,13 @@ app.MapToOjtPerOffice();
 app.MapToOfficeDashboard();
 app.MapToOfficeReport();
 app.MapToAdminReport();
+app.MapStudentImportEndpoints();
 
 //seed
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.EnsureCreated();
+    dbContext.Database.Migrate();
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
     await SeederStudent.InitStudents(scope.ServiceProvider);
 }

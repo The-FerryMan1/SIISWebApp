@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useAxios } from '../../fetch/axios'
 import type { SelectItem } from '@nuxt/ui'
-import { OfficeNameLabels, type OfficeNameEnum } from './types/officeSelectValue'
+import { OfficeNameLabels } from './types/officeSelectValue'
 
 const toast = useToast()
 
@@ -104,7 +104,7 @@ async function printEndorsement() {
           />
         </UFormField>
 
-        <UFormField label="Office">
+        <UFormField label="Office" v-if="selectedSchool">
           <USelect
             v-model="selectedOffice"
             :items="officeOptions"

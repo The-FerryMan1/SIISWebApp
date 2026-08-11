@@ -13,22 +13,13 @@ export enum GenderEnum {
 }
 
 export enum GradeLevelEnum {
-  // 0 = ?, 1 = ?, 2 = ?
-  Grade11 = 11,
-  Grade12 = 12,
-
-  CollegeFirstYear = 1,
-  CollegeSecondYear = 2,
-  CollegeThirdYear = 3,
-  CollegeFourthYear = 4,
+  SeniorHighSchool = 0,
+  College = 1,
 }
 
 export enum InternshipNatureEnum {
-  // 1 = ?
-  OJT,
-  Apprenticeship,
-  Internship,
-  WorkImmersion,
+  OnTheJobTraining = 0,
+  WorkImmersion = 1,
 }
 
 export enum StrandEnum {

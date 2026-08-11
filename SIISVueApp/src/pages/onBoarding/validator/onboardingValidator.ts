@@ -8,16 +8,12 @@ export const GenderEnum = z.enum(['Male', 'Female', 'Other'])
 export type GenderEnum = z.infer<typeof GenderEnum>
 
 export const GradeLevelEnum = z.enum([
-  'Grade11',
-  'Grade12',
-  'CollegeFirstYear',
-  'CollegeSecondYear',
-  'CollegeThirdYear',
-  'CollegeFourthYear',
+  'SeniorHighSchool',
+  'College',
 ])
 export type GradeLevelEnum = z.infer<typeof GradeLevelEnum>
 
-export const InternshipNatureEnum = z.enum(['OJT', 'Apprenticeship', 'Internship', 'WorkImmersion'])
+export const InternshipNatureEnum = z.enum(['OnTheJobTraining', 'WorkImmersion'])
 export type InternshipNatureEnum = z.infer<typeof InternshipNatureEnum>
 
 export const StrandEnum = z.enum(['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'])
@@ -58,8 +54,7 @@ export const StudentInfoSchema = z.object({
   gradeLevel: z.coerce
     .number({ error: 'Grade level is required' })
     .int()
-    .min(1)
-    .max(12, 'Invalid grade level'),
+    .refine((value) => [0, 1].includes(value), 'Invalid grade level'),
   schoolName: z.string().min(1).max(100),
   schoolAddress: z.string().min(1).max(200),
   schoolContactPerson: z.string().min(1).max(100),
@@ -69,7 +64,7 @@ export const StudentInfoSchema = z.object({
     .min(1)
     .max(20)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
-  internshipNature: z.coerce.number().int().min(0).max(3),
+  internshipNature: z.coerce.number().int().min(0).max(1),
   strand: z.coerce.number().int().min(0).max(4),
   degree: z.coerce.number().int().min(0).max(11),
   totalInternshipHours: z.coerce.number().int().min(1).max(1000),
@@ -153,7 +148,10 @@ export const StudentUpdateDtoSchema = z.object({
   address: z.string().min(1, 'Address is required').max(200),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
   gender: z.coerce.number().int().min(0, 'Gender is required').max(2),
-  gradeLevel: z.coerce.number().int().min(1, 'Grade level is required').max(12),
+  gradeLevel: z.coerce
+    .number({ error: 'Grade level is required' })
+    .int()
+    .refine((value) => [0, 1].includes(value), 'Invalid grade level'),
   schoolName: z.string().min(1, 'School name is required').max(100),
   schoolAddress: z.string().min(1, 'School address is required').max(200),
   schoolContactPerson: z.string().min(1, 'Contact person is required').max(100),
@@ -163,7 +161,7 @@ export const StudentUpdateDtoSchema = z.object({
     .min(11, "Contact person's contact number is required")
     .max(11)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
-  internshipNature: z.coerce.number().int().min(0).max(3),
+  internshipNature: z.coerce.number().int().min(0).max(1),
   strand: z.coerce.number().int().min(0).max(4),
   degree: z.coerce.number().int().min(0).max(11),
   totalInternshipHours: z.coerce

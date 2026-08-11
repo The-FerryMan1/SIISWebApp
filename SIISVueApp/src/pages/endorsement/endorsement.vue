@@ -9,7 +9,7 @@ import type { TableColumn } from '@nuxt/ui'
 import { useAxios } from '../../fetch/axios'
 
 type Payload = {
-  office: OfficeNameEnum
+  office: string
   uuids: string[]
 }
 
@@ -42,9 +42,8 @@ watch(
   { immediate: true },
 )
 
-const officeFilter = computed(() =>
-  ojts.value.filter((t) => t.officeName == selectedOffice.value.office),
-)
+const univ = computed(() => ojts.value.map((t) => t.universitySchool).filter(Boolean))
+
 const genderLabel = (g: number) => ['Male', 'Female', 'Other'][g] ?? 'Unknown'
 const iconGender = (g: number | null) => {
   if (g === null || g === undefined) return 'i-lucide-help-circle'
@@ -141,11 +140,11 @@ const columns: TableColumn<Ojt>[] = [
     accessorKey: 'officeName',
     header: 'Office',
     cell: ({ row }) => {
-      const value = row.getValue('officeName') as OfficeNameEnum | null
+      const value = row.getValue('officeName') as string | null
       if (value == null || value == undefined) {
         return h('span', { class: 'text-muted' }, 'N/A')
       } else {
-        return h('span', {}, OfficeNameLabels[value])
+        return h('span', {}, value)
       }
     },
   },
@@ -184,16 +183,18 @@ const getAge = (birthDate: string | Date): number => {
   return age
 }
 const selectedShit = computed(() =>
-  table.value?.tableApi.getSelectedRowModel().rows.map((t) => t.getValue('ojtUUID') as string),
+  table.value?.tableApi.getSelectedRowModel().rows.map((t: any) => t.getValue('ojtUUID') as string),
 )
 
 const generate = async () => {
+  const officeValue = selectedOffice.value.office
+  const officeName = officeValue !== undefined ? OfficeNameLabels[officeValue] : ''
   payload.value = {
-    office: selectedOffice.value.office,
+    office: officeName,
     uuids: selectedShit.value,
   }
   try {
-    await useAxios.post('/endorsement', payload)
+    await useAxios.post('/endorsement', payload.value)
   } catch (error) {
     console.log(error)
   }
@@ -201,14 +202,19 @@ const generate = async () => {
   console.log(payload.value)
 }
 
-const univ = computed(() => officeFilter.value.map((t) => t.universitySchool))
 const doubleFilter = computed(() =>
   ojts.value.filter((t) => t.universitySchool == selectedUniv.value),
 )
 
-watch(officeFilter, () => {
-  selectedUniv.value = undefined
-})
+watch(
+  selectedOffice,
+  async () => {
+    try {
+      await ojt.ojtInit()
+    } catch (error) {}
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

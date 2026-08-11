@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, h } from 'vue'
+import { ref, onMounted, h, computed } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { useOfficeAccountStore } from '../../stores/officeAuth'
 import { useAxios } from '../../fetch/axios'
@@ -12,6 +12,7 @@ const toast = useToast()
 
 const loading = ref(false)
 const dashboard = ref<any>(null)
+const searchQuery = ref('')
 const editOpen = ref(false)
 const editingStudent = ref<any>(null)
 const editForm = ref({ startDate: '', estimatedEndDate: '', accumulatedHours: 0 })
@@ -60,6 +61,17 @@ const columns: TableColumn<any>[] = [
   },
 ]
 
+const filteredStudents = computed(() => {
+  if (!dashboard.value?.students?.length) return []
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return dashboard.value.students
+  return dashboard.value.students.filter((s: any) =>
+    [s.fullName, s.email, s.school, s.status, s.officeName].some((v) =>
+      String(v ?? '').toLowerCase().includes(q)
+    )
+  )
+})
+
 onMounted(async () => {
   if (!officeAuth.isAuthenticated()) {
     router.push({ name: 'office-login' })
@@ -92,10 +104,11 @@ function goToStudent(uuid: string) {
 
 function openEditDates(student: any) {
   editingStudent.value = student
+  const maxHours = student.totalHours ?? 0
   editForm.value = {
     startDate: student.startDate || '',
     estimatedEndDate: student.estimatedEndDate || '',
-    accumulatedHours: student.accumulatedHours ?? 0,
+    accumulatedHours: Math.min(student.accumulatedHours ?? 0, maxHours),
   }
   editOpen.value = true
 }
@@ -103,10 +116,13 @@ function openEditDates(student: any) {
 async function saveDates() {
   if (!editingStudent.value) return
   try {
+    const maxHours = editingStudent.value.totalHours ?? 0
+    const cappedHours = Math.min(editForm.value.accumulatedHours, maxHours)
+    
     await useAxios.put(`/office-dashboard/placement/${editingStudent.value.studentUuid}`, {
       startDate: editForm.value.startDate,
       estimatedEndDate: editForm.value.estimatedEndDate,
-      accumulatedHours: editForm.value.accumulatedHours,
+      accumulatedHours: cappedHours,
     })
     toast.add({ title: 'Dates updated successfully', color: 'success' })
     editOpen.value = false
@@ -237,11 +253,19 @@ function logout() {
 
       <UCard>
         <template #header>
-          <h3 class="text-lg font-semibold">Assigned OJTs</h3>
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-lg font-semibold">Assigned OJTs</h3>
+            <UInput
+              v-model="searchQuery"
+              icon="i-lucide-search"
+              placeholder="Search students..."
+              class="w-full md:w-64"
+            />
+          </div>
         </template>
 
         <UTable
-          :data="dashboard.students"
+          :data="filteredStudents"
           :columns
           :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
           :loading
@@ -314,7 +338,16 @@ function logout() {
               <UInput type="date" v-model="editForm.estimatedEndDate" class="w-full" />
             </UFormField>
             <UFormField label="Accumulated Hours">
-              <UInput type="number" v-model="editForm.accumulatedHours" min="0" class="w-full" />
+              <UInput 
+                type="number" 
+                v-model="editForm.accumulatedHours" 
+                :max="editingStudent?.totalHours ?? 0"
+                min="0" 
+                class="w-full" 
+              />
+              <p v-if="editingStudent" class="text-xs text-muted mt-1">
+                Maximum: {{ editingStudent.totalHours }} hours
+              </p>
             </UFormField>
           </UForm>
         </template>

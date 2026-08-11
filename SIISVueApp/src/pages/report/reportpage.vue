@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useReportStore } from '../../stores/report.ts'
-import { OfficeNameLabels } from '../admin/types/officeSelectValue'
 import { OfficeOptions } from '../../shared/officeEnum.ts'
 import type { SelectItem } from '@nuxt/ui'
 

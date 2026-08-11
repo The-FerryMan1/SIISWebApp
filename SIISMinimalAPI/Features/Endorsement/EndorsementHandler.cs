@@ -31,10 +31,11 @@ public class EndorsementHandler(AppDbContext context, UserManager<User> userMana
             ?? throw new KeyNotFoundException("Application not found");
 
         QuestPDF.Settings.License = LicenseType.Community; // or Evaluation
-        var basePath = Directory.GetCurrentDirectory(); // or Directory.GetCurrentDirectory()
+        var basePath = Directory.GetCurrentDirectory();
         var imagePath = Path.Combine(basePath, "Features", "Endorsement", "Shared", "logo.png");
-         var officeName = stud.Placement!.Office!.OfficeName;
-         var department = stud.Placement!.Office!.Department ?? string.Empty;
+        var hasLogo = File.Exists(imagePath);
+        var officeName = stud.Placement?.Office?.OfficeName ?? string.Empty;
+        var department = !string.IsNullOrEmpty(officeName) ? stud.Placement!.Office!.Department ?? string.Empty : string.Empty;
         var docs = Document.Create(container =>
         {
             container.Page(page =>
@@ -44,8 +45,10 @@ public class EndorsementHandler(AppDbContext context, UserManager<User> userMana
 
                 page.Header().Column(c =>
                 {
-                    // Header
-                    c.Item().AlignCenter().PaddingBottom(5).Width(50).Height(50).Image(imagePath);
+                    if (hasLogo)
+                    {
+                        c.Item().AlignCenter().PaddingBottom(5).Width(50).Height(50).Image(imagePath);
+                    }
                     c.Item().AlignCenter().Text("Republic of the Philippines").FontSize(12);
 
                     c.Item().AlignCenter().Text("Province of Cavite").FontSize(12);
@@ -136,9 +139,104 @@ public class EndorsementHandler(AppDbContext context, UserManager<User> userMana
         return docs;
     }
 
-    public Task<Document?> MultiOjtEndorsement(EndorsementBulkDto dto, CancellationToken ct)
+    public async Task<Document?> MultiOjtEndorsement(EndorsementBulkDto dto, string currentUserId, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var user = await _userManager.FindByIdAsync(currentUserId)
+            ?? throw new KeyNotFoundException("No user found");
+
+        var students = await _context.Students
+            .Include(t => t.Application)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .Where(t => dto.UUIDS.Contains(t.StudentUUID) && !t.IsDeleted && t.Application.Status == Shared.Enums.ApplicationStatusEnum.Approved)
+            .ToListAsync(ct);
+
+        if (!students.Any())
+            throw new KeyNotFoundException("No approved students found for the selected IDs");
+
+        var officeName = dto.Office ?? students.First().Placement?.Office?.OfficeName ?? string.Empty;
+        var department = students.First().Placement?.Office?.Department ?? string.Empty;
+
+        QuestPDF.Settings.License = LicenseType.Community;
+        var basePath = Directory.GetCurrentDirectory();
+        var imagePath = Path.Combine(basePath, "Features", "Endorsement", "Shared", "logo.png");
+        var hasLogo = File.Exists(imagePath);
+
+        var docs = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(50);
+
+                page.Header().Column(c =>
+                {
+                    if (hasLogo)
+                    {
+                        c.Item().AlignCenter().PaddingBottom(5).Width(50).Height(50).Image(imagePath);
+                    }
+                    c.Item().AlignCenter().Text("Republic of the Philippines").FontSize(12);
+                    c.Item().AlignCenter().Text("Province of Cavite").FontSize(12);
+                    c.Item().AlignCenter().Text("OFFICE OF THE PROVINCIAL GOVERNOR")
+                        .FontSize(14).Bold();
+                    c.Item().AlignCenter().Text("Trece Martires City").FontSize(12);
+                });
+
+                page.Content().Column(content =>
+                {
+                    content.Item().PaddingVertical(20);
+                    content.Item().AlignLeft().Text(DateTime.Now.ToString("MMMM dd, yyyy")).FontSize(12);
+                    content.Item().PaddingVertical(5);
+
+                    content.Item().AlignLeft().Column(recipient =>
+                    {
+                        if (!string.IsNullOrEmpty(department))
+                        {
+                            recipient.Item().Text($"{department}").Bold().FontSize(12);
+                        }
+                        recipient.Item().Text($"{officeName}").FontSize(12);
+                        recipient.Item().Text("Trece Martires City").FontSize(12);
+                    });
+
+                    content.Item().PaddingVertical(5);
+                    content.Item().AlignLeft().Text($"Dear Sir/Madam").FontSize(12);
+                    content.Item().PaddingVertical(5);
+                    content.Item().AlignLeft().Text("Greetings").FontSize(12);
+                    content.Item().PaddingVertical(5);
+
+                    content.Item().AlignLeft().Text(text =>
+                    {
+                        text.Span("Respectfully endorsing the following students of the ").FontSize(12);
+                        text.Span(students.First().SchoolName ?? "the university").Bold().FontSize(12);
+                        text.Span($", to conduct their on-the-job training in your office:").FontSize(12);
+                    });
+
+                    content.Item().PaddingVertical(10);
+
+                    int index = 1;
+                    foreach (var stud in students)
+                    {
+                        content.Item().Text($"{index}. {stud.FullName} - {stud.TotalInternshipHours} hours")
+                            .FontSize(12);
+                        index++;
+                    }
+
+                    content.Item().PaddingVertical(5);
+                    content.Item().AlignLeft().Text("Attached are the resumes of the students for your reference.").FontSize(12);
+                    content.Item().PaddingVertical(5);
+                    content.Item().AlignLeft().Text("Thank you very much.").FontSize(12);
+                    content.Item().PaddingVertical(5);
+                    content.Item().AlignLeft().Text("Very truly yours,").FontSize(12);
+                    content.Item().PaddingVertical(5);
+                    var staffName = $"{user.FirstName} {user.LastName}".Trim();
+                    content.Item().AlignLeft().Text(staffName).FontSize(12).Bold();
+                    content.Item().AlignLeft().Text("Executive Assistant IV").FontSize(12).SemiBold();
+                });
+            });
+        });
+
+        return docs;
     }
 
     public async Task<Document?> GenerateEndorsementBySchool(string schoolName, string? office, string currentUserId, CancellationToken ct)
@@ -166,8 +264,9 @@ public class EndorsementHandler(AppDbContext context, UserManager<User> userMana
         QuestPDF.Settings.License = LicenseType.Community;
         var basePath = Directory.GetCurrentDirectory();
         var imagePath = Path.Combine(basePath, "Features", "Endorsement", "Shared", "logo.png");
-         var officeName = students.First().Placement!.Office!.OfficeName;
-         var department = students.First().Placement!.Office!.Department ?? string.Empty;
+        var hasLogo = File.Exists(imagePath);
+         var officeName = students.First().Placement?.Office?.OfficeName ?? string.Empty;
+         var department = !string.IsNullOrEmpty(officeName) ? students.First().Placement!.Office!.Department ?? string.Empty : string.Empty;
 
         var docs = Document.Create(container =>
         {
@@ -178,7 +277,10 @@ public class EndorsementHandler(AppDbContext context, UserManager<User> userMana
 
                 page.Header().Column(c =>
                 {
-                    c.Item().AlignCenter().PaddingBottom(5).Width(50).Height(50).Image(imagePath);
+                    if (hasLogo)
+                    {
+                        c.Item().AlignCenter().PaddingBottom(5).Width(50).Height(50).Image(imagePath);
+                    }
                     c.Item().AlignCenter().Text("Republic of the Philippines").FontSize(12);
                     c.Item().AlignCenter().Text("Province of Cavite").FontSize(12);
                     c.Item().AlignCenter().Text("OFFICE OF THE PROVINCIAL GOVERNOR")

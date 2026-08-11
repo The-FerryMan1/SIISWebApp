@@ -22,8 +22,8 @@ const isTokenValid = ref<boolean>(false)
 
 const reviewPayload = ref<FormSubmitEvent<OnBoardUpdateDto> | null>(null)
 
-const isSeniorHigh = computed(() => [11, 12].includes(state.value.student.gradeLevel))
-const isCollege = computed(() => [1, 2, 3, 4].includes(state.value.student.gradeLevel))
+const isSeniorHigh = computed(() => state.value.student.gradeLevel === 0)
+const isCollege = computed(() => state.value.student.gradeLevel === 1)
 
 const estimatedEndDate = computed(() => {
   if (!state.value.student.internshipStartDate || !state.value.student.totalInternshipHours) return ''
@@ -50,19 +50,13 @@ const genderItems = [
 ]
 
 const gradeLevelItems = [
-  { value: 11, label: 'Grade 11' },
-  { value: 12, label: 'Grade 12' },
-  { value: 1, label: 'First-year college' },
-  { value: 2, label: 'Second-year college' },
-  { value: 3, label: 'Third-year college' },
-  { value: 4, label: 'Fourth-year college' },
+  { value: 0, label: 'Senior High School' },
+  { value: 1, label: 'College' },
 ]
 
 const internshipNatureItems = [
-  { value: 0, label: 'OJT' },
-  { value: 1, label: 'Apprenticeship' },
-  { value: 2, label: 'Internship' },
-  { value: 3, label: 'Work Immersion' },
+  { value: 0, label: 'On-the-Job-Training' },
+  { value: 1, label: 'Work Immersion' },
 ]
 
 const strandItems = [
@@ -189,7 +183,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
           :schema="OnBoardUpdateDtoSchema"
           :state="state"
           class="space-y-6 w-full"
-          @error="(e) => console.log(e)"
+          @error="(e: any) => console.log(e)"
         >
           <!-- Student Information -->
           <UPageCard title="Student Information" icon="i-lucide-user" variant="outline">

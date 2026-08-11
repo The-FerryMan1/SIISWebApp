@@ -102,11 +102,11 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
                     {
                         table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                         table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
-                        table.Cell().Element(DataCell).Text(s.Placement!.Office!.OfficeName).FontSize(9);
+                        table.Cell().Element(DataCell).Text(s.Placement?.Office?.OfficeName ?? "N/A").FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.Application?.Status.ToString() ?? "N/A").FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.StartDate.ToString("MM/dd/yyyy")).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.EstimatedEndDate.ToString("MM/dd/yyyy")).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.AccumulatedHours.ToString()).FontSize(9);
+                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
+                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement?.EstimatedEndDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
+                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement?.AccumulatedHours.ToString() ?? "-").FontSize(9);
                     }
 
                     static IContainer DataCell(IContainer container) => container

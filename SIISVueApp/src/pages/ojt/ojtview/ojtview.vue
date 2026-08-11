@@ -45,12 +45,8 @@ const officeLabel = (g: number) =>
 
 const gradeLabel = (g: number) => {
     const grades: Record<number, string> = {
-        1: '1st Year',
-        2: '2nd Year',
-        3: '3rd Year',
-        4: '4th Year',
-        11: 'Grade 11',
-        12: 'Grade 12',
+        0: 'Senior High School',
+        1: 'College',
     }
     return grades[g] ?? 'Unknown'
 }

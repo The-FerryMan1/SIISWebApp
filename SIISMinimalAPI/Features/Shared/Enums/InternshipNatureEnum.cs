@@ -2,11 +2,7 @@
 {
     public enum InternshipNatureEnum
     {
-        OJT = 0,
-        Apprenticeship = 1,
-        Internship = 2,
-        WorkImmersion = 3
-
-
+        OnTheJobTraining = 0,
+        WorkImmersion = 1
     }
 }

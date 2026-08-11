@@ -18,21 +18,25 @@ namespace SIISMinimalAPI.Features.Shared.Models
         [StringLength(100)]
         public string? MiddleName { get; set; } = string.Empty;
 
-        [Required]
-        public DateOnly DateOfBirth { get; set; }
-
-        [Required]
-        public GennderEnum Gender { get; set; }
+        public DateOnly? DateOfBirth { get; set; }
 
         [NotMapped]
-        public int Age
+        public int? Age
         {
             get
             {
+                if (!DateOfBirth.HasValue)
+                {
+                    return null;
+                }
+
                 var today = DateOnly.FromDateTime(DateTime.Today);
-                var age = today.Year - DateOfBirth.Year;
-                if (today < DateOfBirth.AddYears(age))
+                var age = today.Year - DateOfBirth.Value.Year;
+                if (today < DateOfBirth.Value.AddYears(age))
+                {
                     age--;
+                }
+
                 return age;
             }
         }
@@ -48,6 +52,9 @@ namespace SIISMinimalAPI.Features.Shared.Models
 
         [Required]
         public string Address { get; set; } = string.Empty;
+
+        [Required]
+        public GennderEnum Gender { get; set; }
 
         [Required, StringLength(255, MinimumLength = 1)]
         public string SchoolName { get; set; } = string.Empty;

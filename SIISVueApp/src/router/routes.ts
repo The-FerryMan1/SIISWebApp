@@ -131,6 +131,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/report/reportpage.vue'),
         name: 'report',
         meta: { isRequiresAuth: true },
+      },
+      {
+        path: '/student-import',
+        component: () => import('../pages/admin/studentImport.vue'),
+        name: 'student-import',
+        meta: { isRequiresAuth: true },
       }
     ],
   },

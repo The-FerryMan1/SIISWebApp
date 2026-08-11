@@ -34,11 +34,11 @@ public class OjtHandler(AppDbContext context) : IOjtService
             LastName = t.LastName,
             FirstName = t.FirstName,
             MiddleName = t.MiddleName,
-            OfficeName = t.Placement!.Office!.OfficeName,
+            OfficeName = t.Placement?.Office?.OfficeName ?? string.Empty,
             DateOfBirth = t.DateOfBirth,
             UniversitySchool = t.SchoolName,
-            EstimatedEndDate = t.Placement!.EstimatedEndDate,
-            StartDate = t.Placement!.StartDate,
+            EstimatedEndDate = t.Placement?.EstimatedEndDate,
+            StartDate = t.Placement?.StartDate,
             Gender = t.Gender,
             CreatedAt = t.CreatedAt,
             UpdatedAt = t.UpdatedAt,
@@ -64,7 +64,7 @@ public class OjtHandler(AppDbContext context) : IOjtService
           GradeLevel = ojt.GradeLevel,
           LastName = ojt.LastName,
           MiddleName = ojt.MiddleName,
-          Office = ojt.Placement!.Office!.OfficeName
+          Office = ojt.Placement?.Office?.OfficeName ?? string.Empty
         };
     }
 }

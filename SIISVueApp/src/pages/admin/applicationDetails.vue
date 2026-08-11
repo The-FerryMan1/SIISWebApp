@@ -75,12 +75,8 @@ const statusLabel = (status: ApplicationStatusEnum) => ApplicationStatusEnum[sta
 const genderLabel = (g: number) => ['Male', 'Female', 'Other'][g] ?? 'Unknown'
 const gradeLabel = (g: number) => {
   const grades: Record<number, string> = {
-    1: '1st Year',
-    2: '2nd Year',
-    3: '3rd Year',
-    4: '4th Year',
-    11: 'Grade 11',
-    12: 'Grade 12',
+    0: 'Senior High School',
+    1: 'College',
   }
   return grades[g] ?? 'Unknown'
 }
@@ -111,7 +107,7 @@ const degreeLabel = (s: number | null | undefined) => {
 }
 
 const natureLabel = (n: number) =>
-  ({ 0: 'OJT', 1: 'Apprenticeship', 2: 'Internship', 3: 'Work Immersion' })[n] ?? 'Unknown'
+  ({ 0: 'On-the-Job-Training', 1: 'Work Immersion' })[n] ?? 'Unknown'
 
 // --- Requirements Table Columns ---
 const requirementColumns: TableColumn<any>[] = [
@@ -332,10 +328,6 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
 
           <UButton @click="rejectApplication(details.application.uuid)" v-if="isPending" color="error" variant="solid" icon="i-lucide-x" size="sm">
             Reject
-          </UButton>
-
-          <UButton v-if="!isPending" color="error" variant="solid" icon="i-lucide-trash" size="sm">
-            Delete
           </UButton>
         </div>
       </div>

@@ -58,6 +58,24 @@ public static class EndorsementEnpoint
             }
         });
 
+        group.MapPost("/", [Authorize] async Task<IResult>([FromBody] EndorsementBulkDto dto, ClaimsPrincipal user, CancellationToken ct, IEndorsementService service) =>
+        {
+            try
+            {
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var result = await service.MultiOjtEndorsement(dto, userId!, ct);
+                return TypedResults.File(result!.GeneratePdf(), "application/pdf", $"endorsement-bulk-{DateTime.Now:yyyyMMdd}.pdf");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return TypedResults.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return TypedResults.InternalServerError(ex.Message);
+            }
+        });
+
         return app;
     }
 }

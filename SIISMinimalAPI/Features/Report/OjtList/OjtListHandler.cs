@@ -15,18 +15,22 @@ namespace SIISMinimalAPI.Features.Report.OjtList;
 public class OjtListHandler(AppDbContext context) : IOjtListService
 {
     private readonly AppDbContext _context = context;
-    public async Task<byte[]> ListAllOjt(ApplicationStatusEnum status, CancellationToken ct)
+    public async Task<byte[]> ListAllOjt(ApplicationStatusEnum? status, CancellationToken ct)
     {
-        var selectedStatus = status switch
+        var query = _context.Students
+            .Include(t => t.Application)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .Where(t => t.Placement != null)
+            .AsNoTracking()
+            .AsSplitQuery();
+
+        if (status is { } selectedStatus)
         {
-            ApplicationStatusEnum.Approved => ApplicationStatusEnum.Approved,
-            ApplicationStatusEnum.Rejected => ApplicationStatusEnum.Rejected,
-            ApplicationStatusEnum.Pending => ApplicationStatusEnum.Pending,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), "Unknown order status."),
-        };
+            query = query.Where(t => t.Application.Status == selectedStatus);
+        }
 
-
-        var ojts = await _context.Students.Include(t => t.Application).Include(t => t.Placement).ThenInclude(p => p.Office).Where(t => t.Application.Status == selectedStatus).AsNoTracking().AsSplitQuery().ToListAsync();
+        var ojts = await query.ToListAsync(ct);
+        var statusLabel = status?.ToString() ?? "All";
         QuestPDF.Settings.License = LicenseType.Community; // or Evaluation
         var document = Document.Create(doc =>
 {
@@ -38,7 +42,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
         // Header with timestamp
         page.Header().Column(col =>
         {
-            col.Item().Text($"OJT Students - {selectedStatus}")
+            col.Item().Text($"OJT Students - {statusLabel}")
                 .FontSize(16).Bold().AlignCenter();
 
             col.Item().PaddingTop(4).Text($"Generated: {DateTime.Now:MMMM dd, yyyy hh:mm tt}")
@@ -82,11 +86,11 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                 table.Cell().Element(DataCell).Text(fullname).FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Application?.Status.ToString() ?? "-").FontSize(9);
-                table.Cell().Element(DataCell).Text(ojt.Placement != null ? ojt.Placement!.Office!.OfficeName : "-").FontSize(9);
+                table.Cell().Element(DataCell).Text(ojt.Placement?.Office?.OfficeName ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.TotalInternshipHours.ToString() ?? "-").FontSize(9);
-                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement!.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.CreatedAt.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
-                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement!.AccumulatedHours.ToString() ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement?.AccumulatedHours.ToString() ?? "-").FontSize(9);
             }
 
             static IContainer HeaderCell(IContainer container) => container
@@ -114,24 +118,24 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
     }
 
    public async Task<byte[]> OjtListCsv(CancellationToken ct)
-{
-    var ojts = await _context.Students
-        .Include(t => t.Application)
-        .Include(t => t.Placement).ThenInclude(p => p.Office)
-        .OrderBy(t => t.Application.Status == ApplicationStatusEnum.Approved)
-        .AsNoTracking()
-        .AsSplitQuery()
-        .ToListAsync(ct);
+   {
+       var ojts = await _context.Students
+           .Include(t => t.Application)
+           .Include(t => t.Placement).ThenInclude(p => p.Office)
+           .Where(t => t.Placement != null)
+           .AsNoTracking()
+           .AsSplitQuery()
+           .ToListAsync(ct);
 
-    var records = ojts.Select(t => new OjtListDto
-    {
-        Name = t.FullName,
-        Office = t.Placement != null ? t.Placement!.Office!.OfficeName : "N/A",
-        StartDate = t.Placement!.StartDate,
-        Status = t.Application.Status.ToString(),
-        TotalHours = t.TotalInternshipHours,
-        AccumulatedHours = t.Placement!.AccumulatedHours
-    }).ToList();
+       var records = ojts.Select(t => new OjtListDto
+       {
+           Name = t.FullName,
+           Office = t.Placement?.Office?.OfficeName ?? "N/A",
+           StartDate = t.Placement!.StartDate,
+           Status = t.Application.Status.ToString(),
+           TotalHours = t.TotalInternshipHours,
+           AccumulatedHours = t.Placement!.AccumulatedHours
+       }).ToList();
 
     using var memoryStream = new MemoryStream();
     using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, leaveOpen: true))
@@ -143,38 +147,39 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
     return memoryStream.ToArray();
 }
 
-public async Task<byte[]> ListAllOjtFiltered(ApplicationStatusEnum? status, string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
-{
-    var query = _context.Students
-        .Include(t => t.Application)
-        .Include(t => t.Placement).ThenInclude(p => p.Office)
-        .AsNoTracking()
-        .AsSplitQuery();
-
-    if (status.HasValue)
+    public async Task<byte[]> ListAllOjtFiltered(ApplicationStatusEnum? status, string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
     {
-        query = query.Where(t => t.Application.Status == status.Value);
-    }
+        var query = _context.Students
+            .Include(t => t.Application)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .Where(t => t.Placement != null)
+            .AsNoTracking()
+            .AsSplitQuery();
 
-    if (!string.IsNullOrEmpty(office))
-    {
-        query = query.Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office);
-    }
+        if (status is { } selectedStatus)
+        {
+            query = query.Where(t => t.Application.Status == selectedStatus);
+        }
 
-    if (dateFrom.HasValue)
-    {
-        query = query.Where(t => t.Placement != null && t.Placement!.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
-    }
+        if (!string.IsNullOrEmpty(office))
+        {
+            query = query.Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office);
+        }
 
-    if (dateTo.HasValue)
-    {
-        query = query.Where(t => t.Placement != null && t.Placement!.StartDate <= DateOnly.FromDateTime(dateTo.Value));
-    }
+        if (dateFrom.HasValue)
+        {
+            query = query.Where(t => t.Placement != null && t.Placement!.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
+        }
 
-    var ojts = await query.ToListAsync(ct);
-    QuestPDF.Settings.License = LicenseType.Community;
-    var selectedStatus = status ?? ApplicationStatusEnum.Pending;
-    var document = Document.Create(doc =>
+        if (dateTo.HasValue)
+        {
+            query = query.Where(t => t.Placement != null && t.Placement!.StartDate <= DateOnly.FromDateTime(dateTo.Value));
+        }
+
+        var ojts = await query.ToListAsync(ct);
+        QuestPDF.Settings.License = LicenseType.Community;
+        var statusLabel = status?.ToString() ?? "All";
+        var document = Document.Create(doc =>
 {
     doc.Page(page =>
     {
@@ -183,7 +188,7 @@ public async Task<byte[]> ListAllOjtFiltered(ApplicationStatusEnum? status, stri
 
         page.Header().Column(col =>
         {
-            col.Item().Text($"OJT Students - {selectedStatus} (Filtered)")
+            col.Item().Text($"OJT Students - {statusLabel} (Filtered)")
                 .FontSize(16).Bold().AlignCenter();
 
             col.Item().PaddingTop(4).Text($"Generated: {DateTime.Now:MMMM dd, yyyy hh:mm tt}")
@@ -224,11 +229,11 @@ public async Task<byte[]> ListAllOjtFiltered(ApplicationStatusEnum? status, stri
                 table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                 table.Cell().Element(DataCell).Text(fullname).FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Application?.Status.ToString() ?? "-").FontSize(9);
-                table.Cell().Element(DataCell).Text(ojt.Placement != null ? ojt.Placement!.Office!.OfficeName : "-").FontSize(9);
+                table.Cell().Element(DataCell).Text(ojt.Placement?.Office?.OfficeName ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.TotalInternshipHours.ToString() ?? "-").FontSize(9);
-                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement!.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.CreatedAt.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
-                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement!.AccumulatedHours.ToString() ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement?.AccumulatedHours.ToString() ?? "-").FontSize(9);
             }
 
             static IContainer HeaderCell(IContainer container) => container
@@ -282,7 +287,7 @@ public async Task<byte[]> OjtListCsvFiltered(string? office, DateTime? dateFrom,
     var records = ojts.Select(t => new OjtListDto
     {
         Name = t.FullName,
-        Office = t.Placement != null ? t.Placement!.Office!.OfficeName : "N/A",
+        Office = t.Placement?.Office?.OfficeName ?? "N/A",
         StartDate = t.Placement!.StartDate,
         Status = t.Application.Status.ToString(),
         TotalHours = t.TotalInternshipHours,

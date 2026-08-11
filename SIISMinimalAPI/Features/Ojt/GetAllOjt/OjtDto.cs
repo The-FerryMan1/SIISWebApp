@@ -13,7 +13,7 @@ public class OjtDto
     
     public GennderEnum Gender { get; set; }
 
-    public DateOnly DateOfBirth {get; set;}
+    public DateOnly? DateOfBirth {get; set;}
     public string? UniversitySchool {get;set;}
     public DateOnly? StartDate {get; set;}
     public DateOnly? EstimatedEndDate {get; set;}

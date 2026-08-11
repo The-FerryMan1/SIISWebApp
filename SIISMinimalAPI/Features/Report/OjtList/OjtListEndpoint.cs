@@ -15,7 +15,7 @@ public static class OjtListEndpoint
         .RequireCors("AllowFrontend");
 
 
-        group.MapGet("/", [Authorize] async Task<IResult>(ApplicationStatusEnum status, CancellationToken ct, IOjtListService service) =>
+        group.MapGet("/", [Authorize] async Task<IResult>(ApplicationStatusEnum? status, CancellationToken ct, IOjtListService service) =>
         {
             try
             {
@@ -24,7 +24,6 @@ public static class OjtListEndpoint
             }
             catch (System.Exception)
             {
-                
                 return TypedResults.InternalServerError();
             }
         }).RequireAuthorization();

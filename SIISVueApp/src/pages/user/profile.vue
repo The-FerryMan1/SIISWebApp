@@ -182,7 +182,7 @@ const changePassRequest = useDebounceFn(async (payload: ChangePassSchema) => {
         @submit="changePassSubmit"
         :loading="changePassLoading"
         class="space-y-4"
-        @error="(err) => console.log(err)"
+        @error="(err: any) => console.log(err)"
       >
         <UFormField name="currentPassword" label="Current Password" required>
           <UInput

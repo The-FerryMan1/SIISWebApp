@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { UseAuthStore } from '../../stores/auth'
 import { computed, h, onMounted, ref, resolveComponent, useTemplateRef, watch } from 'vue'
-import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui'
 import { useApplicationStore } from '../../stores/application'
 import type { Applicaton } from '../../stores/application'
-import { getPaginationRowModel, type Row } from '@tanstack/vue-table'
+import { getPaginationRowModel } from '@tanstack/vue-table'
 import { useRouter } from 'vue-router'
 import { type Ojt, useOJtStore } from '../../stores/ojt'
-import { OfficeNameLabels, type OfficeNameEnum } from '../admin/types/officeSelectValue'
 import { GenderEnum } from '../onBoarding/validator/onboardingValidator'
 import OjtPieChart from './graph/ojtPieChart.vue'
 
@@ -104,12 +103,11 @@ const columns: TableColumn<Ojt>[] = [
     accessorKey: 'officeName',
     header: 'Office',
     cell: ({ row }) => {
-      const value = row.getValue('officeName') as OfficeNameEnum | null
-      if (value == null || value == undefined) {
+      const value = row.getValue('officeName') as string | null
+      if (!value) {
         return h('span', { class: 'text-muted' }, 'N/A')
-      } else {
-        return h('span', {}, OfficeNameLabels[value])
       }
+      return h('span', {}, value)
     },
   },
   {
@@ -154,13 +152,6 @@ const columns: TableColumn<Ojt>[] = [
               name: 'application-edit',
               params: { uuid },
             }),
-        }),
-        h(UButton, {
-          icon: 'i-lucide-trash',
-          size: 'xs',
-          variant: 'ghost',
-          color: 'error',
-          onClick: () => console.log(uuid),
         }),
       ])
     },
@@ -306,7 +297,7 @@ watch(pageSize, (size) => {
               :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
               :items-per-page="table?.tableApi?.getState().pagination.pageSize"
               :total="table?.tableApi?.getFilteredRowModel().rows.length"
-              @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
+              @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
             />
           </div>
         </template>

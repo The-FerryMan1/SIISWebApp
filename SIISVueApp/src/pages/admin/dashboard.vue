@@ -12,7 +12,6 @@ import { useOJtStore } from '../../stores/ojt'
 import { useApplicationStore } from '../../stores/application'
 import OjtCountChart from '../office/partials/ojtCountChart.vue'
 import OjtPieChart from '../ojt/graph/ojtPieChart.vue'
-import { OfficeNameLabels, type OfficeNameEnum } from '../admin/types/officeSelectValue'
 
 use([CanvasRenderer, BarChart, LineChart, GridComponent, TooltipComponent])
 
@@ -161,10 +160,10 @@ const tableColumns: TableColumn<RecentOjtRow>[] = [
   { accessorKey: 'gender', header: 'Gender' },
 ]
 
-const recentOjts = computed<RecentOjtRow[]>(() =>
+  const recentOjts = computed<RecentOjtRow[]>(() =>
   ojts.value.slice(0, 8).map((ojt) => ({
     name: `${ojt.firstName} ${ojt.lastName}`,
-    office: OfficeNameLabels[ojt.officeName as OfficeNameEnum] ?? 'Unknown',
+    office: ojt.officeName,
     gender: ojt.gender === 0 ? 'Male' : ojt.gender === 1 ? 'Female' : 'Others',
   })),
 )
