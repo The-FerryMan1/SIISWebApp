@@ -615,11 +615,38 @@ public class StudentImportHandler : IStudentImportService
             return string.Empty;
         }
 
-        var digits = new string(raw.Trim().Where(char.IsDigit).ToArray());
+        var trimmed = raw.Trim();
+        
+        if (trimmed.Contains('/'))
+        {
+            var parts = trimmed.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(p => NormalizePhone(p))
+                .Where(p => !string.IsNullOrEmpty(p))
+                .ToArray();
+            
+            return parts.Length > 0 ? parts[0] : string.Empty;
+        }
+
+        var digits = new string(trimmed.Where(char.IsDigit).ToArray());
+
+        if (digits.Length == 12 && digits.StartsWith("63"))
+        {
+            digits = "0" + digits[2..];
+        }
+
+        if (digits.Length == 12 && digits.StartsWith("09"))
+        {
+            return digits;
+        }
 
         if (digits.Length == 11 && digits.StartsWith("63"))
         {
             digits = "0" + digits[2..];
+        }
+
+        if (digits.Length == 11 && digits.StartsWith("09"))
+        {
+            return digits;
         }
 
         if (digits.Length == 10 && digits.StartsWith("9"))
@@ -627,12 +654,7 @@ public class StudentImportHandler : IStudentImportService
             digits = "0" + digits;
         }
 
-        if (digits.Length == 11 && (digits.StartsWith("09") || digits.StartsWith("+63")))
-        {
-            return digits;
-        }
-
-        if (digits.Length == 10 && digits.StartsWith("9"))
+        if (digits.Length == 11 && digits.StartsWith("09"))
         {
             return digits;
         }
@@ -655,9 +677,24 @@ public class StudentImportHandler : IStudentImportService
     {
         var digits = new string(phone.Trim().Where(char.IsDigit).ToArray());
         
+        if (digits.Length == 12 && digits.StartsWith("63"))
+        {
+            digits = "0" + digits[2..];
+        }
+
+        if (digits.Length == 12 && digits.StartsWith("09"))
+        {
+            return true;
+        }
+
         if (digits.Length == 11 && digits.StartsWith("63"))
         {
             digits = "0" + digits[2..];
+        }
+
+        if (digits.Length == 11 && digits.StartsWith("09"))
+        {
+            return true;
         }
 
         if (digits.Length == 10 && digits.StartsWith("9"))
@@ -665,12 +702,7 @@ public class StudentImportHandler : IStudentImportService
             digits = "0" + digits;
         }
 
-        if (digits.Length == 11 && (digits.StartsWith("09") || digits.StartsWith("+63")))
-        {
-            return true;
-        }
-
-        if (digits.Length == 10 && digits.StartsWith("9"))
+        if (digits.Length == 11 && digits.StartsWith("09"))
         {
             return true;
         }
