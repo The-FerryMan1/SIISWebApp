@@ -1,0 +1,148 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using CsvHelper;
+using CsvHelper.Configuration;
+using Microsoft.EntityFrameworkCore;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using SIISMinimalAPI.Data;
+using System.Globalization;
+
+namespace SIISMinimalAPI.Features.Report.HoursProgress;
+
+public class HoursProgressHandler(AppDbContext context) : IHoursProgressService
+{
+    private readonly AppDbContext _context = context;
+
+    public async Task<byte[]> GeneratePdf(CancellationToken ct)
+    {
+        var students = await _context.Students
+            .Include(t => t.Application)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .Where(t => t.Placement != null && t.TotalInternshipHours > 0 && !t.IsDeleted)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync(ct);
+
+        var data = students.Select(s => new HoursProgressDto
+        {
+            StudentName = s.FullName,
+            Office = s.Placement!.Office!.OfficeName,
+            TotalHours = s.TotalInternshipHours,
+            AccumulatedHours = s.Placement.AccumulatedHours,
+            ProgressPercent = s.TotalInternshipHours > 0 ? (double)s.Placement.AccumulatedHours / s.TotalInternshipHours * 100 : 0,
+        })
+        .Where(d => d.ProgressPercent < 100)
+        .OrderBy(d => d.ProgressPercent)
+        .ToList();
+
+        QuestPDF.Settings.License = LicenseType.Community;
+        var document = Document.Create(doc =>
+        {
+            doc.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(30);
+
+                page.Header().PaddingBottom(15).Column(col =>
+                {
+                    col.Item().Text("Hours Progress Report")
+                        .FontSize(20).Bold().AlignCenter();
+
+                    col.Item().PaddingTop(5).Text($"Generated: {DateTime.Now:MMMM dd, yyyy}")
+                        .FontSize(10).FontColor(Colors.Grey.Darken2).AlignCenter();
+                });
+
+                page.Content().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(35);
+                        columns.RelativeColumn(2.5f);
+                        columns.RelativeColumn(2f);
+                        columns.RelativeColumn(1.5f);
+                        columns.RelativeColumn(1.5f);
+                        columns.RelativeColumn(1.5f);
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
+                        header.Cell().Element(HeaderCell).Text("Student Name").Bold();
+                        header.Cell().Element(HeaderCell).Text("Office").Bold();
+                        header.Cell().Element(HeaderCell).AlignCenter().Text("Total Hours").Bold();
+                        header.Cell().Element(HeaderCell).AlignCenter().Text("Accumulated").Bold();
+                        header.Cell().Element(HeaderCell).AlignCenter().Text("Progress %").Bold();
+
+                        static IContainer HeaderCell(IContainer container) => container
+                            .DefaultTextStyle(x => x.FontSize(10))
+                            .Padding(0)
+                            .Border(1)
+                            .BorderColor(Colors.Black);
+                    });
+
+                    int index = 1;
+                    foreach (var d in data)
+                    {
+                        table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
+                        table.Cell().Element(DataCell).Text(d.StudentName).FontSize(9);
+                        table.Cell().Element(DataCell).Text(d.Office).FontSize(9);
+                        table.Cell().Element(DataCell).AlignCenter().Text(d.TotalHours.ToString()).FontSize(9);
+                        table.Cell().Element(DataCell).AlignCenter().Text(d.AccumulatedHours.ToString()).FontSize(9);
+                        table.Cell().Element(DataCell).AlignCenter().Text($"{d.ProgressPercent:F1}%").FontSize(9);
+                    }
+
+                    static IContainer DataCell(IContainer container) => container
+                        .Padding(0)
+                        .Border(1)
+                        .BorderColor(Colors.Black);
+                });
+
+                page.Footer().AlignCenter().PaddingTop(10).Text(text =>
+                {
+                    text.Span("Page ").FontSize(9).FontColor(Colors.Grey.Darken1);
+                    text.CurrentPageNumber().FontSize(9).FontColor(Colors.Grey.Darken1);
+                    text.Span(" of ").FontSize(9).FontColor(Colors.Grey.Darken1);
+                    text.TotalPages().FontSize(9).FontColor(Colors.Grey.Darken1);
+                });
+            });
+        });
+
+        return document.GeneratePdf();
+    }
+
+    public async Task<byte[]> GenerateCsv(CancellationToken ct)
+    {
+        var students = await _context.Students
+            .Include(t => t.Application)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .Where(t => t.Placement != null && t.TotalInternshipHours > 0 && !t.IsDeleted)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync(ct);
+
+        var data = students.Select(s => new HoursProgressDto
+        {
+            StudentName = s.FullName,
+            Office = s.Placement!.Office!.OfficeName,
+            TotalHours = s.TotalInternshipHours,
+            AccumulatedHours = s.Placement.AccumulatedHours,
+            ProgressPercent = s.TotalInternshipHours > 0 ? (double)s.Placement.AccumulatedHours / s.TotalInternshipHours * 100 : 0,
+        })
+        .Where(d => d.ProgressPercent < 100)
+        .OrderBy(d => d.ProgressPercent)
+        .ToList();
+
+        using var memoryStream = new MemoryStream();
+        using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, leaveOpen: true))
+        using (var csv = new CsvWriter(writer, new CsvConfiguration()))
+        {
+            csv.WriteRecords(data);
+        }
+
+        return memoryStream.ToArray();
+    }
+}

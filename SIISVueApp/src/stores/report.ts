@@ -203,18 +203,287 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-      return {
-         pdfReport,
-         csvExport,
-         pdfReportPerOffice,
-         pdfReportFiltered,
-         csvReportFiltered,
-         pdfReportPerOfficeFiltered,
-         previewPdf,
-         officeMasterlistPdf,
-         officeExpiringPdf,
-         officeFinishedPdf,
-         adminExpiringPdf,
-         getMyOffice,
-      }
+     const studentMasterlistPdf = async (officeName: string) => {
+         try {
+             const { data } = await useAxios.get('/report/student-masterlist/pdf', {
+                 params: { officeName },
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const studentMasterlistCsv = async (officeName: string) => {
+         try {
+             const { data } = await useAxios.get('/report/student-masterlist/csv', {
+                 params: { officeName },
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const pendingApplicationsPdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/pending-applications/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const pendingApplicationsCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/pending-applications/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const schoolSummaryPdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/school-summary/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const schoolSummaryCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/school-summary/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const placementUtilizationPdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/placement-utilization/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const placementUtilizationCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/placement-utilization/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const requirementsCompliancePdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/requirements-compliance/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const requirementsComplianceCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/requirements-compliance/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const hoursProgressPdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/hours-progress/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const hoursProgressCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/hours-progress/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const completionSummaryPdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/completion-summary/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const completionSummaryCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/completion-summary/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const rejectedApplicationsPdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/rejected-applications/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const rejectedApplicationsCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/rejected-applications/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const importAuditCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/import-audit/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const officePerformancePdf = async () => {
+         try {
+             const { data } = await useAxios.get('/report/office-performance/pdf', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/pdf' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+     const officePerformanceCsv = async () => {
+         try {
+             const { data } = await useAxios.get('/report/office-performance/csv', {
+                 responseType: 'blob',
+                 headers: { 'Content-Type': 'application/csv' },
+             });
+             return data
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+         }
+     }
+
+       return {
+          pdfReport,
+          csvExport,
+          pdfReportPerOffice,
+          csvExportPerOffice,
+          pdfReportFiltered,
+          csvReportFiltered,
+          pdfReportPerOfficeFiltered,
+          previewPdf,
+          officeMasterlistPdf,
+          officeExpiringPdf,
+          officeFinishedPdf,
+          adminExpiringPdf,
+          getMyOffice,
+          studentMasterlistPdf,
+          studentMasterlistCsv,
+          pendingApplicationsPdf,
+          pendingApplicationsCsv,
+          schoolSummaryPdf,
+          schoolSummaryCsv,
+          placementUtilizationPdf,
+          placementUtilizationCsv,
+          requirementsCompliancePdf,
+          requirementsComplianceCsv,
+          hoursProgressPdf,
+          hoursProgressCsv,
+          completionSummaryPdf,
+          completionSummaryCsv,
+          rejectedApplicationsPdf,
+          rejectedApplicationsCsv,
+          importAuditCsv,
+          officePerformancePdf,
+          officePerformanceCsv,
+       }
 })

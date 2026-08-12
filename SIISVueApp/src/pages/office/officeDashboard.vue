@@ -72,6 +72,9 @@ const filteredStudents = computed(() => {
   )
 })
 
+const page = ref(1)
+const pageSize = ref(10)
+
 onMounted(async () => {
   if (!officeAuth.isAuthenticated()) {
     router.push({ name: 'office-login' })
@@ -265,6 +268,8 @@ function logout() {
         </template>
 
         <UTable
+          v-model:page="page"
+          v-model:page-size="pageSize"
           :data="filteredStudents"
           :columns
           :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"

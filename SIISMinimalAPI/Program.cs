@@ -17,6 +17,16 @@ using SIISMinimalAPI.Features.Report.OjtList;
 using SIISMinimalAPI.Features.Report.OjtPerOffice;
 using SIISMinimalAPI.Features.Report.OfficeReport;
 using SIISMinimalAPI.Features.Report.AdminReport;
+using SIISMinimalAPI.Features.Report.StudentMasterlist;
+using SIISMinimalAPI.Features.Report.PendingApplications;
+using SIISMinimalAPI.Features.Report.SchoolSummary;
+using SIISMinimalAPI.Features.Report.PlacementUtilization;
+using SIISMinimalAPI.Features.Report.RequirementsCompliance;
+using SIISMinimalAPI.Features.Report.HoursProgress;
+using SIISMinimalAPI.Features.Report.CompletionSummary;
+using SIISMinimalAPI.Features.Report.RejectedApplications;
+using SIISMinimalAPI.Features.Report.ImportAudit;
+using SIISMinimalAPI.Features.Report.OfficePerformance;
 using SIISMinimalAPI.Features.OfficeDashboard;
 using SIISMinimalAPI.Features.StudentImport;
 
@@ -110,6 +120,16 @@ builder.Services.AddScoped<IOfficeDashboardService, OfficeDashboardHandler>();
 builder.Services.AddScoped<IOfficeReportService, OfficeReportHandler>();
 builder.Services.AddScoped<IAdminReportService, AdminReportHandler>();
 builder.Services.AddScoped<IStudentImportService, StudentImportHandler>();
+builder.Services.AddScoped<IStudentMasterlistService, StudentMasterlistHandler>();
+builder.Services.AddScoped<IPendingApplicationsService, PendingApplicationsHandler>();
+builder.Services.AddScoped<ISchoolSummaryService, SchoolSummaryHandler>();
+builder.Services.AddScoped<IPlacementUtilizationService, PlacementUtilizationHandler>();
+builder.Services.AddScoped<IRequirementsComplianceService, RequirementsComplianceHandler>();
+builder.Services.AddScoped<IHoursProgressService, HoursProgressHandler>();
+builder.Services.AddScoped<ICompletionSummaryService, CompletionSummaryHandler>();
+builder.Services.AddScoped<IRejectedApplicationsService, RejectedApplicationsHandler>();
+builder.Services.AddScoped<IImportAuditService, ImportAuditHandler>();
+builder.Services.AddScoped<IOfficePerformanceService, OfficePerformanceHandler>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -180,6 +200,16 @@ app.MapToOfficeDashboard();
 app.MapToOfficeReport();
 app.MapToAdminReport();
 app.MapStudentImportEndpoints();
+app.MapToStudentMasterlist();
+app.MapToPendingApplications();
+app.MapToSchoolSummary();
+app.MapToPlacementUtilization();
+app.MapToRequirementsCompliance();
+app.MapToHoursProgress();
+app.MapToCompletionSummary();
+app.MapToRejectedApplications();
+app.MapToImportAudit();
+app.MapToOfficePerformance();
 
 //seed
 using (var scope = app.Services.CreateScope())
