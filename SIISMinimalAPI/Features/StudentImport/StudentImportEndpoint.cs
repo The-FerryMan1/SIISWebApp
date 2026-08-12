@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace SIISMinimalAPI.Features.StudentImport;
 
@@ -13,7 +14,7 @@ public static class StudentImportEndpoint
             .RequireCors("AllowFrontend")
             .RequireAuthorization();
 
-        group.MapPost("/", [Authorize(Roles = "Admin")] async Task<IResult>([FromForm] IFormFile file, IStudentImportService service, CancellationToken ct) =>
+        group.MapPost("/", [Authorize(Roles = "Admin")] async Task<IResult>([FromForm] IFormFile file, IStudentImportService service, ClaimsPrincipal user, CancellationToken ct) =>
         {
             if (file is null)
             {
@@ -22,7 +23,8 @@ public static class StudentImportEndpoint
 
             try
             {
-                var result = await service.ImportAsync(file, ct);
+                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+                var result = await service.ImportAsync(file, userId, ct);
                 return Results.Ok(result);
             }
             catch (ArgumentException ex)

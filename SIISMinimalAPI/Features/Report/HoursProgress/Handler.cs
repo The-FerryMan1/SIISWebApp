@@ -24,7 +24,7 @@ public class HoursProgressHandler(AppDbContext context) : IHoursProgressService
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.TotalInternshipHours > 0 && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var data = students.Select(s => new HoursProgressDto
@@ -36,7 +36,7 @@ public class HoursProgressHandler(AppDbContext context) : IHoursProgressService
             ProgressPercent = s.TotalInternshipHours > 0 ? (double)s.Placement.AccumulatedHours / s.TotalInternshipHours * 100 : 0,
         })
         .Where(d => d.ProgressPercent < 100)
-        .OrderBy(d => d.ProgressPercent)
+        .OrderBy(d => d.StudentName)
         .ToList();
 
         QuestPDF.Settings.License = LicenseType.Community;
@@ -121,7 +121,7 @@ public class HoursProgressHandler(AppDbContext context) : IHoursProgressService
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.TotalInternshipHours > 0 && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var data = students.Select(s => new HoursProgressDto
@@ -133,7 +133,7 @@ public class HoursProgressHandler(AppDbContext context) : IHoursProgressService
             ProgressPercent = s.TotalInternshipHours > 0 ? (double)s.Placement.AccumulatedHours / s.TotalInternshipHours * 100 : 0,
         })
         .Where(d => d.ProgressPercent < 100)
-        .OrderBy(d => d.ProgressPercent)
+        .OrderBy(d => d.StudentName)
         .ToList();
 
         using var memoryStream = new MemoryStream();

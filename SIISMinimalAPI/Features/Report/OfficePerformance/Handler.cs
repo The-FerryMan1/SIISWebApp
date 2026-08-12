@@ -32,7 +32,7 @@ public class OfficePerformanceHandler(AppDbContext context) : IOfficePerformance
                 .Include(t => t.Placement)
                 .Where(t => t.Placement != null && t.Placement!.OfficeId == office.Id && !t.IsDeleted)
                 .AsNoTracking()
-                .AsSplitQuery()
+                .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
                 .ToListAsync(ct);
 
             var totalOjts = ojts.Count;
@@ -140,7 +140,7 @@ public class OfficePerformanceHandler(AppDbContext context) : IOfficePerformance
                 .Include(t => t.Placement)
                 .Where(t => t.Placement != null && t.Placement!.OfficeId == office.Id && !t.IsDeleted)
                 .AsNoTracking()
-                .AsSplitQuery()
+                .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
                 .ToListAsync(ct);
 
             var totalOjts = ojts.Count;

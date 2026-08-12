@@ -5,13 +5,15 @@ using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Shared.Models;
 using SIISMinimalAPI.Features.Offices.GetAllOffices;
 using SIISMinimalAPI.Features.Offices.UpdateOffice;
+using SIISMinimalAPI.Features.Logs;
 
 namespace SIISMinimalAPI.Features.Offices;
 
-public class OfficeHandler(AppDbContext context, UserManager<User> userManager) : IOfficeService
+public class OfficeHandler(AppDbContext context, UserManager<User> userManager, ILogService logService) : IOfficeService
 {
     private readonly AppDbContext _context = context;
     private readonly UserManager<User> _userManager = userManager;
+    private readonly ILogService _logService = logService;
     public async Task<ICollection<GetAllOfficeDto>>? GetallOfficeAsync(CancellationToken ct)
     {
         var offices = await _context.Offices.Include(t => t.Placements).AsSingleQuery().ToListAsync(ct);
@@ -51,5 +53,8 @@ public class OfficeHandler(AppDbContext context, UserManager<User> userManager) 
         exist.Department = dto.Department;
         _context.Offices.Update(exist);
         await _context.SaveChangesAsync(ct);
+
+        var updateUserId = context.Entry(exist).Property("Id").CurrentValue.ToString() ?? "unknown";
+        await _logService.WriteAsync("Update", "Office", exist.Id, updateUserId, $"Updated office {exist.OfficeName}");
     }
 }

@@ -64,7 +64,8 @@ const initials = computed(() => {
 const fullName = computed(() => {
     const d = ojtDetails.value
     if (!d) return ''
-    return [d.firstName, d.middleName, d.lastName].filter(Boolean).join(' ')
+    const middle = d.middleName ? ` ${d.middleName}` : ''
+    return `${d.lastName}, ${d.firstName}${middle}`
 })
 
 // ─── Field Definitions (icon + color per field) ─────────────

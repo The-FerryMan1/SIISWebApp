@@ -2,16 +2,19 @@ using ClosedXML.Excel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace SIISMinimalAPI.Features.StudentImport;
 
-public class StudentImportHandler : IStudentImportService
+public class StudentImportHandler(AppDbContext context, ILogService logService) : IStudentImportService
 {
     private readonly AppDbContext _context;
+    private readonly ILogService _logService;
     private static readonly Regex PhoneRegex = new(@"^(\+63|0)\d{10}$", RegexOptions.Compiled);
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -19,12 +22,7 @@ public class StudentImportHandler : IStudentImportService
         ".xls"
     };
 
-    public StudentImportHandler(AppDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<StudentImportResultDto> ImportAsync(IFormFile file, CancellationToken ct)
+    public async Task<StudentImportResultDto> ImportAsync(IFormFile file, string userId, CancellationToken ct)
     {
         if (file is null || file.Length == 0)
         {
@@ -134,6 +132,14 @@ public class StudentImportHandler : IStudentImportService
         {
             await _context.SaveChangesAsync(ct);
         }
+
+        _logService.WriteAsync(
+            "Import",
+            "Student",
+            null,
+            userId,
+            $"Imported {result.ImportedCount} students, skipped {result.SkippedCount}, errors {result.Errors.Count}"
+        );
 
         return result;
     }

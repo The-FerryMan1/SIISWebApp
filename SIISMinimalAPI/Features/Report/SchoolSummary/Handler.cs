@@ -24,7 +24,7 @@ public class SchoolSummaryHandler(AppDbContext context) : ISchoolSummaryService
             .Include(t => t.Application)
             .Where(t => t.Application != null && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var summary = students
@@ -124,7 +124,7 @@ public class SchoolSummaryHandler(AppDbContext context) : ISchoolSummaryService
             .Include(t => t.Application)
             .Where(t => t.Application != null && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var summary = students

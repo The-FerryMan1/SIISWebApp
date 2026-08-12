@@ -29,6 +29,7 @@ using SIISMinimalAPI.Features.Report.ImportAudit;
 using SIISMinimalAPI.Features.Report.OfficePerformance;
 using SIISMinimalAPI.Features.OfficeDashboard;
 using SIISMinimalAPI.Features.Requirements;
+using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.StudentImport;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -131,6 +132,7 @@ builder.Services.AddScoped<ICompletionSummaryService, CompletionSummaryHandler>(
 builder.Services.AddScoped<IRejectedApplicationsService, RejectedApplicationsHandler>();
 builder.Services.AddScoped<IImportAuditService, ImportAuditHandler>();
 builder.Services.AddScoped<IOfficePerformanceService, OfficePerformanceHandler>();
+builder.Services.AddScoped<ILogService, LogService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -212,6 +214,7 @@ app.MapToRejectedApplications();
 app.MapToImportAudit();
 app.MapToOfficePerformance();
 app.MapToRequirements();
+app.MapToLogs();
 
 //seed
 using (var scope = app.Services.CreateScope())

@@ -42,7 +42,17 @@ namespace SIISMinimalAPI.Features.Shared.Models
         }
 
         [NotMapped]
-        public string FullName => $"{FirstName} {MiddleName} {LastName}".Trim();
+        public string FullName
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(MiddleName))
+                {
+                    return $"{LastName}, {FirstName}";
+                }
+                return $"{LastName}, {FirstName} {MiddleName}";
+            }
+        }
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;

@@ -23,7 +23,7 @@ public class RejectedApplicationsHandler(AppDbContext context) : IRejectedApplic
             .Include(t => t.Application)
             .Where(t => t.Application != null && t.Application.Status == ApplicationStatusEnum.Rejected && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         QuestPDF.Settings.License = LicenseType.Community;
@@ -107,7 +107,7 @@ public class RejectedApplicationsHandler(AppDbContext context) : IRejectedApplic
             .Include(t => t.Application)
             .Where(t => t.Application != null && t.Application.Status == ApplicationStatusEnum.Rejected && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var records = students.Select(t => new RejectedApplicationsDto

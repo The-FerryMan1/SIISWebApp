@@ -60,6 +60,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'office-requirements',
         meta: { isRequiresOfficeAuth: true },
       },
+      {
+        path: 'logs',
+        component: () => import('../pages/office/logs.vue'),
+        name: 'office-logs',
+        meta: { isRequiresOfficeAuth: true },
+      },
     ],
   },
   {
@@ -148,6 +154,12 @@ export const routes: RouteRecordRaw[] = [
         path: '/requirements',
         component: () => import('../pages/admin/requirements.vue'),
         name: 'requirements',
+        meta: { isRequiresAuth: true },
+      },
+      {
+        path: '/logs',
+        component: () => import('../pages/admin/logs.vue'),
+        name: 'logs',
         meta: { isRequiresAuth: true },
       }
     ],

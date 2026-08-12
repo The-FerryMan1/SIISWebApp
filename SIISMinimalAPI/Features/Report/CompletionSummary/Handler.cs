@@ -24,7 +24,7 @@ public class CompletionSummaryHandler(AppDbContext context) : ICompletionSummary
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.Placement!.AccumulatedHours >= t.TotalInternshipHours && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var data = students.Select(s => new CompletionSummaryDto
@@ -123,7 +123,7 @@ public class CompletionSummaryHandler(AppDbContext context) : ICompletionSummary
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.Placement!.AccumulatedHours >= t.TotalInternshipHours && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var data = students.Select(s => new CompletionSummaryDto

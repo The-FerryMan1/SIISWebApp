@@ -3,15 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.Application.AssignAndApprove;
 using SIISMinimalAPI.Features.Application.GetById;
 using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Features.Application;
 
-public class ApplicationHandler(AppDbContext context) : IApplicationService
+public class ApplicationHandler(AppDbContext context, ILogService logService) : IApplicationService
 {
     private readonly AppDbContext _context = context;
+    private readonly ILogService _logService = logService;
 
     public async Task AssignAndApprove(Guid uuid, RequestDto requestDto, CancellationToken ct)
     {
@@ -45,6 +47,9 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         exists.Application.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync(ct);
+
+        var userId = context.Entry(exists).Property("Id").CurrentValue.ToString() ?? "unknown";
+        await _logService.WriteAsync("Approve", "Application", exists.Application.Id, userId, $"Approved application for {exists.FullName}");
     }
 
     public async Task DeleteAsync(Guid uuid, CancellationToken ct)
@@ -67,6 +72,8 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         _context.Remove(application);
         await _context.SaveChangesAsync(ct);
 
+        var deleteUserId = context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
+        await _logService.WriteAsync("Delete", "Application", application.Application.Id, deleteUserId, $"Deleted application for {application.FullName}");
     }
 
     public async Task<ICollection<ApplicationDto>> GetAllAsync(CancellationToken ct)
@@ -238,6 +245,9 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         application.Application.Reason = reason;
         await _context.SaveChangesAsync(ct);
 
+        var rejectUserId = context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
+        await _logService.WriteAsync("Reject", "Application", application.Application.Id, rejectUserId, $"Rejected application for {application.FullName}: {reason}");
+
     }
 
     public async Task Trash(Guid uuid, CancellationToken ct)
@@ -261,5 +271,8 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
             return t;
         });
         await _context.SaveChangesAsync(ct);
+
+        var trashUserId = context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
+        await _logService.WriteAsync("Trash", "Application", application.Application.Id, trashUserId, $"Trashed application for {application.FullName}");
     }
 }

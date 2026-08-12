@@ -8,6 +8,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Models;
 using System.Globalization;
 using CsvHelper.Configuration;
 namespace SIISMinimalAPI.Features.Report.OjtList;
@@ -17,12 +18,12 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
     private readonly AppDbContext _context = context;
     public async Task<byte[]> ListAllOjt(ApplicationStatusEnum? status, CancellationToken ct)
     {
-        var query = _context.Students
+        IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null)
             .AsNoTracking()
-            .AsSplitQuery();
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
         if (status is { } selectedStatus)
         {
@@ -124,7 +125,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
            .Include(t => t.Placement).ThenInclude(p => p.Office)
            .Where(t => t.Placement != null)
            .AsNoTracking()
-           .AsSplitQuery()
+           .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
            .ToListAsync(ct);
 
        var records = ojts.Select(t => new OjtListDto
@@ -149,12 +150,12 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
 
     public async Task<byte[]> ListAllOjtFiltered(ApplicationStatusEnum? status, string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
     {
-        var query = _context.Students
+        IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null)
             .AsNoTracking()
-            .AsSplitQuery();
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
         if (status is { } selectedStatus)
         {
@@ -261,11 +262,11 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
 
 public async Task<byte[]> OjtListCsvFiltered(string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
 {
-    var query = _context.Students
+    IQueryable<Student> query = _context.Students
         .Include(t => t.Application)
         .Include(t => t.Placement).ThenInclude(p => p.Office)
         .AsNoTracking()
-        .AsSplitQuery();
+        .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
     if (!string.IsNullOrEmpty(office))
     {

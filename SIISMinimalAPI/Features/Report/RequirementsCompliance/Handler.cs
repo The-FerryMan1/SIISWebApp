@@ -24,7 +24,7 @@ public class RequirementsComplianceHandler(AppDbContext context) : IRequirements
             .Include(t => t.Requirements)
             .Where(t => !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var data = students.Select(s => new RequirementsComplianceDto
@@ -124,7 +124,7 @@ public class RequirementsComplianceHandler(AppDbContext context) : IRequirements
             .Include(t => t.Requirements)
             .Where(t => !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var data = students.Select(s => new RequirementsComplianceDto

@@ -66,8 +66,9 @@ const items = computed<NavigationMenuItem[]>(() => [
   },
   {
     label: 'Logs',
-    icon: 'i-lucide-logs',
-    active: route.name == '',
+    icon: 'i-lucide-scroll-text',
+    active: route.name == 'logs',
+    to: { name: 'logs' },
   },
 ])
 </script>

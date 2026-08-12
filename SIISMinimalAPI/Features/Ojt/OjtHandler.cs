@@ -1,13 +1,15 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.Ojt.GetAllOjt;
 
 namespace SIISMinimalAPI.Features.Ojt;
 
-public class OjtHandler(AppDbContext context) : IOjtService
+public class OjtHandler(AppDbContext context, ILogService logService) : IOjtService
 {
     private readonly AppDbContext _context = context;
+    private readonly ILogService _logService = logService;
 
     public async Task DeleteOjt(Guid guid, CancellationToken ct)
     {
@@ -16,6 +18,9 @@ public class OjtHandler(AppDbContext context) : IOjtService
 
        _context.Remove(ojt);
        await _context.SaveChangesAsync(ct);
+
+       var deleteUserId = context.Entry(ojt).Property("Id").CurrentValue.ToString() ?? "unknown";
+       await _logService.WriteAsync("Delete", "OJT", ojt.Id, deleteUserId, $"Deleted OJT {ojt.FullName}");
     }
 
     public async Task<ICollection<OjtDto>>? GetAllOjtAsync(CancellationToken ct)

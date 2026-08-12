@@ -16,12 +16,12 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
 
     private IQueryable<Student> BaseQuery(long? officeId = null)
     {
-        var query = _context.Students
+        IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery();
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
         if (officeId.HasValue)
         {
@@ -37,7 +37,6 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
 
         var students = await BaseQuery(officeId)
             .Where(t => t.Placement!.EstimatedEndDate <= threshold)
-            .OrderBy(t => t.Placement!.EstimatedEndDate)
             .ToListAsync(ct);
 
         var officeName = officeId.HasValue

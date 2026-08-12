@@ -24,7 +24,7 @@ public class PendingApplicationsHandler(AppDbContext context) : IPendingApplicat
             .Include(t => t.Application)
             .Where(t => t.Application != null && t.Application.Status == ApplicationStatusEnum.Pending && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         QuestPDF.Settings.License = LicenseType.Community;
@@ -108,7 +108,7 @@ public class PendingApplicationsHandler(AppDbContext context) : IPendingApplicat
             .Include(t => t.Application)
             .Where(t => t.Application != null && t.Application.Status == ApplicationStatusEnum.Pending && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var records = students.Select(t => new PendingApplicationsDto

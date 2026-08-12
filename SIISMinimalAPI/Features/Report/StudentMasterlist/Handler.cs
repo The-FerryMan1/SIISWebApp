@@ -32,9 +32,9 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
         var students = await _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
-            .Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office.OfficeName && !t.IsDeleted)
+            .Where(t => t.Placement != null && t.Placement!.Office != null && t.Placement.Office.OfficeName == office.OfficeName && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         QuestPDF.Settings.License = LicenseType.Community;
@@ -137,9 +137,9 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
         var students = await _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
-            .Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office.OfficeName && !t.IsDeleted)
+            .Where(t => t.Placement != null && t.Placement!.Office != null && t.Placement.Office.OfficeName == office.OfficeName && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery()
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
             .ToListAsync(ct);
 
         var records = students.Select(t => new StudentMasterlistDto

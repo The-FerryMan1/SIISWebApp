@@ -1,12 +1,14 @@
 using System;
 using Microsoft.AspNetCore.Identity;
 using SIISMinimalAPI.Features.Shared.Models;
+using SIISMinimalAPI.Features.Logs;
 
 namespace SIISMinimalAPI.Features.Auth.User;
 
-public class UserService(UserManager<SIISMinimalAPI.Features.Shared.Models.User> userManager) : IUserService
+public class UserService(UserManager<SIISMinimalAPI.Features.Shared.Models.User> userManager, ILogService logService) : IUserService
 {
     private readonly UserManager<SIISMinimalAPI.Features.Shared.Models.User> _userManager = userManager;
+    private readonly ILogService _logService = logService;
 
     public async Task UserChangeInfo(string userId, UserUpdateDto userUpdateDto)
     {
@@ -39,6 +41,8 @@ public class UserService(UserManager<SIISMinimalAPI.Features.Shared.Models.User>
         }
         
         await _userManager.UpdateAsync(user);
+
+        await _logService.WriteAsync("Update", "User", null, userId, $"Updated user {user.UserName}");
     }
 
     public async Task UserChangePassword(string userId, UserChangePass userChangePass)

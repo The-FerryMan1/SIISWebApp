@@ -22,7 +22,7 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.Placement!.OfficeId == officeId && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery();
+            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
     }
 
     public async Task<byte[]> GenerateMasterlistPdf(long officeId, CancellationToken ct)

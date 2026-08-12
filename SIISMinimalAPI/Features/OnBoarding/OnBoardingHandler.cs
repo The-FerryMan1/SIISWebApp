@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Logs;
 
 namespace SIISMinimalAPI.Features.OnBoarding
 {
-    public class OnBoardingHandler(AppDbContext context) : IOnBoadringService
+    public class OnBoardingHandler(AppDbContext context, ILogService logService) : IOnBoadringService
     {
         private readonly AppDbContext _context = context;
+        private readonly ILogService _logService = logService;
         public async Task CreateOnBoarding(OnBoardingDto onBoardingDto, CancellationToken ct)
         {
             try
@@ -177,6 +179,9 @@ namespace SIISMinimalAPI.Features.OnBoarding
             }
 
             await _context.SaveChangesAsync(ct);
+
+            var updateUserId = context.Entry(exists).Property("Id").CurrentValue.ToString() ?? "unknown";
+            await _logService.WriteAsync("Update", "OnBoarding", exists.Id, updateUserId, $"Updated on-boarding for {exists.FullName}");
         }
     }
 }
