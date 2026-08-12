@@ -27,10 +27,11 @@ const state = ref<Partial<OnBoardUpdateDto>>()
 
 watch(
   () => route.params.uuid,
-  async () => {
+  async (value) => {
+    if (!value) return
     try {
       loading.value = true
-      const { data } = await useAxios.get('/application/' + route.params.uuid)
+      const { data } = await useAxios.get('/application/' + value)
       console.log(data)
       details.value = data
     } catch (err) {

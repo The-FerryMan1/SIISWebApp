@@ -15,9 +15,11 @@ const ojt = useOJtStore()
 const { ojtDetails } = storeToRefs(ojt)
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 watch(
     () => route.params.uuid,
     async (value) => {
+        if (!value) return
         await ojt.ojtDetailsInit(value as string)
     },
     { immediate: true },
@@ -103,9 +105,18 @@ const debounceDelete = useDebounceFn(async () => {
     const instance = await confModal.open({ title: 'Delete ojt', description: 'All connected record will be deleted' })
     if (instance) {
         await ojt.deleteRequest(route.params.uuid as string)
+        toast.add({ title: 'OJT deleted successfully', color: 'success' })
+        router.push({ name: 'ojt' })
     }
 
 }, 500)
+
+const copyUuid = async () => {
+    if (ojtDetails.value?.studentUUID) {
+        await navigator.clipboard.writeText(ojtDetails.value.studentUUID)
+        toast.add({ title: 'UUID copied to clipboard', color: 'success' })
+    }
+}
 
 </script>
 
@@ -136,12 +147,9 @@ const debounceDelete = useDebounceFn(async () => {
                     </div>
                     <div>
                         <UTooltip text="Copy UUID">
-                            <UButton color="neutral" variant="ghost" size="sm" icon="i-lucide-copy" />
+                            <UButton @click="copyUuid" color="neutral" variant="ghost" size="sm" icon="i-lucide-copy" />
                         </UTooltip>
 
-                        <UTooltip text="Edit ojt details">
-                            <UButton color="info" variant="ghost" size="sm" icon="i-lucide-pen" />
-                        </UTooltip>
                         <UTooltip text="Delete ojt">
                             <UButton @click="debounceDelete" color="error" variant="ghost" size="sm"
                                 icon="i-lucide-trash" />

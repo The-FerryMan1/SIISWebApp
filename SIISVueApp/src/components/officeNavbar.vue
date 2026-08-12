@@ -28,6 +28,12 @@ const items = computed<NavigationMenuItem[]>(() => [
     active: route.name == 'office-reports',
     to: { name: 'office-reports' },
   },
+  {
+    label: 'Requirements',
+    icon: 'i-lucide-file-text',
+    active: route.name == 'office-requirements',
+    to: { name: 'office-requirements' },
+  },
 ])
 </script>
 

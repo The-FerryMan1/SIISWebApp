@@ -59,6 +59,12 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: { name: 'report' },
   },
   {
+    label: 'Requirements',
+    icon: 'i-lucide-file-text',
+    active: route.name == 'requirements',
+    to: { name: 'requirements' },
+  },
+  {
     label: 'Logs',
     icon: 'i-lucide-logs',
     active: route.name == '',

@@ -243,25 +243,36 @@ const closeRequirementPreview = () => {
 }
 
 const debounceGenerateEndorsement = useDebounceFn(printEndorsement, 1000)
-const debouncedRejectApi = useDebounceFn((uuid: string) => {
-  application.rejectApplication(uuid)
+const debouncedRejectApi = useDebounceFn((uuid: string, reason: string) => {
+  application.rejectApplication(uuid, reason)
 }, 500)
 
 const goToEdit = () => {
-  router.push({ name: 'application-edit', params: { uuid: route.params.uuid } })
+  const appUuid = route.params.uuid as string | undefined
+  if (!appUuid) {
+    toast.add({ title: 'Application ID is missing', color: 'error' })
+    return
+  }
+  router.push({ name: 'application-edit', params: { uuid: appUuid } })
 }
 
-const rejectApplication = async (uuid: string) => {
-  const cmodal = cModal.open({ 
-    title: 'Reject application', 
-    description: 'Are you sure you want to reject this application?' 
-  })
+const rejectReason = ref('')
+const rejectOpen = ref(false)
 
-  const instance = await cmodal.result
+const openReject = () => {
+  rejectReason.value = ''
+  rejectOpen.value = true
+}
 
-  if (instance) { // Checked positive confirmation
-    debouncedRejectApi(uuid) // Call the debounced handler
+const submitReject = async () => {
+  const uuid = route.params.uuid as string | undefined
+  if (!uuid) {
+    toast.add({ title: 'Application ID is missing', color: 'error' })
+    return
   }
+  await debouncedRejectApi(uuid, rejectReason.value)
+  rejectOpen.value = false
+  toast.add({ title: 'Application rejected', color: 'success' })
 }
 
 const isRejected = computed(()=>details.value?.application.status === ApplicationStatusEnum.Rejected)
@@ -326,7 +337,7 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
             Edit
           </UButton>
 
-          <UButton @click="rejectApplication(details.application.uuid)" v-if="isPending" color="error" variant="solid" icon="i-lucide-x" size="sm">
+          <UButton @click="openReject" v-if="isPending" color="error" variant="solid" icon="i-lucide-x" size="sm">
             Reject
           </UButton>
         </div>
@@ -427,6 +438,20 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
                 <UButton type="submit" color="primary" icon="i-lucide-send" label="approve" />
               </div>
             </UForm>
+          </template>
+        </UModal>
+
+        <UModal v-model:open="rejectOpen" title="Reject Application" description="Please provide a reason for rejection">
+          <template #body>
+            <UFormField label="Reason" required>
+              <UTextarea v-model="rejectReason" placeholder="Enter reason for rejection" class="w-full" :rows="3" />
+            </UFormField>
+          </template>
+          <template #footer>
+            <div class="flex justify-end gap-3">
+              <UButton label="Cancel" variant="ghost" color="neutral" @click="rejectOpen = false" />
+              <UButton label="Reject" color="error" variant="solid" @click="submitReject" />
+            </div>
           </template>
         </UModal>
       </div>

@@ -46,7 +46,24 @@ public static class  ApplicationEndpoint
             }
         }).RequireAuthorization("Admin");
 
-        group.MapPost("/details/{uuid}", [Authorize(Roles = "Admin")] async Task<IResult> (Guid uuid, RequestDto requestDto,  IApplicationService service, CancellationToken ct) =>
+        group.MapGet("/by-student/{studentUuid}", [Authorize(Roles = "Admin")] async Task<IResult>(Guid studentUuid, IApplicationService service, CancellationToken ct) =>
+        {
+            try
+            {
+                var result = await service.GetByStudentUuidAsync(studentUuid, ct);
+                return TypedResults.Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return TypedResults.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return TypedResults.InternalServerError(ex.Message);
+            }
+        }).RequireAuthorization("Admin");
+
+                group.MapPost("/details/{uuid}", [Authorize(Roles = "Admin")] async Task<IResult> (Guid uuid, RequestDto requestDto,  IApplicationService service, CancellationToken ct) =>
         {
 
             Validator validationRules = new();
@@ -129,11 +146,11 @@ public static class  ApplicationEndpoint
             return Results.File(requirement.FilePath, requirement.FileType, requirement.FileName);
         }).RequireAuthorization("Admin");
 
-        group.MapPut("/details/reject/{uuid}", [Authorize] async Task<IResult>(Guid uuid, IApplicationService service, CancellationToken ct) =>
+        group.MapPut("/details/reject/{uuid}", [Authorize] async Task<IResult>(Guid uuid, [FromBody] RejectRequest request, IApplicationService service, CancellationToken ct) =>
         {
             try
             {
-                await service.RejectApplication(uuid, ct);
+                await service.RejectApplication(uuid, request.Reason, ct);
                 return TypedResults.Ok();
             }
             catch (KeyNotFoundException ex)

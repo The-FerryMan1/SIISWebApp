@@ -28,6 +28,7 @@ using SIISMinimalAPI.Features.Report.RejectedApplications;
 using SIISMinimalAPI.Features.Report.ImportAudit;
 using SIISMinimalAPI.Features.Report.OfficePerformance;
 using SIISMinimalAPI.Features.OfficeDashboard;
+using SIISMinimalAPI.Features.Requirements;
 using SIISMinimalAPI.Features.StudentImport;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -210,6 +211,7 @@ app.MapToCompletionSummary();
 app.MapToRejectedApplications();
 app.MapToImportAudit();
 app.MapToOfficePerformance();
+app.MapToRequirements();
 
 //seed
 using (var scope = app.Services.CreateScope())

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Application.AssignAndApprove;
 using SIISMinimalAPI.Features.Application.GetById;
+using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Features.Application;
 
@@ -108,6 +109,26 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
 
         if (application is null) throw new KeyNotFoundException("application not found");
 
+        return MapToDto(application);
+    }
+
+    public async Task<ApplicationGetByIdDto> GetByStudentUuidAsync(Guid studentUuid, CancellationToken ct)
+    {
+        var application = await _context.Students
+         .Include(t => t.Requirements)
+         .Include(t => t.Application)
+         .Include(t => t.Placement).ThenInclude(p => p.Office)
+         .AsSplitQuery()
+         .AsNoTracking()
+         .FirstOrDefaultAsync(t => t.StudentUUID == studentUuid, cancellationToken: ct);
+
+        if (application is null) throw new KeyNotFoundException("application not found");
+
+        return MapToDto(application);
+    }
+
+    private static ApplicationGetByIdDto MapToDto(Student application)
+    {
         return new ApplicationGetByIdDto
         {
             Student = application is null ? null : new StudentInfo
@@ -199,7 +220,7 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         };
     }
 
-    public async Task RejectApplication(Guid uuid, CancellationToken ct)
+    public async Task RejectApplication(Guid uuid, string? reason, CancellationToken ct)
     {
         var application = await _context.Students
         .Include(t => t.Application)
@@ -214,7 +235,8 @@ public class ApplicationHandler(AppDbContext context) : IApplicationService
         }
 
         application.Application.Status = Shared.Enums.ApplicationStatusEnum.Rejected;
-        _context.SaveChanges();
+        application.Application.Reason = reason;
+        await _context.SaveChangesAsync(ct);
 
     }
 

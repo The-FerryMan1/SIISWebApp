@@ -8,6 +8,7 @@ import { getPaginationRowModel } from '@tanstack/vue-table'
 import { useRouter } from 'vue-router'
 import { type Ojt, useOJtStore } from '../../stores/ojt'
 import { GenderEnum } from '../onBoarding/validator/onboardingValidator'
+import { useAxios } from '../../fetch/axios'
 import OjtPieChart from './graph/ojtPieChart.vue'
 
 //states
@@ -15,6 +16,7 @@ const auth = UseAuthStore()
 const application = useApplicationStore()
 const ojt = useOJtStore()
 const router = useRouter()
+const toast = useToast()
 
 const UBadge = resolveComponent('UBadge')
 const UChip = resolveComponent('UChip')
@@ -142,17 +144,28 @@ const columns: TableColumn<Ojt>[] = [
           color: 'primary',
           onClick: () => viewActions(uuid),
         }),
-        h(UButton, {
-          icon: 'i-lucide-pen',
-          size: 'xs',
-          variant: 'ghost',
-          color: 'info',
-          onClick: () =>
-            router.push({
-              name: 'application-edit',
-              params: { uuid },
-            }),
-        }),
+        h(UDropdownMenu, {
+          items: [
+            {
+              label: 'View Requirements',
+              icon: 'i-lucide-file-text',
+              onSelect: () => viewRequirements(uuid),
+            },
+            {
+              label: 'Generate Endorsement',
+              icon: 'i-lucide-file-check',
+              onSelect: () => generateEndorsement(uuid),
+            },
+          ],
+          content: { align: 'end' },
+        }, () => [
+          h(UButton, {
+            icon: 'i-lucide-more-horizontal',
+            size: 'xs',
+            variant: 'ghost',
+            color: 'neutral',
+          }),
+        ]),
       ])
     },
   },
@@ -160,6 +173,23 @@ const columns: TableColumn<Ojt>[] = [
 
 const viewActions = (uuid: string) => {
   router.push({ name: 'ojt-details', params: { uuid: uuid } })
+}
+
+const viewRequirements = async (uuid: string) => {
+  try {
+    const { data } = await useAxios.get(`/application/${uuid}/requirements`)
+    if (data && data.length > 0) {
+      toast.add({ title: `Found ${data.length} requirement(s)`, color: 'info' })
+    } else {
+      toast.add({ title: 'No requirements found', color: 'warning' })
+    }
+  } catch {
+    toast.add({ title: 'Failed to load requirements', color: 'error' })
+  }
+}
+
+const generateEndorsement = (uuid: string) => {
+  router.push({ name: 'endorsement', query: { uuid } })
 }
 
 const getAge = (birthDate: string | Date): number => {

@@ -22,13 +22,17 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
     public async Task<byte[]> GeneratePdf(string officeName, CancellationToken ct)
     {
         var office = await _context.Offices
+            .AsNoTracking()
             .FirstOrDefaultAsync(o => o.OfficeName == officeName && !o.IsDeleted, ct)
+            ?? await _context.Offices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.OfficeName.ToLower() == officeName.ToLower() && !o.IsDeleted, ct)
             ?? throw new KeyNotFoundException("Office not found");
 
         var students = await _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
-            .Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == officeName && !t.IsDeleted)
+            .Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office.OfficeName && !t.IsDeleted)
             .AsNoTracking()
             .AsSplitQuery()
             .ToListAsync(ct);
@@ -122,10 +126,18 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
 
     public async Task<byte[]> GenerateCsv(string officeName, CancellationToken ct)
     {
+        var office = await _context.Offices
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.OfficeName == officeName && !o.IsDeleted, ct)
+            ?? await _context.Offices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.OfficeName.ToLower() == officeName.ToLower() && !o.IsDeleted, ct)
+            ?? throw new KeyNotFoundException("Office not found");
+
         var students = await _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
-            .Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == officeName && !t.IsDeleted)
+            .Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office.OfficeName && !t.IsDeleted)
             .AsNoTracking()
             .AsSplitQuery()
             .ToListAsync(ct);

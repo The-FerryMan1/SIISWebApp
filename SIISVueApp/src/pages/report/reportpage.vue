@@ -59,13 +59,13 @@ const isExpiring = computed(() => reportType.value === 'expiringInternships')
 const needsOffice = computed(() => isStudentMasterlist.value || isOjtPerOffice.value || isExpiring.value)
 
 const officeNameOptions = computed<SelectItem[]>(() => {
-    const keys = Object.keys(OfficeNameEnum).filter(k => isNaN(Number(k)))
-    return keys.map(k => {
-        const enumVal = OfficeNameEnum[k as keyof typeof OfficeNameEnum] as number
-        const found = OfficeOptions.find(o => (o as any).value === enumVal)
+  const keys = Object.keys(OfficeNameEnum).filter(k => isNaN(Number(k)))
+  return keys.map(k => {
+    const enumVal = OfficeNameEnum[k as keyof typeof OfficeNameEnum] as number
+    const found = OfficeOptions.find(o => (o as any).value === enumVal)
     const label = (found as any)?.label || k
-        return { label, value: k }
-    })
+    return { label, value: label }
+  })
 })
 
 const officeSelectItems = computed(() => {

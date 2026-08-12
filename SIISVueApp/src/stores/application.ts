@@ -32,9 +32,9 @@ export const useApplicationStore = defineStore('applicaton', () => {
     }
   }
 
-  const rejectApplication = async(uuid: string)=>{
+  const rejectApplication = async(uuid: string, reason?: string)=>{
     try {
-      await useAxios.put('/application/details/reject/' + uuid)
+      await useAxios.put('/application/details/reject/' + uuid, { reason })
     } catch (error) {
       const err = error as AxiosError
       applicationError.value = err
