@@ -15,6 +15,7 @@ const students = ref<any[]>([])
 const editOpen = ref(false)
 const editingStudent = ref<any>(null)
 const editForm = ref({ startDate: '', estimatedEndDate: '' })
+import { validateDateRange } from '../../utils/validators'
 
 const table = useTemplateRef('table')
 const globalFilter = ref('')
@@ -123,6 +124,12 @@ function openEditDates(student: any) {
 async function saveDates() {
   if (!editingStudent.value) return
   try {
+    const dateCheck = validateDateRange(editForm.value.startDate, editForm.value.estimatedEndDate)
+    if (!dateCheck.valid) {
+      toast.add({ title: 'Validation', description: dateCheck.message, color: 'error' })
+      return
+    }
+
     await useAxios.put(`/office-dashboard/internship/${editingStudent.value.studentUuid}`, {
       startDate: editForm.value.startDate,
       estimatedEndDate: editForm.value.estimatedEndDate,

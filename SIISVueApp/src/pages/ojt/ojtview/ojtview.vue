@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import { OfficesArray } from '../../admin/types/officeSelectValue'
 import { useDebounceFn } from '@vueuse/core'
 import ConfirmationModal from '../../../components/confirmationModal.vue'
+import { validateDateRange, validateAccumulatedHours, isNonEmpty } from '../../../utils/validators'
 import { useAxios } from '../../../fetch/axios'
 
 
@@ -143,8 +144,28 @@ watch(transferOpen, (isOpen) => {
 const submitTransfer = async () => {
   if (!ojtDetails.value?.studentUUID) return
   try {
-    loading.value = true
-    await useAxios.put(`/admin/placement/${ojtDetails.value.studentUUID}`, transferForm.value)
+        // validation
+        if (!isNonEmpty(transferForm.value.office)) {
+            toast.add({ title: 'Validation', description: 'New office is required', color: 'error' })
+            return
+        }
+
+        const dateCheck = validateDateRange(transferForm.value.startDate, transferForm.value.estimatedEndDate)
+        if (!dateCheck.valid) {
+            toast.add({ title: 'Validation', description: dateCheck.message, color: 'error' })
+            return
+        }
+
+        // No total internship hours available in `ojtDetails`; skip max check
+        const maxHours = undefined
+        const accCheck = validateAccumulatedHours(transferForm.value.accumulatedHours, maxHours)
+        if (!accCheck.valid) {
+            toast.add({ title: 'Validation', description: accCheck.message, color: 'error' })
+            return
+        }
+
+        loading.value = true
+        await useAxios.put(`/admin/placement/${ojtDetails.value.studentUUID}`, transferForm.value)
     toast.add({ title: 'Placement transferred successfully', color: 'success' })
     transferOpen.value = false
     await ojt.ojtDetailsInit(ojtDetails.value.studentUUID)

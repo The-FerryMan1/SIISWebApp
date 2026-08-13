@@ -7,6 +7,7 @@ import { ApplicationStatusEnum, type ApplicationGetByIdResponse } from './types/
 import { useAxios } from '../../fetch/axios'
 import { OfficeNameLabels, OfficesArray, OfficeNameEnum } from './types/officeSelectValue'
 import z from 'zod'
+import { validateDateRange, validateAccumulatedHours, isNonEmpty } from '../../utils/validators'
 import ConfirmationModal from '../../components/confirmationModal.vue'
 import { useApplicationStore } from '../../stores/application.ts'
 
@@ -300,6 +301,26 @@ watch(transferOpen, (isOpen) => {
 const submitTransfer = async () => {
   if (!route.params.uuid) return
   try {
+    // validation
+    if (!isNonEmpty(transferForm.value.office)) {
+      toast.add({ title: 'Validation', description: 'New office is required', color: 'error' })
+      return
+    }
+
+    const dateCheck = validateDateRange(transferForm.value.startDate, transferForm.value.estimatedEndDate)
+    if (!dateCheck.valid) {
+      toast.add({ title: 'Validation', description: dateCheck.message, color: 'error' })
+      return
+    }
+
+    // Use student's total internship hours when available
+    const maxHours = details.value?.student?.totalInternshipHours ?? undefined
+    const accCheck = validateAccumulatedHours(transferForm.value.accumulatedHours, maxHours)
+    if (!accCheck.valid) {
+      toast.add({ title: 'Validation', description: accCheck.message, color: 'error' })
+      return
+    }
+
     loading.value = true
     const studentUuid = details.value?.student.studentUUID
     if (!studentUuid) throw new Error('Missing student UUID')

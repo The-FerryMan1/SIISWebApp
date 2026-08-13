@@ -5,6 +5,7 @@ import { useOfficeAccountStore } from '../../stores/officeAuth'
 import { useAxios } from '../../fetch/axios'
 import { useRouter } from 'vue-router'
 import { getPaginationRowModel } from '@tanstack/vue-table'
+import { validateDateRange, validateAccumulatedHours, isNonEmpty } from '../../utils/validators'
 
 const officeAuth = useOfficeAccountStore()
 const router = useRouter()
@@ -120,9 +121,22 @@ function openEditDates(student: any) {
 async function saveDates() {
   if (!editingStudent.value) return
   try {
+    // Validate dates
+    const dateCheck = validateDateRange(editForm.value.startDate, editForm.value.estimatedEndDate)
+    if (!dateCheck.valid) {
+      toast.add({ title: 'Validation', description: dateCheck.message, color: 'error' })
+      return
+    }
+
     const maxHours = editingStudent.value.totalHours ?? 0
+    const accCheck = validateAccumulatedHours(editForm.value.accumulatedHours, maxHours)
+    if (!accCheck.valid) {
+      toast.add({ title: 'Validation', description: accCheck.message, color: 'error' })
+      return
+    }
+
     const cappedHours = Math.min(editForm.value.accumulatedHours, maxHours)
-    
+
     await useAxios.put(`/office-dashboard/placement/${editingStudent.value.studentUuid}`, {
       startDate: editForm.value.startDate,
       estimatedEndDate: editForm.value.estimatedEndDate,
@@ -143,6 +157,11 @@ function openEditDepartment() {
 
 async function saveDepartment() {
   try {
+    if (!isNonEmpty(departmentForm.value)) {
+      toast.add({ title: 'Validation', description: 'Department is required', color: 'error' })
+      return
+    }
+
     await useAxios.put('/office/my-department', {
       department: departmentForm.value
     })
@@ -167,6 +186,11 @@ function openEditProfile() {
 
 async function saveProfile() {
   try {
+    if (!isNonEmpty(profileForm.value.lastName) || !isNonEmpty(profileForm.value.firstName) || !isNonEmpty(profileForm.value.username)) {
+      toast.add({ title: 'Validation', description: 'Last name, first name and username are required', color: 'error' })
+      return
+    }
+
     await useAxios.put('/user', {
       lastName: profileForm.value.lastName,
       firstName: profileForm.value.firstName,
