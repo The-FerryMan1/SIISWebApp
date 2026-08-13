@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, h, computed } from 'vue'
+import { ref, onMounted, h, computed, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { useOfficeAccountStore } from '../../stores/officeAuth'
 import { useAxios } from '../../fetch/axios'
@@ -10,6 +10,8 @@ const officeAuth = useOfficeAccountStore()
 const router = useRouter()
 const toast = useToast()
 
+
+const UButton = resolveComponent('UButton')
 const loading = ref(false)
 const dashboard = ref<any>(null)
 const searchQuery = ref('')
@@ -51,11 +53,12 @@ const columns: TableColumn<any>[] = [
   }},
   {
     header: 'Actions',
-    cell: ({ row }) => h('button', {
+    cell: ({ row }) => h(UButton, {
       class: 'p-1 hover:text-primary',
       title: 'Edit dates',
-      onClick: () => openEditDates(row.original),
-    }, h('span', { class: 'i-lucide-calendar size-4' })),
+      icon: 'i-lucide-calendar',
+      onClick: () => openEditDates(row.original)
+    })
   },
 ]
 
@@ -269,9 +272,9 @@ function logout() {
           v-model:page="page"
           v-model:page-size="pageSize"
           :data="filteredStudents"
-          :columns
+          :columns="columns"
           :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
-          :loading
+          :loading="loading"
           class="w-full"
           @row-click="(row: any) => goToStudent(row.original.studentUuid)"
         >
