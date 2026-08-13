@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOJtStore, type OjtDetails } from '../../../stores/ojt'
 import { storeToRefs } from 'pinia'
 import { OfficesArray } from '../../admin/types/officeSelectValue'
 import { useDebounceFn } from '@vueuse/core'
 import ConfirmationModal from '../../../components/confirmationModal.vue'
+import { useAxios } from '../../../fetch/axios'
 
 
 
@@ -119,6 +120,41 @@ const copyUuid = async () => {
     }
 }
 
+const transferOpen = ref(false)
+const transferForm = ref({
+  office: '',
+  startDate: '',
+  estimatedEndDate: '',
+  accumulatedHours: 0,
+})
+const loading = ref(false)
+
+watch(transferOpen, (isOpen) => {
+  if (isOpen && ojtDetails.value) {
+    transferForm.value = {
+      office: ojtDetails.value.office ?? '',
+      startDate: ojtDetails.value.startDate ?? '',
+      estimatedEndDate: ojtDetails.value.estimatedEndDate ?? '',
+      accumulatedHours: ojtDetails.value.accumulatedHours ?? 0,
+    }
+  }
+})
+
+const submitTransfer = async () => {
+  if (!ojtDetails.value?.studentUUID) return
+  try {
+    loading.value = true
+    await useAxios.put(`/admin/placement/${ojtDetails.value.studentUUID}`, transferForm.value)
+    toast.add({ title: 'Placement transferred successfully', color: 'success' })
+    transferOpen.value = false
+    await ojt.ojtDetailsInit(ojtDetails.value.studentUUID)
+  } catch {
+    toast.add({ title: 'Failed to transfer placement', color: 'error' })
+  } finally {
+    loading.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -151,6 +187,11 @@ const copyUuid = async () => {
                             <UButton @click="copyUuid" color="neutral" variant="ghost" size="sm" icon="i-lucide-copy" />
                         </UTooltip>
 
+                        <UTooltip text="Transfer Office">
+                            <UButton @click="transferOpen = true" color="primary" variant="ghost" size="sm"
+                                icon="i-lucide-building-2" />
+                        </UTooltip>
+
                         <UTooltip text="Delete ojt">
                             <UButton @click="debounceDelete" color="error" variant="ghost" size="sm"
                                 icon="i-lucide-trash" />
@@ -176,7 +217,7 @@ const copyUuid = async () => {
                                 {{ gradeLabel(ojtDetails.gradeLevel) }}
                             </UBadge>
                             <UBadge color="info" variant="soft" size="sm">
-                                {{ officeLabel(ojtDetails.office) }}
+                                {{ ojtDetails.office }}
                             </UBadge>
                             <UBadge color="success" variant="soft" size="sm">
                                 {{ genderLabel(ojtDetails.gender) }}
@@ -217,5 +258,29 @@ const copyUuid = async () => {
             </div>
         </UCard>
 
+        <UModal v-model:open="transferOpen" title="Transfer Office" description="Move student to a different office">
+          <template #body>
+            <UForm class="flex flex-col gap-3">
+              <UFormField label="New Office" required>
+                <USelect v-model="transferForm.office" :items="OfficesArray.map(o => ({ label: o.label, value: o.label }))" placeholder="Select office" class="w-full" />
+              </UFormField>
+              <UFormField label="Start Date" required>
+                <UInput v-model="transferForm.startDate" type="date" class="w-full" />
+              </UFormField>
+              <UFormField label="Estimated End Date" required>
+                <UInput v-model="transferForm.estimatedEndDate" type="date" class="w-full" />
+              </UFormField>
+              <UFormField label="Accumulated Hours" required>
+                <UInput v-model.number="transferForm.accumulatedHours" type="number" class="w-full" />
+              </UFormField>
+            </UForm>
+          </template>
+          <template #footer>
+            <div class="flex justify-end gap-3">
+              <UButton label="Cancel" variant="ghost" color="neutral" @click="transferOpen = false" />
+              <UButton label="Transfer" color="primary" variant="solid" @click="submitTransfer" :loading="loading" />
+            </div>
+          </template>
+        </UModal>
     </UMain>
 </template>

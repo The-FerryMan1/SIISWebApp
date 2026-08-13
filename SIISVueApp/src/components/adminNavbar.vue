@@ -11,7 +11,7 @@ const route = useRoute()
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
-    label: 'Dasboard',
+    label: 'Dashboard',
     icon: 'i-lucide-layout-dashboard',
     active: route.name == 'dashboard',
     to: { name: 'dashboard' },

@@ -12,7 +12,7 @@ const links = ref<ButtonProps[]>([
 </script>
 
 <template>
-  <div class="bg-[url('/images/cover-bg.png')] bg-cover bg-center min-h-screen">
+  <div class="bg-[url('/cover-bg.png')] bg-cover bg-center min-h-screen">
     <UContainer>
       <UPageHero
         title="Student Internship Information System"

@@ -3,14 +3,13 @@ import { RouterView } from 'vue-router'
 import AdminNavbar from '../components/adminNavbar.vue'
 import { UseAuthStore } from '../stores/auth.ts'
 import Logo from '../components/logo.vue'
-import Clocker from '../components/clocker.vue'
 </script>
 
 <template>
   <UDashboardGroup>
     <UDashboardSidebar resizable collapsible>
       <template #header="{ collapsed }">
-        <Logo :collapesed="collapsed" />
+        <Logo :collapsed="collapsed" />
       </template>
       <template #default="{ collapsed }">
         <AdminNavbar :collapsed="collapsed" />

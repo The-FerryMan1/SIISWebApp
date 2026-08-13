@@ -46,12 +46,10 @@ const onSubmit = async (paylaod: FormSubmitEvent<Schema>) => {
     toast.add({ description: 'Login failed: Invalid Credentials', color: 'error' })
   }
 }
-
-const debounceSubmit = useDebounceFn(onSubmit, 1000)
 </script>
 
 <template>
-  <UMain class="bg-[url('/images/cover-bg.png')] bg-cover bg-center min-h-screen flex flex-col items-center justify-center">
+  <UMain class="bg-[url('/cover-bg.png')] bg-cover bg-center min-h-screen flex flex-col items-center justify-center">
     <UPageCard orientation="vertical" :reverse="true" variant="outline" class="w-full max-w-md p-2">
       <UAuthForm
         :schema
@@ -60,7 +58,7 @@ const debounceSubmit = useDebounceFn(onSubmit, 1000)
         title="Login"
         description="Enter your credentials to access your account."
         loading-auto
-        @submit="debounceSubmit"
+        @submit="onSubmit"
       >
         <template #header>
           <div class="flex flex-col items-center gap-4 pb-4 text-center">

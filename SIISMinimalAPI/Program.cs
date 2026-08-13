@@ -31,6 +31,7 @@ using SIISMinimalAPI.Features.OfficeDashboard;
 using SIISMinimalAPI.Features.Requirements;
 using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.StudentImport;
+using SIISMinimalAPI.Features.PlacementTransfer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -215,6 +216,7 @@ app.MapToImportAudit();
 app.MapToOfficePerformance();
 app.MapToRequirements();
 app.MapToLogs();
+app.MapToPlacementTransfer();
 
 //seed
 using (var scope = app.Services.CreateScope())

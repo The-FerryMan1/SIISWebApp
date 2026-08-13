@@ -219,12 +219,8 @@ watch(
 
 <template>
   <UMain class="space-y-5">
-    {{ selectedOffice.office }}
     <div class="px-10 py-2 my-10">
       <div>
-        <p v-for="u in univ">
-          {{ u }}
-        </p>
         <h2 class="text-4xl font-black text-primary">Endorsement</h2>
         <p class="text-muted text-sm">Multiple/Bulk endorsement letter generation</p>
       </div>

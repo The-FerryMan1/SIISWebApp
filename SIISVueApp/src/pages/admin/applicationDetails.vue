@@ -277,6 +277,49 @@ const submitReject = async () => {
 
 const isRejected = computed(()=>details.value?.application.status === ApplicationStatusEnum.Rejected)
 const isApproved = computed(()=>details.value?.application.status === ApplicationStatusEnum.Approved)
+
+const transferOpen = ref(false)
+const transferForm = ref({
+  office: '',
+  startDate: '',
+  estimatedEndDate: '',
+  accumulatedHours: 0,
+})
+
+watch(transferOpen, (isOpen) => {
+  if (isOpen && details.value?.placement && details.value.office) {
+    transferForm.value = {
+      office: details.value.office.officeName,
+      startDate: details.value.placement.startDate,
+      estimatedEndDate: details.value.placement.estimatedEndDate,
+      accumulatedHours: details.value.placement.accumulatedHours,
+    }
+  }
+})
+
+const submitTransfer = async () => {
+  if (!route.params.uuid) return
+  try {
+    loading.value = true
+    const studentUuid = details.value?.student.studentUUID
+    if (!studentUuid) throw new Error('Missing student UUID')
+
+    await useAxios.put(`/admin/placement/${studentUuid}`, transferForm.value)
+    toast.add({ title: 'Placement transferred successfully', color: 'success' })
+    transferOpen.value = false
+
+    if (details.value) {
+      details.value.office!.officeName = transferForm.value.office
+      details.value.placement!.startDate = transferForm.value.startDate
+      details.value.placement!.estimatedEndDate = transferForm.value.estimatedEndDate
+      details.value.placement!.accumulatedHours = transferForm.value.accumulatedHours
+    }
+  } catch {
+    toast.add({ title: 'Failed to transfer placement', color: 'error' })
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -335,6 +378,10 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
 
           <UButton @click="goToEdit" icon="i-lucide-pen" size="sm" variant="solid" color="neutral">
             Edit
+          </UButton>
+
+          <UButton v-if="isApproved" @click="transferOpen = true" color="primary" icon="i-lucide-building-2" size="sm" variant="solid">
+            Transfer Office
           </UButton>
 
           <UButton @click="openReject" v-if="isPending" color="error" variant="solid" icon="i-lucide-x" size="sm">
@@ -451,6 +498,31 @@ const isApproved = computed(()=>details.value?.application.status === Applicatio
             <div class="flex justify-end gap-3">
               <UButton label="Cancel" variant="ghost" color="neutral" @click="rejectOpen = false" />
               <UButton label="Reject" color="error" variant="solid" @click="submitReject" />
+            </div>
+          </template>
+        </UModal>
+
+        <UModal v-model:open="transferOpen" title="Transfer Office" description="Move student to a different office">
+          <template #body>
+            <UForm class="flex flex-col gap-3">
+              <UFormField label="New Office" required>
+                <USelect v-model="transferForm.office" :items="OfficesArray.map(o => ({ label: o.label, value: o.label }))" placeholder="Select office" class="w-full" />
+              </UFormField>
+              <UFormField label="Start Date" required>
+                <UInput v-model="transferForm.startDate" type="date" class="w-full" />
+              </UFormField>
+              <UFormField label="Estimated End Date" required>
+                <UInput v-model="transferForm.estimatedEndDate" type="date" class="w-full" />
+              </UFormField>
+              <UFormField label="Accumulated Hours" required>
+                <UInput v-model.number="transferForm.accumulatedHours" type="number" class="w-full" />
+              </UFormField>
+            </UForm>
+          </template>
+          <template #footer>
+            <div class="flex justify-end gap-3">
+              <UButton label="Cancel" variant="ghost" color="neutral" @click="transferOpen = false" />
+              <UButton label="Transfer" color="primary" variant="solid" @click="submitTransfer" :loading="loading" />
             </div>
           </template>
         </UModal>

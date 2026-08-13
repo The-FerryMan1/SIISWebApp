@@ -12,8 +12,12 @@ public class GetOjtById
     public string MiddleName { get; set; } = string.Empty;
     public string ContactNumber { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
-    public string Office {get; set;} = string.Empty;
+    public long OfficeId { get; set; }
+    public string Office { get; set; } = string.Empty;
     public DateOnly? DateOfBirth { get; set; }
     public GennderEnum Gender { get; set; }
     public GradeLevelEnum GradeLevel { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EstimatedEndDate { get; set; }
+    public int AccumulatedHours { get; set; }
 }

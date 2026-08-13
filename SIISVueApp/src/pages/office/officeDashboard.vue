@@ -51,13 +51,11 @@ const columns: TableColumn<any>[] = [
   }},
   {
     header: 'Actions',
-    cell: ({ row }) => h('div', { class: 'flex gap-1' }, [
-      h('button', {
-        class: 'p-1 hover:text-primary',
-        title: 'Edit dates',
-        onClick: () => openEditDates(row.original),
-      }, '📅'),
-    ]),
+    cell: ({ row }) => h('button', {
+      class: 'p-1 hover:text-primary',
+      title: 'Edit dates',
+      onClick: () => openEditDates(row.original),
+    }, h('span', { class: 'i-lucide-calendar size-4' })),
   },
 ]
 

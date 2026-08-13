@@ -276,7 +276,7 @@ watch(fileUploaded, (value)=>{
         <UFormField label="School address" title="address" name="Schooladdress">
           <UInput
             v-model="details.student.schoolAddress"
-            placeholder="Enter your school addres"
+            placeholder="Enter your school address"
             class="w-full"
           />
         </UFormField>
@@ -368,11 +368,11 @@ watch(fileUploaded, (value)=>{
           />
         </UFormField>
 
-        <UFormField label="Internhip total hours" title="totalHours" name="TotalHours">
+        <UFormField label="Internship total hours" title="totalHours" name="TotalHours">
           <UInput
             type="number"
             v-model="details.student.totalInternshipHours"
-            placeholder="Enter school contact person's number"
+            placeholder="Enter total internship hours"
             class="w-full"
           />
         </UFormField>
@@ -381,7 +381,7 @@ watch(fileUploaded, (value)=>{
           <UInput
             type="date"
             v-model="details.placement.startDate"
-            placeholder="enter your email address"
+            placeholder="Select start date"
             class="w-full"
             :min="new Date().toISOString().split('T')[0]"
           />
@@ -396,19 +396,19 @@ watch(fileUploaded, (value)=>{
            />
          </UFormField>
 
-         <UFormField
-           label="Estimated end date"
-           title="Date of Birth"
-           name="DateofBirth"
-           description="Calculated field"
-         >
-           <UInput
-             type="date"
-             v-model="details.placement.estimatedEndDate"
-             placeholder="enter your email address"
-             class="w-full"
-           />
-         </UFormField>
+          <UFormField
+            label="Estimated end date"
+            title="Estimated end date"
+            name="EstimatedEndDate"
+            description="Calculated field"
+          >
+            <UInput
+              type="date"
+              v-model="details.placement.estimatedEndDate"
+              placeholder="Select estimated end date"
+              class="w-full"
+            />
+          </UFormField>
       </UPageCard>
 
       <UPageCard

@@ -26,10 +26,14 @@ export interface OjtDetails {
   middleName: string
   contactNumber: string
   address: string
-  office: number
+  officeId: number
+  office: string
   dateOfBirth: string
   gender: number
   gradeLevel: number
+  startDate: string
+  estimatedEndDate: string
+  accumulatedHours: number
 }
 
 export const useOJtStore = defineStore('ojt', () => {

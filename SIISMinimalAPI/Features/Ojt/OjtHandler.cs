@@ -69,7 +69,11 @@ public class OjtHandler(AppDbContext context, ILogService logService) : IOjtServ
           GradeLevel = ojt.GradeLevel,
           LastName = ojt.LastName,
           MiddleName = ojt.MiddleName,
-          Office = ojt.Placement?.Office?.OfficeName ?? string.Empty
+          OfficeId = ojt.Placement?.OfficeId ?? 0,
+          Office = ojt.Placement?.Office?.OfficeName ?? string.Empty,
+          StartDate = ojt.Placement?.StartDate ?? DateOnly.MinValue,
+          EstimatedEndDate = ojt.Placement?.EstimatedEndDate ?? DateOnly.MinValue,
+          AccumulatedHours = ojt.Placement?.AccumulatedHours ?? 0
         };
     }
 }

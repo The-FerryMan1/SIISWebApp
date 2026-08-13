@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{ collapesed: boolean }>()
+const props = defineProps<{ collapsed: boolean }>()
 </script>
 
 <template>
@@ -11,6 +11,6 @@ const props = defineProps<{ collapesed: boolean }>()
     aria-current="page"
   >
     <img src="../assets/img/logo.png" class="size-10 object-contain" />
-    <h1 v-if="!collapesed" class="font-black text-md">Student Internship Information System</h1>
+    <h1 v-if="!collapsed" class="font-black text-md">Student Internship Information System</h1>
   </ULink>
 </template>

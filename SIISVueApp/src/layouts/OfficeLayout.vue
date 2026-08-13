@@ -8,7 +8,7 @@ import Logo from '../components/logo.vue'
   <UDashboardGroup>
     <UDashboardSidebar resizable collapsible>
       <template #header="{ collapsed }">
-        <Logo :collapesed="collapsed" />
+        <Logo :collapsed="collapsed" />
       </template>
       <template #default="{ collapsed }">
         <OfficeNavbar :collapsed="collapsed" />

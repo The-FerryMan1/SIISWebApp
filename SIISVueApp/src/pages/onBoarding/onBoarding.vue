@@ -100,7 +100,7 @@ const onReview = (payload: FormSubmitEvent<OnBoardUpdateDto>) => {
 }
 
 // Step 2: User confirms in modal → actually submit
-const onConfirm = useDebounceFn(async () => {
+const onConfirm = async () => {
   if (!reviewPayload.value) return
 
   try {
@@ -126,7 +126,7 @@ const onConfirm = useDebounceFn(async () => {
   } finally {
     isSubmitting.value = false
   }
-}, 500)
+}
 
 const genderFinder = (index: number) => genderItems.find((t) => t.value === index)?.label
 const gradeLevelFinder = (index: number) => gradeLevelItems.find((t) => t.value === index)?.label
