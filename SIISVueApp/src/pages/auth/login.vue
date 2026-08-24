@@ -71,6 +71,9 @@ const onSubmit = async (paylaod: FormSubmitEvent<Schema>) => {
             <h1 class="text-xl font-black">Student Internship Information System</h1>
           </div>
         </template>
+        <template #footer>
+          <a href="/office-login">office login</a>
+        </template>
       </UAuthForm>
     </UPageCard>
   </UMain>
