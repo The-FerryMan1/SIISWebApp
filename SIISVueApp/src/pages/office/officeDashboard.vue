@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, h, computed, resolveComponent } from 'vue'
+import { ref, onMounted, h, computed, resolveComponent, watch, useTemplateRef } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { useOfficeAccountStore } from '../../stores/officeAuth'
 import { useAxios } from '../../fetch/axios'
@@ -13,6 +13,8 @@ const toast = useToast()
 
 
 const UButton = resolveComponent('UButton')
+const table = useTemplateRef('table')
+
 const loading = ref(false)
 const dashboard = ref<any>(null)
 const searchQuery = ref('')
@@ -23,6 +25,14 @@ const departmentOpen = ref(false)
 const departmentForm = ref('')
 const profileOpen = ref(false)
 const profileForm = ref({ lastName: '', firstName: '', middleName: '', username: '', email: '' })
+const pagination = ref({ pageIndex: 0, pageSize: 10 })
+
+watch(
+  () => searchQuery.value,
+  () => {
+    pagination.value.pageIndex = 0
+  }
+)
 
 const columns: TableColumn<any>[] = [
   { accessorKey: 'fullName', header: 'Student Name' },
@@ -73,9 +83,6 @@ const filteredStudents = computed(() => {
     )
   )
 })
-
-const page = ref(1)
-const pageSize = ref(10)
 
 onMounted(async () => {
   if (!officeAuth.isAuthenticated()) {
@@ -293,8 +300,8 @@ function logout() {
         </template>
 
         <UTable
-          v-model:page="page"
-          v-model:page-size="pageSize"
+          ref="table"
+          v-model:pagination="pagination"
           :data="filteredStudents"
           :columns="columns"
           :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
@@ -312,6 +319,20 @@ function logout() {
             />
           </template>
         </UTable>
+
+        <template #footer>
+          <div class="flex justify-end border-t border-default pt-4 px-4">
+            <UPagination
+              :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+              :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+              :total="filteredStudents.length"
+              @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+            />
+          </div>
+        </template>
+
+
+      
       </UCard>
 
       <UModal v-model:open="profileOpen" title="Edit Profile">
