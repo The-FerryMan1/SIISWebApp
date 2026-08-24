@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
 import z from 'zod'
 import { useOfficeAccountStore } from '../../stores/officeAuth'
-import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 
 const officeAuth = useOfficeAccountStore()
@@ -48,8 +47,6 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
   }
 }
 
-const debounceSubmit = useDebounceFn(onSubmit, 1000)
-
 onMounted(() => {
   if (officeAuth.isAuthenticated()) {
     router.push({ name: 'office-dashboard' })
@@ -67,7 +64,7 @@ onMounted(() => {
         title="Office Login"
         description="Enter your office account credentials."
         loading-auto
-        @submit="debounceSubmit"
+        @submit="onSubmit"
       >
         <template #header>
           <div class="flex flex-col items-center gap-4 pb-4 text-center">

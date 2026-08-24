@@ -20,12 +20,25 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
     return !!localStorage.getItem('officeAuth')
   }
 
+  const logout = () => {
+    account.value = null
+    localStorage.removeItem('officeAuth')
+    localStorage.removeItem('officeAccount')
+    if(confirm('Are you sure you want to logout?')){
+       useAxios.post('/auth/logout').catch(() => {
+      // ignore logout errors
+    })
+    }
+   
+  }
+
   const login = async (email: string, password: string) => {
     try {
       const { data } = await axios.post(
         '/login',
         { email, password },
         {
+          withCredentials: true,
           params: {
             useCookies: true,
           },
@@ -47,17 +60,6 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
       logout()
       throw error
     }
-  }
-
-  const logout = async () => {
-    try {
-      await useAxios.post('/auth/logout')
-    } catch {
-      // ignore logout errors
-    }
-    account.value = null
-    localStorage.removeItem('officeAuth')
-    localStorage.removeItem('officeAccount')
   }
 
   const init = () => {
