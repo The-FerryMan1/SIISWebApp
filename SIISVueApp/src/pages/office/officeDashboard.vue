@@ -244,7 +244,7 @@ function logout() {
         <h1 class="text-4xl font-black text-primary tracking-tight">Office Dashboard</h1>
         <p class="text-muted text-sm mt-1">Welcome, {{ officeAuth.account?.firstName }} {{ officeAuth.account?.lastName }}</p>
       </div>
-      <UButton icon="i-lucide-log-out" label="Logout" variant="outline" color="error" @click="logout" />
+   
     </div>
 
     <template v-if="dashboard">
