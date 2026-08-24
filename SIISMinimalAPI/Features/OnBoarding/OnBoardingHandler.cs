@@ -12,25 +12,30 @@ namespace SIISMinimalAPI.Features.OnBoarding
     {
         private readonly AppDbContext _context = context;
         private readonly ILogService _logService = logService;
-        public async Task CreateOnBoarding(OnBoardingDto onBoardingDto, CancellationToken ct)
+    public async Task CreateOnBoarding(OnBoardingDto onBoardingDto, CancellationToken ct)
+    {
+        try
         {
-            try
+            if (onBoardingDto.Student is null)
             {
-                if (onBoardingDto.Student is null)
-                {
-                    throw new ArgumentException("Student information is required");
-                }
+                throw new ArgumentException("Student information is required");
+            }
 
-                var existingStud = await _context.Students.AsNoTracking()
-                    .FirstOrDefaultAsync(
-                        t => t.Email.ToLower() == onBoardingDto.Student.Email.ToLower(),
-                        ct);
-                if (existingStud is not null)
-                {
-                    throw new DuplicateNameException("Student with this email is already registered");
-                }
+            if (string.IsNullOrWhiteSpace(onBoardingDto.Student.Email))
+            {
+                throw new ArgumentException("Student email is required");
+            }
 
-                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", onBoardingDto.Student.LastName);
+            var existingStud = await _context.Students.AsNoTracking()
+                .FirstOrDefaultAsync(
+                    t => t.Email.ToLower() == onBoardingDto.Student.Email.ToLower(),
+                    ct);
+            if (existingStud is not null)
+            {
+                throw new DuplicateNameException("Student with this email is already registered");
+            }
+
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", SanitizeFolderName(onBoardingDto.Student.LastName));
                 Directory.CreateDirectory(uploadsPath);
 
                 var req = new List<RequirementsRegDto>();
@@ -38,13 +43,14 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 {
                     foreach (var file in onBoardingDto.Files)
                     {
-                        var filePath = Path.Combine(uploadsPath, file.FileName);
+                        var safeFileName = Path.GetFileNameWithoutExtension(file.FileName) + Path.GetExtension(file.FileName);
+                        var filePath = Path.Combine(uploadsPath, safeFileName);
                         await using var stream = File.Create(filePath);
                         await file.CopyToAsync(stream, ct);
 
                         req.Add(new RequirementsRegDto
                         {
-                            FileName = file.FileName,
+                            FileName = safeFileName,
                             FilePath = filePath,
                             FileType = file.ContentType
                         });
@@ -159,18 +165,19 @@ namespace SIISMinimalAPI.Features.OnBoarding
             // Save new uploaded files
             if (dto.Files is not null && dto.Files.Count > 0)
             {
-                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", exists.LastName);
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", SanitizeFolderName(exists.LastName));
                 Directory.CreateDirectory(uploadsPath);
 
                 foreach (var file in dto.Files)
                 {
-                    var filePath = Path.Combine(uploadsPath, file.FileName);
+                    var safeFileName = Path.GetFileNameWithoutExtension(file.FileName) + Path.GetExtension(file.FileName);
+                    var filePath = Path.Combine(uploadsPath, safeFileName);
                     await using var stream = File.Create(filePath);
                     await file.CopyToAsync(stream, ct);
 
                     exists.Requirements.Add(new Shared.Models.Requirement
                     {
-                        FileName = file.FileName,
+                        FileName = safeFileName,
                         FilePath = filePath,
                         FileType = file.ContentType,
                         CreatedAt = DateTime.Now
@@ -180,8 +187,15 @@ namespace SIISMinimalAPI.Features.OnBoarding
 
             await _context.SaveChangesAsync(ct);
 
-            var updateUserId = context.Entry(exists).Property("Id").CurrentValue.ToString() ?? "unknown";
+            var updateUserId = context.Entry(exists).Property("Id").CurrentValue?.ToString() ?? "unknown";
             await _logService.WriteAsync("Update", "OnBoarding", exists.Id, updateUserId, $"Updated on-boarding for {exists.FullName}");
+        }
+
+        private static string SanitizeFolderName(string name)
+        {
+            var invalid = Path.GetInvalidFileNameChars();
+            var sanitized = new string(name.Select(ch => invalid.Contains(ch) ? '_' : ch).ToArray());
+            return string.IsNullOrWhiteSpace(sanitized) ? "Unknown" : sanitized;
         }
     }
 }

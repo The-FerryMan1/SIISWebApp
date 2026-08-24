@@ -45,29 +45,29 @@ export const StudentInfoSchema = z.object({
   middleName: z.string().max(50).default(''),
   contactNumber: z
     .string()
-    .min(11, 'Contact number is required')
-    .max(11)
+    .min(1, 'Contact number is required')
+    .max(20)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
   address: z.string().min(1, 'Address is required').max(200),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  gender: z.coerce.number({ error: 'Gender is required' }).int().min(0).max(2, 'Invalid gender'),
+  gender: z.coerce.number({ error: 'Gender is required' }).int().min(0, 'Invalid gender').max(2, 'Invalid gender'),
   gradeLevel: z.coerce
     .number({ error: 'Grade level is required' })
     .int()
     .refine((value) => [0, 1].includes(value), 'Invalid grade level'),
-  schoolName: z.string().min(1).max(100),
-  schoolAddress: z.string().min(1).max(200),
-  schoolContactPerson: z.string().min(1).max(100),
-  schoolContactPersonEmail: z.string().email(),
+  schoolName: z.string().min(1, 'School name is required').max(100),
+  schoolAddress: z.string().min(1, 'School address is required').max(200),
+  schoolContactPerson: z.string().min(1, 'Contact person is required').max(100),
+  schoolContactPersonEmail: z.string().email("Contact person's email is required").max(100),
   schoolContactPersonPhone: z
     .string()
-    .min(1)
+    .min(1, "Contact person's number is required")
     .max(20)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
-  internshipNature: z.coerce.number().int().min(0).max(1),
+  internshipNature: z.coerce.number().int().min(0, 'Internship nature is required').max(1),
   strand: z.coerce.number().int().min(0).max(4),
   degree: z.coerce.number().int().min(0).max(11),
-  totalInternshipHours: z.coerce.number().int().min(1).max(1000),
+  totalInternshipHours: z.coerce.number().int().min(80).max(600),
   internshipStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
   isDeleted: z.boolean().default(false),
   createdAt: z.iso.datetime(),

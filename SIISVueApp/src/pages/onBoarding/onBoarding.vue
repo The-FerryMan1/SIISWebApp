@@ -86,7 +86,11 @@ watch(uploadedReq, (value) => {
   state.value.requirements = value
 })
 
-const maxDate = ref(new Date(new Date().setFullYear(new Date().getFullYear() - 15)))
+const maxDate = computed(() => {
+  const date = new Date()
+  date.setFullYear(date.getFullYear() - 15)
+  return date.toISOString().split('T')[0]
+})
 const minStartDate = computed(() => {
   const date = new Date()
   date.setDate(date.getDate() + 7)
@@ -219,7 +223,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
               </UFormField>
               <UFormField name="student.dateOfBirth" label="Date of Birth" required>
                 <UInput
-                  :max="maxDate.toISOString().split('T')[0]"
+                  :max="maxDate"
                   v-model="state.student.dateOfBirth"
                   type="date"
                   class="w-full"

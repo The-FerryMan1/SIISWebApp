@@ -1,4 +1,6 @@
 
+using System;
+using System.Data;
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -53,13 +55,20 @@ public static class OnBoardingEndpoint
 
             try
             {
-                await validationRules.ValidateAndThrowAsync(dto);
                 await service.CreateOnBoarding(dto, ct);
                 return Results.Created();
             }
-            catch (Exception ex)
+            catch (DuplicateNameException ex)
             {
                 return Results.BadRequest(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest("An unexpected error occurred. Please try again.");
             }
            ;
         }

@@ -25,32 +25,15 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
             .SetValidator(internshipValidator);
 
         // Cross-entity validation
+        RuleFor(x => x.Student.GradeLevel)
+            .NotNull().WithMessage("Grade level is required");
+
+        RuleFor(x => x.Internship)
+            .NotNull().WithMessage("Internship details are required")
+            .SetValidator(internshipValidator);
+
         RuleFor(x => x)
             .Must(BeWithinSchoolCapacity).WithMessage("Request exceeds school's current capacity");
-    }
-
-    private static bool HaveRequiredDocuments(ICollection<RequirementsRegDto>? requirements)
-    {
-        if (requirements is null) return false;
-        
-        var requiredFiles = new[] { "resume", "consent", "waiver" };
-        var fileNames = requirements.Select(r => r.FileName.ToLowerInvariant()).ToList();
-        
-        return requiredFiles.All(req => 
-            fileNames.Any(f => f.Contains(req)));
-    }
-
-    private static bool BeConsistentGradeLevel(OnBoardingDto dto)
-    {
-        if (dto.Student?.GradeLevel == null || dto.Internship?.InternshipNature == null) 
-            return true;
-
-        return (dto.Student.GradeLevel, dto.Internship.InternshipNature) switch
-        {
-            (GradeLevelEnum.SeniorHighSchool, InternshipNatureEnum.WorkImmersion) => true,
-            (GradeLevelEnum.College, InternshipNatureEnum.OnTheJobTraining) => true,
-            _ => false
-        };
     }
 
     private static bool BeWithinSchoolCapacity(OnBoardingDto dto) => 
