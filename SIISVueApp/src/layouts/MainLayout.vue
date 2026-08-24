@@ -3,6 +3,7 @@ import { RouterView } from 'vue-router'
 import AdminNavbar from '../components/adminNavbar.vue'
 import { UseAuthStore } from '../stores/auth.ts'
 import Logo from '../components/logo.vue'
+import Breadcrumbs from '../components/Breadcrumbs.vue'
 </script>
 
 <template>
@@ -23,7 +24,7 @@ import Logo from '../components/logo.vue'
             <UDashboardSidebarCollapse variant="subtle" />
           </template>
 
-         
+          
           <template #right>
             <UColorModeSwitch />
             <AdminAvartar />
@@ -32,7 +33,10 @@ import Logo from '../components/logo.vue'
       </template>
 
       <template #body>
-        <RouterView />
+        <UMain class="p-4 md:p-6">
+          <Breadcrumbs />
+          <RouterView />
+        </UMain>
       </template>
     </UDashboardPanel>
   </UDashboardGroup>

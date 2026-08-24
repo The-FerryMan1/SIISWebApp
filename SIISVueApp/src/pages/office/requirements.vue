@@ -106,7 +106,7 @@ onMounted(async () => {
         sticky
         v-model:global-filter="globalFilter"
         v-model:pagination="pagination"
-        :data="filteredRequirements ?? []"
+        :data="requirements ?? []"
         :columns
         :loading
         class="w-full"
@@ -114,6 +114,10 @@ onMounted(async () => {
           getPaginationRowModel: getPaginationRowModel(),
         }"
       />
+
+      <div v-if="!requirements?.length && !loading" class="flex items-center justify-center h-32 text-muted">
+        No requirements found
+      </div>
 
       <template #footer>
         <div class="flex justify-end border-t border-default pt-4 px-4">

@@ -3,6 +3,7 @@ import { RouterView, useRouter } from 'vue-router'
 import OfficeNavbar from '../components/officeNavbar.vue'
 import Logo from '../components/logo.vue'
 import { useOfficeAccountStore } from '../stores/officeAuth.ts'
+import Breadcrumbs from '../components/Breadcrumbs.vue'
 
 const officeAuth = useOfficeAccountStore()
 const router = useRouter()
@@ -40,7 +41,10 @@ function logout() {
       </template>
 
       <template #body>
-        <RouterView />
+        <UMain class="p-4 md:p-6">
+          <Breadcrumbs />
+          <RouterView />
+        </UMain>
       </template>
     </UDashboardPanel>
   </UDashboardGroup>

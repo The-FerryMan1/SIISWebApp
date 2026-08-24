@@ -17,9 +17,12 @@ router.beforeEach(async (to, from) => {
   const isAdminAuth = auth.authInit()
   const isOfficeAuth = officeAuth.isAuthenticated()
 
-  document.title = `SIIS - ${to.name?.toString().toLocaleUpperCase()}`
+  document.title = `SIIS - ${to.meta?.title || to.name?.toString().toLocaleUpperCase() || 'Home'}`
 
   if (isAdminAuth && to.path == '/') {
+    if (auth.isOPG) {
+      return { name: 'opg-dashboard' }
+    }
     return { name: 'dashboard' }
   }
 

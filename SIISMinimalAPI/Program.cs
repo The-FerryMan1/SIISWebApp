@@ -153,6 +153,10 @@ app.MapPost("/login", async (SignInManager<User> signInManager, UserManager<User
     var user = await userManager.FindByEmailAsync(request.Email);
     if (user == null)
     {
+        user = await userManager.FindByNameAsync(request.Email);
+    }
+    if (user == null)
+    {
         return Results.Unauthorized();
     }
 

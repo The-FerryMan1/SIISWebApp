@@ -203,6 +203,10 @@ function logout() {
         </template>
       </UTable>
 
+      <div v-if="!filteredStudents?.length" class="flex items-center justify-center h-32 text-muted">
+        No interns found
+      </div>
+
       <template #footer>
         <div class="flex justify-end border-t border-default pt-4 px-4">
           <UPagination

@@ -13,7 +13,7 @@ public static class UserEndpoint
         .WithTags("User")
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend")
-        .RequireAuthorization(["Admin"]);
+        .RequireAuthorization();
 
 
         group.MapGet("/", [Authorize] async Task<IResult> (ClaimsPrincipal user, IUserService service) =>

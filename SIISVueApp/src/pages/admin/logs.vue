@@ -103,6 +103,10 @@ onMounted(async () => {
         }"
       />
 
+      <div v-if="!filteredLogs?.length && !loading" class="flex items-center justify-center h-32 text-muted">
+        No logs found
+      </div>
+
       <template #footer>
         <div class="flex justify-end border-t border-default pt-4 px-4">
           <UPagination

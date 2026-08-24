@@ -23,9 +23,15 @@ const router = useRouter()
 const toast = useToast()
 const overlay = useOverlay()
 const confirmModal = overlay.create(ConfirmationModal)
+const loading = ref(false)
 
 onMounted(async () => {
-  await application.applicationInit()
+  loading.value = true
+  try {
+    await application.applicationInit()
+  } finally {
+    loading.value = false
+  }
 })
 
 //table column
@@ -214,77 +220,90 @@ watch(pageSize, (size) => {
     </div>
   </div>
 
-  <div class="py-2">
-    <UPageGrid
-      class="mb-5"
-      :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }"
-    >
-      <UPageCard
-        spotlight
-        variant="outline"
-        orientation="horizontal"
-        reverse
-        v-for="card in cards"
-        :title="card.title"
-      >
-        <UContainer>
-          <div class="flex items-center gap-10">
-            <UIcon :name="card.icon" class="size-10" />
-            <span class="text-3xl font-bold text-primary">{{ card.text }}</span>
-          </div>
-        </UContainer>
-      </UPageCard>
+  <template v-if="loading">
+    <UPageGrid class="mb-5" :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }">
+      <USkeleton v-for="i in 4" :key="i" class="h-32 w-full" />
     </UPageGrid>
-  </div>
+    <USkeleton class="h-64 w-full" />
+  </template>
 
-  <div class="py-2">
-    <UCard>
-      <template #header>
-        <div class="w-full flex items-center mb-4 gap-2 md:flex-nowrap flex-wrap">
-          <UInput
-            v-model="globalFilter"
-            class="w-full shrink-0 sm:shrink"
-            placeholder="Filter..."
-            icon="i-lucide-search"
-          />
+  <template v-else>
+    <div class="py-2">
+      <UPageGrid
+        class="mb-5"
+        :ui="{ base: 'relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0' }"
+      >
+        <UPageCard
+          spotlight
+          variant="outline"
+          orientation="horizontal"
+          reverse
+          v-for="card in cards"
+          :title="card.title"
+        >
+          <UContainer>
+            <div class="flex items-center gap-10">
+              <UIcon :name="card.icon" class="size-10" />
+              <span class="text-3xl font-bold text-primary">{{ card.text }}</span>
+            </div>
+          </UContainer>
+        </UPageCard>
+      </UPageGrid>
+    </div>
 
-          <div class="ms-auto flex items-center gap-2">
-            <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" />
+    <div class="py-2">
+      <UCard>
+        <template #header>
+          <div class="w-full flex items-center mb-4 gap-2 md:flex-nowrap flex-wrap">
             <UInput
-              v-model.number="pageSize"
-              type="number"
-              :min="1"
-              class="max-w-sm"
-              placeholder="Limit"
-              icon="i-lucide-list-ordered"
+              v-model="globalFilter"
+              class="w-full shrink-0 sm:shrink"
+              placeholder="Filter..."
+              icon="i-lucide-search"
+            />
+
+            <div class="ms-auto flex items-center gap-2">
+              <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" />
+              <UInput
+                v-model.number="pageSize"
+                type="number"
+                :min="1"
+                class="max-w-sm"
+                placeholder="Limit"
+                icon="i-lucide-list-ordered"
+              />
+            </div>
+          </div>
+        </template>
+
+        <UTable
+          ref="table"
+          sticky
+          v-model:global-filter="globalFilter"
+          v-model:pagination="pagination"
+          :data="statusFilterResult ?? []"
+          :columns="columns"
+          class="flex-1"
+          :pagination-options="{
+            getPaginationRowModel: getPaginationRowModel(),
+          }"
+        />
+
+        <template v-if="statusFilterResult?.length" #footer>
+          <div class="flex justify-end border-t border-default pt-4 px-4">
+            <UPagination
+              :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+              :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+              :total="table?.tableApi?.getFilteredRowModel().rows.length"
+              @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
             />
           </div>
-        </div>
-      </template>
+        </template>
+      </UCard>
 
-      <UTable
-        ref="table"
-        sticky
-        v-model:global-filter="globalFilter"
-        v-model:pagination="pagination"
-        :data="statusFilterResult ?? []"
-        :columns="columns"
-        class="flex-1"
-        :pagination-options="{
-          getPaginationRowModel: getPaginationRowModel(),
-        }"
-      />
-
-      <template #footer>
-        <div class="flex justify-end border-t border-default pt-4 px-4">
-          <UPagination
-            :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-            :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-            :total="table?.tableApi?.getFilteredRowModel().rows.length"
-            @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
-          />
-        </div>
-      </template>
-    </UCard>
-  </div>
+      <div v-if="!statusFilterResult?.length" class="flex items-center justify-center h-48 text-muted mt-4">
+        <UAlert icon="i-lucide-info" title="No applications found" description="There are no applications matching your filter." />
+      </div>
+    </div>
+  </template>
 </template>

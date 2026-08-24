@@ -247,7 +247,15 @@ function logout() {
    
     </div>
 
-    <template v-if="dashboard">
+    <template v-if="loading">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <USkeleton v-for="i in 4" :key="i" class="h-24 w-full" />
+      </div>
+      <USkeleton class="h-32 w-full mt-6" />
+      <USkeleton class="h-64 w-full mt-6" />
+    </template>
+
+    <template v-else-if="dashboard">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <UPageCard title="Total OJTs" icon="i-lucide-users" variant="outline">
           <p class="text-3xl font-bold text-primary">{{ dashboard.totalStudents }}</p>
@@ -332,7 +340,7 @@ function logout() {
         </template>
 
 
-      
+
       </UCard>
 
       <UModal v-model:open="profileOpen" title="Edit Profile">
@@ -412,7 +420,7 @@ function logout() {
       </UModal>
     </template>
 
-    <template v-else-if="!loading">
+    <template v-else>
       <UAlert icon="i-lucide-info" title="No data available" description="There are no students assigned to your office yet." />
     </template>
   </UMain>

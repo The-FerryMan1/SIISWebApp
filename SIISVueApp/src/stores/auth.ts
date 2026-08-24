@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAxios } from '../fetch/axios'
 import type { AxiosError } from 'axios'
 import { useRouter } from 'vue-router'
@@ -13,11 +13,18 @@ interface User {
   firstName: string
   middleName: string
   isEmailVerified: boolean
+  roles: string[]
 }
 
 export const UseAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const router = useRouter()
+
+  const role = computed(() => user.value?.roles?.[0] ?? 'Admin')
+
+  const isAdmin = computed(() => user.value?.roles?.includes('Admin') ?? false)
+  const isOPG = computed(() => user.value?.roles?.includes('OPG') ?? false)
+  const isOfficer = computed(() => user.value?.roles?.includes('Officer') ?? false)
 
   //helper func for auth state
   const authenticate = (cred: User) => {
@@ -67,6 +74,7 @@ export const UseAuthStore = defineStore('auth', () => {
         firstName: data.firstName,
         middleName: data.middleName,
         isEmailVerified: data.isEmailVerified,
+        roles: data.roles ?? [],
       }
       authenticate(user)
     } catch (error) {
@@ -79,6 +87,10 @@ export const UseAuthStore = defineStore('auth', () => {
   return {
     useLogin,
     user,
+    role,
+    isAdmin,
+    isOPG,
+    isOfficer,
     useVerify,
     authInit,
     unauthenticate,
