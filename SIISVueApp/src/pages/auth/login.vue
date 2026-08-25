@@ -2,7 +2,6 @@
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
 import z from 'zod'
 import { UseAuthStore } from '../../stores/auth'
-import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 
 const auth = UseAuthStore()
@@ -11,12 +10,12 @@ const router = useRouter()
 
 const fields: AuthFormField[] = [
   {
-    name: 'username',
+    name: 'identifier',
     type: 'string',
     autofocus: true,
     autocomplete: 'on',
-    label: 'Username',
-    placeholder: 'Enter your username',
+    label: 'Email or Username',
+    placeholder: 'Enter your email or username',
     required: true,
     variant: 'outline'
   },
@@ -31,17 +30,21 @@ const fields: AuthFormField[] = [
 ]
 
 const schema = z.object({
-  username: z.string({ error: 'Invalid username' }).min(1, 'username is required'),
+  identifier: z.string({ error: 'Invalid email or username' }).min(1, 'Email or username is required'),
   password: z.string({ error: 'Invalid password' }).min(1, { error: 'Password is required' }),
 })
 
 type Schema = z.infer<typeof schema>
 
-const onSubmit = async (paylaod: FormSubmitEvent<Schema>) => {
+const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
   try {
-    await auth.useLogin(paylaod.data)
+    const result = await auth.useLogin({ identifier: payload.data.identifier, password: payload.data.password })
     toast.add({ description: 'You logged in successfully', color: 'success' })
-    router.push({ name: 'dashboard' })
+    if (result.role === 'office') {
+      router.push({ name: 'office-dashboard' })
+    } else {
+      router.push({ name: 'dashboard' })
+    }
   } catch (error) {
     toast.add({ description: 'Login failed: Invalid Credentials', color: 'error' })
   }
@@ -71,31 +74,7 @@ const onSubmit = async (paylaod: FormSubmitEvent<Schema>) => {
             <h1 class="text-xl font-black">Student Internship Information System</h1>
           </div>
         </template>
-        <template #footer>
-          <a href="/office-login">office login</a>
-        </template>
       </UAuthForm>
     </UPageCard>
   </UMain>
-
-  <!-- <div
-          class="w-full h-125 flex justify-center items-start relative"
-          :style="{
-            backgroundImage: 'url(../../assets/img/cover-bg.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }"
-        >
-          <div class="absolute p-20">
-            <img
-              src="../../assets/img/brand.png"
-              alt="Illustration"
-              class="w-full rounded-lg object-contain size-35 z-1"
-              loading="lazy"
-            />
-            <h1 class="text-nowrap text-xl font-black p-5">
-              Student Internship Information System
-            </h1>
-          </div>
-        </div> -->
 </template>

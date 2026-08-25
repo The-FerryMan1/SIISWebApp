@@ -31,7 +31,7 @@ router.beforeEach(async (to, from) => {
   }
 
   if (requiresOfficeAuth && !isOfficeAuth) {
-    return { path: '/office-login' }
+    return { path: '/login' }
   }
 })
 

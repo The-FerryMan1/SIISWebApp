@@ -20,16 +20,23 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
     return !!localStorage.getItem('officeAuth')
   }
 
-  const logout = () => {
-    account.value = null
-    localStorage.removeItem('officeAuth')
-    localStorage.removeItem('officeAccount')
-    if(confirm('Are you sure you want to logout?')){
-       useAxios.post('/auth/logout').catch(() => {
-      // ignore logout errors
-    })
+  const setAccount = (data: {
+    userId?: string
+    email?: string
+    firstName?: string
+    lastName?: string
+    middleName?: string
+    roles?: string[]
+  }) => {
+    account.value = {
+      id: data.userId ?? '',
+      email: data.email ?? '',
+      userName: data.email ?? '',
+      firstName: data.firstName ?? '',
+      lastName: data.lastName ?? '',
+      middleName: data.middleName ?? '',
+      roles: data.roles ?? [],
     }
-   
   }
 
   const login = async (email: string, password: string) => {
@@ -44,15 +51,7 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
           },
         },
       )
-      account.value = {
-        id: data.userId ?? '',
-        email: data.email ?? email,
-        userName: data.email ?? email,
-        firstName: data.firstName ?? '',
-        lastName: data.lastName ?? '',
-        middleName: data.middleName ?? '',
-        roles: data.roles ?? [],
-      }
+      setAccount(data)
       localStorage.setItem('officeAuth', 'true')
       localStorage.setItem('officeAccount', JSON.stringify(account.value))
       return data
@@ -60,6 +59,15 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
       logout()
       throw error
     }
+  }
+
+  const logout = () => {
+    account.value = null
+    localStorage.removeItem('officeAuth')
+    localStorage.removeItem('officeAccount')
+    useAxios.post('/auth/logout').catch(() => {
+      // ignore logout errors
+    })
   }
 
   const init = () => {
@@ -79,5 +87,6 @@ export const useOfficeAccountStore = defineStore('officeAccount', () => {
     logout,
     isAuthenticated,
     init,
+    setAccount,
   }
 })

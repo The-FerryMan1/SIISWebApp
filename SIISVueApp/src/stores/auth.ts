@@ -4,6 +4,7 @@ import { useAxios } from '../fetch/axios'
 import type { AxiosError } from 'axios'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { useOfficeAccountStore } from './officeAuth'
 
 interface User {
   userId: string
@@ -42,20 +43,47 @@ export const UseAuthStore = defineStore('auth', () => {
   }
 
   //login
-  const useLogin = async (credential: { username: string; password: string }) => {
+  const useLogin = async (credential: { identifier: string; password: string }) => {
     try {
       const { data } = await axios.post(
         '/login',
-        { email: credential.username, password: credential.password },
+        { email: credential.identifier, password: credential.password },
         {
+          withCredentials: true,
           params: {
             useCookies: true,
           },
         },
       )
-      await useVerify()
+
+      const roles = data.roles ?? []
+
+      if (roles.includes('Admin') || roles.includes('OPG')) {
+        await useVerify()
+        return { role: 'admin' as const }
+      }
+
+      if (roles.includes('Officer')) {
+        const officeAuth = useOfficeAccountStore()
+        officeAuth.setAccount(data)
+        localStorage.setItem('officeAuth', 'true')
+        localStorage.setItem('officeAccount', JSON.stringify({
+          id: data.userId ?? '',
+          email: data.email ?? credential.identifier,
+          userName: data.email ?? credential.identifier,
+          firstName: data.firstName ?? '',
+          lastName: data.lastName ?? '',
+          middleName: data.middleName ?? '',
+          roles: data.roles ?? [],
+        }))
+        return { role: 'office' as const }
+      }
+
+      throw new Error('Unknown role')
     } catch (error) {
       unauthenticate()
+      const officeAuth = useOfficeAccountStore()
+      officeAuth.logout()
       const errorMessage = error as AxiosError
       throw new Error(errorMessage.message)
     }

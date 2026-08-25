@@ -13,9 +13,8 @@ export const routes: RouteRecordRaw[] = [
       },
       {
         path: 'office-login',
-        component: () => import('../pages/auth/officeLogin.vue'),
+        redirect: '/login',
         name: 'office-login',
-        meta: { title: 'Office Login' },
       },
       {
         path: 'registration/:token',
