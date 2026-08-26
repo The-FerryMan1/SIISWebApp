@@ -11,6 +11,8 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Models;
+using SIISMinimalAPI.Features.Shared.Utilities;
 using System.Globalization;
 
 namespace SIISMinimalAPI.Features.Report.StudentMasterlist;
@@ -19,8 +21,14 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<byte[]> GeneratePdf(string officeName, CancellationToken ct)
+    public async Task<byte[]> GeneratePdf(CommonFilterOptions filters, CancellationToken ct)
     {
+        var officeName = filters.Office;
+        if (string.IsNullOrWhiteSpace(officeName))
+        {
+            throw new ArgumentException("Office is required", nameof(officeName));
+        }
+
         var office = await _context.Offices
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.OfficeName == officeName && !o.IsDeleted, ct)
@@ -29,13 +37,16 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
                 .FirstOrDefaultAsync(o => o.OfficeName.ToLower() == officeName.ToLower() && !o.IsDeleted, ct)
             ?? throw new KeyNotFoundException("Office not found");
 
-        var students = await _context.Students
+        IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.Placement!.Office != null && t.Placement.Office.OfficeName == office.OfficeName && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
-            .ToListAsync(ct);
+            .AsSplitQuery();
+
+        query = query.ApplyFilters(filters).OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
+
+        var students = await query.ToListAsync(ct);
 
         QuestPDF.Settings.License = LicenseType.Community;
         var document = Document.Create(doc =>
@@ -124,8 +135,14 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
         return document.GeneratePdf();
     }
 
-    public async Task<byte[]> GenerateCsv(string officeName, CancellationToken ct)
+    public async Task<byte[]> GenerateCsv(CommonFilterOptions filters, CancellationToken ct)
     {
+        var officeName = filters.Office;
+        if (string.IsNullOrWhiteSpace(officeName))
+        {
+            throw new ArgumentException("Office is required", nameof(officeName));
+        }
+
         var office = await _context.Offices
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.OfficeName == officeName && !o.IsDeleted, ct)
@@ -134,13 +151,16 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
                 .FirstOrDefaultAsync(o => o.OfficeName.ToLower() == officeName.ToLower() && !o.IsDeleted, ct)
             ?? throw new KeyNotFoundException("Office not found");
 
-        var students = await _context.Students
+        IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.Placement!.Office != null && t.Placement.Office.OfficeName == office.OfficeName && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
-            .ToListAsync(ct);
+            .AsSplitQuery();
+
+        query = query.ApplyFilters(filters).OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
+
+        var students = await query.ToListAsync(ct);
 
         var records = students.Select(t => new StudentMasterlistDto
         {

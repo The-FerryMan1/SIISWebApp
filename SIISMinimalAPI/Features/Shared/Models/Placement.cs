@@ -8,6 +8,7 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public long Id { get; set; }
         public int AccumulatedHours { get; set; } = 0;
         [DataType(DataType.Date)]
+         public PlacementStatusEnum PlacementStatus { get; set; } = PlacementStatusEnum.Ongoing;
         public DateOnly StartDate { get; set; }
         [DataType(DataType.Date)]
         public DateOnly EstimatedEndDate { get; set; }

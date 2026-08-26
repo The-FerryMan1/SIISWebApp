@@ -7,7 +7,6 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public int TrainingHoursRendered { get; set; } = 0;
         public int TrainingHoursForWeek { get; set; } = 0;
         public int RemainingHours {get;set;} = 0;
-        public PlacementStatusEnum PlacementStatus { get; set; } = PlacementStatusEnum.Ongoing;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public long PlacementId { get; set; }

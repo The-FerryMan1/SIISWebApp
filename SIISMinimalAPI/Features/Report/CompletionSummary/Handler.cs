@@ -9,6 +9,8 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Shared.Models;
+using SIISMinimalAPI.Features.Shared.Utilities;
 using System.Globalization;
 
 namespace SIISMinimalAPI.Features.Report.CompletionSummary;
@@ -17,15 +19,18 @@ public class CompletionSummaryHandler(AppDbContext context) : ICompletionSummary
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<byte[]> GeneratePdf(CancellationToken ct)
+    public async Task<byte[]> GeneratePdf(CommonFilterOptions filters, CancellationToken ct)
     {
-        var students = await _context.Students
+        IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.Placement!.AccumulatedHours >= t.TotalInternshipHours && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
-            .ToListAsync(ct);
+            .AsSplitQuery();
+
+        query = query.ApplyFilters(filters).OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
+
+        var students = await query.ToListAsync(ct);
 
         var data = students.Select(s => new CompletionSummaryDto
         {
@@ -116,15 +121,18 @@ public class CompletionSummaryHandler(AppDbContext context) : ICompletionSummary
         return document.GeneratePdf();
     }
 
-    public async Task<byte[]> GenerateCsv(CancellationToken ct)
+    public async Task<byte[]> GenerateCsv(CommonFilterOptions filters, CancellationToken ct)
     {
-        var students = await _context.Students
+        IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
             .Include(t => t.Placement).ThenInclude(p => p.Office)
             .Where(t => t.Placement != null && t.Placement!.AccumulatedHours >= t.TotalInternshipHours && !t.IsDeleted)
             .AsNoTracking()
-            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
-            .ToListAsync(ct);
+            .AsSplitQuery();
+
+        query = query.ApplyFilters(filters).OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
+
+        var students = await query.ToListAsync(ct);
 
         var data = students.Select(s => new CompletionSummaryDto
         {

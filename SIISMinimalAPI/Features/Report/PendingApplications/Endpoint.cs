@@ -1,7 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Utilities;
 
 namespace SIISMinimalAPI.Features.Report.PendingApplications;
 
@@ -14,11 +14,25 @@ public static class PendingApplicationsEndpoint
             .RequireRateLimiting("standard")
             .RequireCors("AllowFrontend");
 
-        group.MapGet("/pdf", [Authorize] async Task<IResult>(CancellationToken ct, IPendingApplicationsService service) =>
+        group.MapGet("/pdf", [Authorize] async Task<IResult>(
+            [FromQuery] string? name,
+            [FromQuery] string? school,
+            [FromQuery] DateTime? dateFrom,
+            [FromQuery] DateTime? dateTo,
+            CancellationToken ct,
+            IPendingApplicationsService service) =>
         {
             try
             {
-                var pdf = await service.GeneratePdf(ct);
+                var filters = new CommonFilterOptions
+                {
+                    Name = name,
+                    School = school,
+                    DateFrom = dateFrom,
+                    DateTo = dateTo
+                };
+
+                var pdf = await service.GeneratePdf(filters, ct);
                 return TypedResults.File(pdf, "application/pdf", "pending-applications.pdf");
             }
             catch (Exception ex)
@@ -27,11 +41,25 @@ public static class PendingApplicationsEndpoint
             }
         }).RequireAuthorization();
 
-        group.MapGet("/csv", [Authorize] async Task<IResult>(CancellationToken ct, IPendingApplicationsService service) =>
+        group.MapGet("/csv", [Authorize] async Task<IResult>(
+            [FromQuery] string? name,
+            [FromQuery] string? school,
+            [FromQuery] DateTime? dateFrom,
+            [FromQuery] DateTime? dateTo,
+            CancellationToken ct,
+            IPendingApplicationsService service) =>
         {
             try
             {
-                var csv = await service.GenerateCsv(ct);
+                var filters = new CommonFilterOptions
+                {
+                    Name = name,
+                    School = school,
+                    DateFrom = dateFrom,
+                    DateTo = dateTo
+                };
+
+                var csv = await service.GenerateCsv(filters, ct);
                 return TypedResults.File(csv, "application/csv", "pending-applications.csv");
             }
             catch (Exception ex)

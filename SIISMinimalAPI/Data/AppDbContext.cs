@@ -74,7 +74,6 @@ namespace SIISMinimalAPI.Data
 
             builder.Entity<Progress>(progress =>
             {
-                progress.HasQueryFilter(p => p.PlacementStatus != PlacementStatusEnum.Finished);
                 progress.HasOne(p => p.Placement)
                     .WithMany(p => p.Progresses)
                     .HasForeignKey(p => p.PlacementId)
