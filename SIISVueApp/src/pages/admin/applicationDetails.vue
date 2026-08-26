@@ -29,8 +29,7 @@ const isPending = computed(
   () => details.value?.application?.status === ApplicationStatusEnum.Pending,
 )
 const application = useApplicationStore()
-const previewOpen = ref(false)
-const previewUrl = ref<string>('')
+const isPrinting = ref(false)
 
 // --- Data Fetching ---
 watch(
@@ -110,25 +109,34 @@ const degreeLabel = (s: number | null | undefined) => {
 const natureLabel = (n: number) =>
   ({ 0: 'On-the-Job-Training', 1: 'Work Immersion' })[n] ?? 'Unknown'
 
+const requirementTypeLabel = (t: number) =>
+  ({ 0: 'MOA', 1: 'Resume', 2: 'Other' })[t] ?? 'Unknown'
+
 // --- Requirements Table Columns ---
 const requirementColumns: TableColumn<any>[] = [
   { accessorKey: 'fileName', header: 'File Name' },
-  { accessorKey: 'fileType', header: 'Type' },
+  { accessorKey: 'fileType', header: 'File Type' },
+  {
+    accessorKey: 'requirementType',
+    header: 'Requirement Type',
+    cell: ({ row }) => requirementTypeLabel(row.original.requirementType),
+  },
   {
     accessorKey: 'filePath',
     header: 'Action',
-cell: ({ row }) => {
+    cell: ({ row }) => {
        const id = row.original.id
+       const type = requirementTypeLabel(row.original.requirementType)
        return h(resolveComponent('UButton'), {
          size: 'xs',
          variant: 'ghost',
          color: 'primary',
-         icon: 'i-lucide-eye',
-         label: 'Preview',
-         onClick: () => openPreview(id),
+         icon: 'i-lucide-printer',
+         label: `Print Preview`,
+         onClick: () => printPreview(id),
        })
      },
-  },
+   },
 ]
 
 const items = computed<BreadcrumbItem[]>(() => [
@@ -223,24 +231,24 @@ const printEndorsement = async () => {
   }
 }
 
-const openPreview = (filePath: string) => {
-  previewUrl.value = '/api/application/requirements/download/' + filePath
-  previewOpen.value = true
-}
-
-const downloadRequirement = () => {
-  if (!previewUrl.value) return
-  const link = document.createElement('a')
-  link.href = previewUrl.value
-  link.download = ''
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
-
-const closeRequirementPreview = () => {
-  previewUrl.value = ''
-  previewOpen.value = false
+const printPreview = async (id: number) => {
+  if (isPrinting.value) return
+  isPrinting.value = true
+  const win = window.open('/api/application/requirements/download/' + id, '_blank', 'width=800,height=600')
+  if (win) {
+    win.addEventListener('load', () => {
+      setTimeout(() => {
+        win.print()
+        isPrinting.value = false
+      }, 500)
+    })
+    win.addEventListener('error', () => {
+      isPrinting.value = false
+    })
+  } else {
+    isPrinting.value = false
+    toast.add({ title: 'Popup blocked. Please allow popups for this site.', color: 'error' })
+  }
 }
 
 const debounceGenerateEndorsement = useDebounceFn(printEndorsement, 1000)
@@ -418,6 +426,7 @@ const submitTransfer = async () => {
         { label: 'Student', icon: 'i-lucide-user', slot: 'student' },
         { label: 'Internship', icon: 'i-lucide-briefcase', slot: 'internship' },
         { label: 'Office', icon: 'i-lucide-building', slot: 'office' },
+        { label: 'Requirements', icon: 'i-lucide-folder', slot: 'requirements' },
       ]" variant="pill" class="w-full">
         <!-- Student Tab -->
         <template #student>
@@ -488,6 +497,19 @@ const submitTransfer = async () => {
             </p>
           </UPageCard>
         </template>
+
+        <!-- Requirements Tab -->
+        <template #requirements>
+          <UPageCard title="Requirements" icon="i-lucide-folder" variant="outline" class="mt-4">
+            <UTable
+              v-if="details.requirements?.length"
+              :data="details.requirements"
+              :columns="requirementColumns"
+              class="w-full"
+            />
+            <p v-else class="text-muted text-sm">No requirements submitted for this application.</p>
+          </UPageCard>
+        </template>
       </UTabs>
 
       <div class="flex justify-end gap-3 pt-4">
@@ -554,22 +576,5 @@ const submitTransfer = async () => {
           Print Endorsement
         </UButton>
       </div>
-
-     <!-- Requirements File Preview Modal -->
-      <UModal v-model:open="previewOpen" title="File Preview" size="xl">
-       <template #body>
-         <div class="w-full h-[70vh] flex flex-col">
-           <div class="flex-1 border rounded overflow-hidden">
-             <iframe v-if="previewUrl && previewUrl.endsWith('.pdf')" :src="previewUrl" class="w-full h-full" />
-             <img v-else-if="previewUrl" :src="previewUrl" class="w-full h-full object-contain" />
-             <UAlert v-else description="Preview not available" />
-           </div>
-           <div class="flex justify-end gap-2 mt-3">
-             <UButton label="Download" icon="i-lucide-download" color="primary" @click="downloadRequirement" />
-             <UButton label="Close" variant="outline" @click="closeRequirementPreview" />
-           </div>
-         </div>
-       </template>
-     </UModal>
-   </UMain>
- </template>
+    </UMain>
+  </template>

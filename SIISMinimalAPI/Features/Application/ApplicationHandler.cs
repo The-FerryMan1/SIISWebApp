@@ -210,6 +210,7 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
              FileName = t.FileName,
              FilePath = t.FilePath,
              FileType = t.FileType,
+             RequirementType = t.RequirementType,
              IsDeleted = t.IsDeleted,
              CreatedAt = t.CreatedAt,
              UpdatedAt = t.UpdatedAt,

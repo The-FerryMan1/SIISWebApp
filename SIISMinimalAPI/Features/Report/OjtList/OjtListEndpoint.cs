@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Utilities;
 
 namespace SIISMinimalAPI.Features.Report.OjtList;
 
@@ -46,6 +47,8 @@ public static class OjtListEndpoint
 
         group.MapGet("/filtered", [Authorize] async Task<IResult>(
             [FromQuery] ApplicationStatusEnum? status,
+            [FromQuery] string? name,
+            [FromQuery] string? school,
             [FromQuery] string? office,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
@@ -54,7 +57,17 @@ public static class OjtListEndpoint
         {
             try
             {
-                var result = await service.ListAllOjtFiltered(status, office, dateFrom, dateTo, ct);
+                var filters = new CommonFilterOptions
+                {
+                    Name = name,
+                    School = school,
+                    Office = office,
+                    DateFrom = dateFrom,
+                    DateTo = dateTo,
+                    Status = status?.ToString()
+                };
+
+                var result = await service.ListAllOjtFiltered(filters, ct);
                 return TypedResults.File(result, "application/pdf", "ojt-list-filtered");
             }
             catch (System.Exception)
@@ -64,6 +77,8 @@ public static class OjtListEndpoint
         }).RequireAuthorization();
 
         group.MapGet("/csv/filtered", [Authorize] async Task<IResult>(
+            [FromQuery] string? name,
+            [FromQuery] string? school,
             [FromQuery] string? office,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
@@ -72,7 +87,16 @@ public static class OjtListEndpoint
         {
             try
             {
-                var result = await service.OjtListCsvFiltered(office, dateFrom, dateTo, ct);
+                var filters = new CommonFilterOptions
+                {
+                    Name = name,
+                    School = school,
+                    Office = office,
+                    DateFrom = dateFrom,
+                    DateTo = dateTo
+                };
+
+                var result = await service.OjtListCsvFiltered(filters, ct);
                 return TypedResults.File(result, "application/csv", "ojt-list-filtered.csv");
             }
             catch (System.Exception)

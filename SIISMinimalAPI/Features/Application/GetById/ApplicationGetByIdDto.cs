@@ -79,6 +79,7 @@ public class RequirementInfo
     public string FileName { get; set; }
     public string FilePath { get; set; }
     public string FileType { get; set; }
+    public RequirementTypeEnum RequirementType { get; set; }
     public bool IsDeleted { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }

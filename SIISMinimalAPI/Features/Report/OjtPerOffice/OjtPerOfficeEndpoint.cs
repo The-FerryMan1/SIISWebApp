@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Utilities;
 
 namespace SIISMinimalAPI.Features.Report.OjtPerOffice;
 
@@ -34,7 +35,9 @@ public static class OjtPerOfficeEndpoint
                }
            }).RequireAuthorization();
 
-        group.MapGet("/filtered", [Authorize] async Task<IResult>(
+         group.MapGet("/filtered", [Authorize] async Task<IResult>(
+            [FromQuery] string? name,
+            [FromQuery] string? school,
             [FromQuery] string? office,
             [FromQuery] ApplicationStatusEnum? status,
             [FromQuery] DateTime? dateFrom,
@@ -44,7 +47,17 @@ public static class OjtPerOfficeEndpoint
         {
             try
             {
-                var pdf = await service.ListAllOjtPerOfficeFiltered(office, status, dateFrom, dateTo, ct);
+                var filters = new CommonFilterOptions
+                {
+                    Name = name,
+                    School = school,
+                    Office = office,
+                    DateFrom = dateFrom,
+                    DateTo = dateTo,
+                    Status = status?.ToString()
+                };
+
+                var pdf = await service.ListAllOjtPerOfficeFiltered(filters, ct);
                 return TypedResults.File(pdf, "application/pdf", $"OJT_filtered_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (System.Exception ex)

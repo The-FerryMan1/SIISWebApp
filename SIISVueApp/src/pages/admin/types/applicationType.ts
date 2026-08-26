@@ -102,6 +102,7 @@ export interface RequirementInfo {
   fileName: string
   filePath: string
   fileType: string
+  requirementType: string
   isDeleted: boolean
   createdAt: string
   updatedAt: string | null

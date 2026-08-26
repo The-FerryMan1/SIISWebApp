@@ -6,6 +6,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Shared.Enums;
+using SIISMinimalAPI.Features.Shared.Utilities;
 
 namespace SIISMinimalAPI.Features.Report.OjtPerOffice;
 
@@ -145,7 +146,7 @@ columns.RelativeColumn(1.5f);   // Started Date
         return document.GeneratePdf(); // Returns byte[]
     }
 
-    public async Task<byte[]> ListAllOjtPerOfficeFiltered(string? office, ApplicationStatusEnum? status, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
+    public async Task<byte[]> ListAllOjtPerOfficeFiltered(CommonFilterOptions filters, CancellationToken ct)
     {
         var query = _context.Students
             .Include(t => t.Application)
@@ -154,25 +155,7 @@ columns.RelativeColumn(1.5f);   // Started Date
             .AsNoTracking()
             .AsSplitQuery();
 
-        if (!string.IsNullOrEmpty(office))
-        {
-            query = query.Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office);
-        }
-
-        if (status is { } selectedStatus)
-        {
-            query = query.Where(t => t.Application.Status == selectedStatus);
-        }
-
-        if (dateFrom.HasValue)
-        {
-            query = query.Where(t => t.Placement != null && t.Placement!.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
-        }
-
-        if (dateTo.HasValue)
-        {
-            query = query.Where(t => t.Placement != null && t.Placement!.StartDate <= DateOnly.FromDateTime(dateTo.Value));
-        }
+        query = query.ApplyFilters(filters);
 
         var ojtOffice = await query.ToListAsync(ct);
         QuestPDF.Settings.License = LicenseType.Community;
@@ -185,7 +168,7 @@ columns.RelativeColumn(1.5f);   // Started Date
 
             page.Header().PaddingBottom(15).Column(col =>
             {
-                var officeLabel = office != null ? office : "All Offices";
+                var officeLabel = filters.Office != null ? filters.Office : "All Offices";
                 col.Item().Text($"OJT Students - {officeLabel} (Filtered)")
                     .FontSize(20).Bold().AlignCenter();
 

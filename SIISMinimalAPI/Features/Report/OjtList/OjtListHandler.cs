@@ -9,6 +9,7 @@ using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
+using SIISMinimalAPI.Features.Shared.Utilities;
 using System.Globalization;
 using CsvHelper.Configuration;
 namespace SIISMinimalAPI.Features.Report.OjtList;
@@ -148,7 +149,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
     return memoryStream.ToArray();
 }
 
-    public async Task<byte[]> ListAllOjtFiltered(ApplicationStatusEnum? status, string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
+    public async Task<byte[]> ListAllOjtFiltered(CommonFilterOptions filters, CancellationToken ct)
     {
         IQueryable<Student> query = _context.Students
             .Include(t => t.Application)
@@ -157,29 +158,11 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
             .AsNoTracking()
             .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
-        if (status is { } selectedStatus)
-        {
-            query = query.Where(t => t.Application.Status == selectedStatus);
-        }
-
-        if (!string.IsNullOrEmpty(office))
-        {
-            query = query.Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office);
-        }
-
-        if (dateFrom.HasValue)
-        {
-            query = query.Where(t => t.Placement != null && t.Placement!.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
-        }
-
-        if (dateTo.HasValue)
-        {
-            query = query.Where(t => t.Placement != null && t.Placement!.StartDate <= DateOnly.FromDateTime(dateTo.Value));
-        }
+        query = query.ApplyFilters(filters);
 
         var ojts = await query.ToListAsync(ct);
         QuestPDF.Settings.License = LicenseType.Community;
-        var statusLabel = status?.ToString() ?? "All";
+        var statusLabel = filters.Status ?? "All";
         var document = Document.Create(doc =>
 {
     doc.Page(page =>
@@ -260,7 +243,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
     return document.GeneratePdf();
 }
 
-public async Task<byte[]> OjtListCsvFiltered(string? office, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct)
+public async Task<byte[]> OjtListCsvFiltered(CommonFilterOptions filters, CancellationToken ct)
 {
     IQueryable<Student> query = _context.Students
         .Include(t => t.Application)
@@ -268,20 +251,7 @@ public async Task<byte[]> OjtListCsvFiltered(string? office, DateTime? dateFrom,
         .AsNoTracking()
         .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
-    if (!string.IsNullOrEmpty(office))
-    {
-        query = query.Where(t => t.Placement != null && t.Placement!.Office!.OfficeName == office);
-    }
-
-    if (dateFrom.HasValue)
-    {
-        query = query.Where(t => t.Placement != null && t.Placement!.StartDate >= DateOnly.FromDateTime(dateFrom.Value));
-    }
-
-    if (dateTo.HasValue)
-    {
-        query = query.Where(t => t.Placement != null && t.Placement!.StartDate <= DateOnly.FromDateTime(dateTo.Value));
-    }
+    query = query.ApplyFilters(filters);
 
     var ojts = await query.ToListAsync(ct);
 
