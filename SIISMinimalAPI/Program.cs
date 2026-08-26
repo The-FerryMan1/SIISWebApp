@@ -226,7 +226,14 @@ app.MapToPlacementTransfer();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
+    try
+    {
+        dbContext.Database.Migrate();
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("PendingModelChangesWarning"))
+    {
+        Console.WriteLine("Skipping migration due to pending model changes: " + ex.Message);
+    }
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
     await SeederStudent.InitStudents(scope.ServiceProvider);
 }

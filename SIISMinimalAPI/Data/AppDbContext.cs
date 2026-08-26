@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Data
@@ -13,6 +14,7 @@ namespace SIISMinimalAPI.Data
         public DbSet<Office> Offices { get; set; }
         public DbSet<Registration> Registrations { get; set; }
         public DbSet<LogsModel> Logs { get; set; }
+        public DbSet<Progress> Progresses {get; set;    }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -70,6 +72,15 @@ namespace SIISMinimalAPI.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            builder.Entity<Progress>(progress =>
+            {
+                progress.HasQueryFilter(p => p.PlacementStatus != PlacementStatusEnum.Finished);
+                progress.HasOne(p => p.Placement)
+                    .WithMany(p => p.Progresses)
+                    .HasForeignKey(p => p.PlacementId)
+                    .OnDelete(DeleteBehavior.SetNull);   
+            });
+
             builder.Entity<Requirement>(req =>
             {
                 req.HasQueryFilter(r => !r.IsDeleted);
@@ -84,6 +95,7 @@ namespace SIISMinimalAPI.Data
             {
                 log.HasQueryFilter(l => !l.IsDeleted);
             });
+
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SIISMinimalAPI.Features.Shared.Enums;
 
 namespace SIISMinimalAPI.Features.Shared.Models
 {
@@ -18,5 +19,7 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
+
+        public ICollection<Progress?>? Progresses { get; set; }
     }
 }
