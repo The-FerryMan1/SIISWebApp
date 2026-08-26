@@ -202,6 +202,10 @@ public class RequirementsUpdateDtoValidator : AbstractValidator<RequirementsUpda
             .MaximumLength(50)
             .Must(BeAllowedFileType)
             .WithMessage("File type must be pdf, doc, docx, jpg, jpeg, or png");
+
+        RuleFor(x => x.RequirementTypeEnum)
+            .IsInEnum()
+            .WithMessage("Invalid requirement type");
     }
 
     private static bool BeValidPath(string path)

@@ -11,6 +11,8 @@ public class OnBoardUpdateDto
     public ICollection<RequirementsUpdateDto>? Requirements { get; set; }
     public OfficeUpdateDto? Office { get; set; }
      public IFormFileCollection? Files { get; set; }
+    public IFormFile? MoaFile { get; set; }
+    public IFormFile? ResumeFile { get; set; }
 }
 
 
@@ -58,6 +60,7 @@ public class RequirementsUpdateDto
     public string? FileName { get; set; }
     public string? FilePath { get; set; }
     public string? FileType { get; set; }
+    public RequirementTypeEnum RequirementTypeEnum { get; set; }
 }
 
 public class OfficeUpdateDto

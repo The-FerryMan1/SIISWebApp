@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SIISMinimalAPI.Features.Shared.Enums;
 
 namespace SIISMinimalAPI.Features.Shared.Models
 {
@@ -11,6 +12,8 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public string FilePath { get; set; } = string.Empty;
         [Required]
         public string FileType { get; set; } = string.Empty;
+
+        public RequirementTypeEnum RequirementType { get; set; }
         public long StudentId { get; set; }
         public Student? Student { get; set; }
         public bool IsDeleted { get; set; } = false;

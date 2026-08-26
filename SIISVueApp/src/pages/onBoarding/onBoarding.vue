@@ -13,7 +13,8 @@ const toast = useToast()
 const onaboard = useOnBoardStore()
 const { state, errorMessage } = storeToRefs(onaboard)
 const isOpen = ref<boolean>(false)
-const uploadedReq = ref<File[]>([])
+const moaFile = ref<File | null>(null)
+const resumeFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const form = useTemplateRef('form')
@@ -82,8 +83,13 @@ const degreeItems = [
   { value: 11, label: 'BSPsych' },
 ]
 
-watch(uploadedReq, (value) => {
-  state.value.requirements = value
+watch([moaFile, resumeFile], () => {
+  state.value.moaFile = moaFile.value
+  state.value.resumeFile = resumeFile.value
+  state.value.requirements = [
+    ...(moaFile.value ? [moaFile.value] : []),
+    ...(resumeFile.value ? [resumeFile.value] : []),
+  ]
 })
 
 const maxDate = computed(() => {
@@ -97,8 +103,17 @@ const minStartDate = computed(() => {
   return date
 })
 
-// Step 1: Form passes validation → store payload and open modal
+// Step 1: Form passes validation → validate files and store payload
 const onReview = (payload: FormSubmitEvent<OnBoardUpdateDto>) => {
+  if (!moaFile.value) {
+    toast.add({ title: 'MOA document is required', color: 'error' })
+    return
+  }
+  if (!resumeFile.value) {
+    toast.add({ title: 'Resume / CV is required', color: 'error' })
+    return
+  }
+
   reviewPayload.value = payload
   isOpen.value = true
 }
@@ -107,6 +122,12 @@ const onReview = (payload: FormSubmitEvent<OnBoardUpdateDto>) => {
 const onConfirm = async () => {
   if (!reviewPayload.value) return
 
+  console.log('MOA file before sync:', moaFile.value)
+  console.log('Resume file before sync:', resumeFile.value)
+
+  state.value.moaFile = moaFile.value
+  state.value.resumeFile = resumeFile.value
+
   try {
     isSubmitting.value = true
     await onaboard.onSubmit(reviewPayload.value, route.params.token as string)
@@ -114,7 +135,8 @@ const onConfirm = async () => {
     isSuccess.value = true
 
     onaboard.stateReset()
-    uploadedReq.value = []
+    moaFile.value = null
+    resumeFile.value = null
     reviewPayload.value = null
   } catch (e) {
     toast.add({ title: 'Submission failed', color: 'error' })
@@ -371,16 +393,26 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
 
           <!-- Requirements -->
           <UPageCard title="Requirements" icon="i-lucide-folder" variant="outline">
-            <UFormField name="requirements">
-              <UFileUpload
-                v-model="uploadedReq"
-                file-icon="i-lucide-file"
-                description="Upload requirements (MOA, Resume, etc.)"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                multiple
-                class="w-full"
-              />
-            </UFormField>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <UFormField name="moaFile" label="MOA Document" required>
+                <UFileUpload
+                  v-model="moaFile"
+                  file-icon="i-lucide-file-text"
+                  description="Upload your Memorandum of Agreement (PDF only)"
+                  accept=".pdf"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField name="resumeFile" label="Resume / CV" required>
+                <UFileUpload
+                  v-model="resumeFile"
+                  file-icon="i-lucide-file-user"
+                  description="Upload your Resume or CV (PDF, DOC, DOCX)"
+                  accept=".pdf,.doc,.docx"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
           </UPageCard>
 
           <!-- Submit Button -->
@@ -427,16 +459,16 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
             </UPageCard>
 
             <UPageCard title="Uploaded Requirements" icon="i-lucide-folder">
-              <ul class="space-y-1">
-                <li
-                  v-for="(file, index) in state.requirements"
-                  :key="index"
-                  class="flex items-center justify-between py-1 border-b border-default last:border-0"
-                >
-                  <span class="font-bold">{{ file.name }}</span>
-                  <span class="text-muted text-xs">{{ (file.size / 1024).toFixed(1) }} KB</span>
-                </li>
-              </ul>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p class="text-sm text-muted mb-1">MOA Document:</p>
+                  <p class="font-bold">{{ moaFile?.name || 'No file uploaded' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-muted mb-1">Resume / CV:</p>
+                  <p class="font-bold">{{ resumeFile?.name || 'No file uploaded' }}</p>
+                </div>
+              </div>
             </UPageCard>
           </div>
         </template>

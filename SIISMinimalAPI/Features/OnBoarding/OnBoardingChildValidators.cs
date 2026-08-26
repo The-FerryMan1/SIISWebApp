@@ -127,6 +127,9 @@ public class RequirementsRegDtoValidator : AbstractValidator<RequirementsRegDto>
         RuleFor(x => x.FileType)
             .NotEmpty().WithMessage("MIME type is required")
             .Must(BeValidMimeType).WithMessage("Invalid MIME type");
+
+        RuleFor(x => x.RequirementTypeEnum)
+            .IsInEnum().WithMessage("Invalid requirement type");
     }
 
     private static bool HaveValidExtension(string fileName) =>
@@ -137,7 +140,6 @@ public class RequirementsRegDtoValidator : AbstractValidator<RequirementsRegDto>
         !string.IsNullOrEmpty(path) && 
         !path.Contains("..") && 
         !path.Contains("//");
-
     private static bool BeValidMimeType(string mime) =>
         mime.StartsWith("application/") || mime.StartsWith("image/");
 }

@@ -10,6 +10,8 @@ public class OnBoardingDto
     public InternshipRegDto? Internship { get; set; }
     public ICollection<RequirementsRegDto>? RequirementsReg { get; set; } = [];
     public IFormFileCollection? Files { get; set; }
+    public IFormFile? MoaFile { get; set; }
+    public IFormFile? ResumeFile { get; set; }
 }
 
 
@@ -57,6 +59,7 @@ public class RequirementsRegDto
     public string FileName { get; set; }
     public string? FilePath { get; set; }
     public string FileType { get; set; }
+    public RequirementTypeEnum RequirementTypeEnum {get; set;}
 }
 
 

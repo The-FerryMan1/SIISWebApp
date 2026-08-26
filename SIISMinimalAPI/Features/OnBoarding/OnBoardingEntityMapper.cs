@@ -46,6 +46,7 @@ public static class OnBoardingEntityMapper
                 FileName = t.FileName,
                 FilePath = t.FilePath,
                 FileType = t.FileType,
+                RequirementType = t.RequirementTypeEnum
             }).ToList(),
         };
     }

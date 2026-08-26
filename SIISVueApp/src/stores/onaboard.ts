@@ -30,6 +30,8 @@ export const useOnBoardStore = defineStore('onboard', () => {
       totalInternshipHours: 0,
     },
     requirements: [] as any[],
+    moaFile: null as File | null,
+    resumeFile: null as File | null,
   })
 
   const toDataForm = (): FormData => {
@@ -70,33 +72,50 @@ export const useOnBoardStore = defineStore('onboard', () => {
     formData.append('internship.internshipTotalHours', String(s.totalInternshipHours))
     formData.append('internship.accumulatedHours', '0')
 
-    if (state.value.requirements && state.value.requirements.length > 0) {
-      state.value.requirements.forEach((file) => {
-        if (file instanceof File) {
-          formData.append('files', file)
-        }
-      })
+    const moa = normalizeFile(state.value.moaFile)
+    if (moa) {
+      formData.append('moaFile', moa, moa.name)
+    }
+
+    const resume = normalizeFile(state.value.resumeFile)
+    if (resume) {
+      formData.append('resumeFile', resume, resume.name)
     }
 
     return formData
   }
 
+  const normalizeFile = (file: File | File[] | null | undefined): File | null => {
+    if (file instanceof File) return file
+    if (Array.isArray(file) && file.length > 0 && file[0] instanceof File) return file[0]
+    return null
+  }
+
   const onSubmit = async (event: FormSubmitEvent<OnBoardUpdateDto>, token: string) => {
     try {
       const formData = toDataForm()
-      await useAxios.post('/onboading/' + token, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-    } catch (error) {
-      const erroMess = (error as AxiosError).response?.data as string
-      if (erroMess) {
-        errorMessage.value = erroMess
+      console.log('Submitting onboarding form...')
+      for (const [key, value] of formData.entries()) {
+        console.log('FormData:', key, value)
       }
-      console.log(erroMess)
+      await useAxios.post('/onboading/' + token, formData)
+    } catch (error) {
+      const responseData = (error as AxiosError).response?.data
+      if (responseData) {
+        if (typeof responseData === 'string') {
+          errorMessage.value = responseData
+        } else if (typeof responseData === 'object' && responseData !== null) {
+          const errors = (responseData as any).errors
+          if (errors && typeof errors === 'object') {
+            errorMessage.value = Object.values(errors).flat().join(' ')
+          } else {
+            errorMessage.value = (responseData as any).title || 'Submission failed'
+          }
+        }
+      }
+      console.log(responseData)
 
-      throw new Error(erroMess)
+      throw new Error(errorMessage.value || 'Submission failed')
     }
   }
 
@@ -124,6 +143,8 @@ export const useOnBoardStore = defineStore('onboard', () => {
         totalInternshipHours: 0,
       },
       requirements: [] as any[],
+      moaFile: null,
+      resumeFile: null,
     }
 
     errorMessage.value = null

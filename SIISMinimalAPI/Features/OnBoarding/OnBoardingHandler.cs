@@ -39,6 +39,38 @@ namespace SIISMinimalAPI.Features.OnBoarding
                 Directory.CreateDirectory(uploadsPath);
 
                 var req = new List<RequirementsRegDto>();
+                if (onBoardingDto.MoaFile is not null)
+                {
+                    var safeFileName = Path.GetFileNameWithoutExtension(onBoardingDto.MoaFile.FileName) + Path.GetExtension(onBoardingDto.MoaFile.FileName);
+                    var filePath = Path.Combine(uploadsPath, safeFileName);
+                    await using var stream = File.Create(filePath);
+                    await onBoardingDto.MoaFile.CopyToAsync(stream, ct);
+
+                    req.Add(new RequirementsRegDto
+                    {
+                        FileName = safeFileName,
+                        FilePath = filePath,
+                        FileType = onBoardingDto.MoaFile.ContentType,
+                        RequirementTypeEnum = RequirementTypeEnum.Moa,
+                    });
+                }
+
+                if (onBoardingDto.ResumeFile is not null)
+                {
+                    var safeFileName = Path.GetFileNameWithoutExtension(onBoardingDto.ResumeFile.FileName) + Path.GetExtension(onBoardingDto.ResumeFile.FileName);
+                    var filePath = Path.Combine(uploadsPath, safeFileName);
+                    await using var stream = File.Create(filePath);
+                    await onBoardingDto.ResumeFile.CopyToAsync(stream, ct);
+
+                    req.Add(new RequirementsRegDto
+                    {
+                        FileName = safeFileName,
+                        FilePath = filePath,
+                        FileType = onBoardingDto.ResumeFile.ContentType,
+                        RequirementTypeEnum = RequirementTypeEnum.Resume,
+                    });
+                }
+
                 if (onBoardingDto.Files is not null)
                 {
                     foreach (var file in onBoardingDto.Files)
@@ -52,7 +84,8 @@ namespace SIISMinimalAPI.Features.OnBoarding
                         {
                             FileName = safeFileName,
                             FilePath = filePath,
-                            FileType = file.ContentType
+                            FileType = file.ContentType,
+                            RequirementTypeEnum = RequirementTypeEnum.Other,
                         });
                     }
                 }
@@ -180,6 +213,69 @@ namespace SIISMinimalAPI.Features.OnBoarding
                         FileName = safeFileName,
                         FilePath = filePath,
                         FileType = file.ContentType,
+                        RequirementType = RequirementTypeEnum.Other,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+            }
+
+            if (dto.MoaFile is not null)
+            {
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", SanitizeFolderName(exists.LastName));
+                Directory.CreateDirectory(uploadsPath);
+
+                var safeFileName = Path.GetFileNameWithoutExtension(dto.MoaFile.FileName) + Path.GetExtension(dto.MoaFile.FileName);
+                var filePath = Path.Combine(uploadsPath, safeFileName);
+                await using var stream = File.Create(filePath);
+                await dto.MoaFile.CopyToAsync(stream, ct);
+
+                var existingMoa = exists.Requirements.FirstOrDefault(r => r.RequirementType == RequirementTypeEnum.Moa);
+                if (existingMoa is not null)
+                {
+                    existingMoa.FileName = safeFileName;
+                    existingMoa.FilePath = filePath;
+                    existingMoa.FileType = dto.MoaFile.ContentType;
+                    existingMoa.UpdatedAt = DateTime.Now;
+                }
+                else
+                {
+                    exists.Requirements.Add(new Shared.Models.Requirement
+                    {
+                        FileName = safeFileName,
+                        FilePath = filePath,
+                        FileType = dto.MoaFile.ContentType,
+                        RequirementType = RequirementTypeEnum.Moa,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+            }
+
+            if (dto.ResumeFile is not null)
+            {
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", SanitizeFolderName(exists.LastName));
+                Directory.CreateDirectory(uploadsPath);
+
+                var safeFileName = Path.GetFileNameWithoutExtension(dto.ResumeFile.FileName) + Path.GetExtension(dto.ResumeFile.FileName);
+                var filePath = Path.Combine(uploadsPath, safeFileName);
+                await using var stream = File.Create(filePath);
+                await dto.ResumeFile.CopyToAsync(stream, ct);
+
+                var existingResume = exists.Requirements.FirstOrDefault(r => r.RequirementType == RequirementTypeEnum.Resume);
+                if (existingResume is not null)
+                {
+                    existingResume.FileName = safeFileName;
+                    existingResume.FilePath = filePath;
+                    existingResume.FileType = dto.ResumeFile.ContentType;
+                    existingResume.UpdatedAt = DateTime.Now;
+                }
+                else
+                {
+                    exists.Requirements.Add(new Shared.Models.Requirement
+                    {
+                        FileName = safeFileName,
+                        FilePath = filePath,
+                        FileType = dto.ResumeFile.ContentType,
+                        RequirementType = RequirementTypeEnum.Resume,
                         CreatedAt = DateTime.Now
                     });
                 }
