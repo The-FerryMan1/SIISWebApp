@@ -152,6 +152,11 @@ const columns: TableColumn<Ojt>[] = [
               onSelect: () => viewRequirements(uuid),
             },
             {
+              label: 'View Progress',
+              icon: 'i-lucide-bar-chart-2',
+              onSelect: () => viewProgress(uuid),
+            },
+            {
               label: 'Generate Endorsement',
               icon: 'i-lucide-file-check',
               onSelect: () => generateEndorsement(uuid),
@@ -190,6 +195,10 @@ const viewRequirements = async (uuid: string) => {
 
 const generateEndorsement = (uuid: string) => {
   router.push({ name: 'endorsement', query: { uuid } })
+}
+
+const viewProgress = (uuid: string) => {
+  router.push({ name: 'progress', params: { uuid } })
 }
 
 const getAge = (birthDate: string | Date): number => {

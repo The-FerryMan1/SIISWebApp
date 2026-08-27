@@ -6,9 +6,8 @@ public class OfficeDashboardDto
     public string OfficeName { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
     public int TotalStudents { get; set; }
-    public int ApprovedCount { get; set; }
-    public int PendingCount { get; set; }
-    public int RejectedCount { get; set; }
+    public int OngoingCount { get; set; }
+    public int FinishedCount { get; set; }
     public List<StudentItemDto> Students { get; set; } = new();
 }
 

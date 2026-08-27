@@ -6,5 +6,6 @@ public record CommonFilterOptions(
     DateTime? DateFrom = null,
     DateTime? DateTo = null,
     string? Office = null,
-    string? Status = null
+    string? Status = null,
+    string? PlacementStatus = null
 );

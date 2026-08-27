@@ -19,6 +19,7 @@ public static class CompletionSummaryEndpoint
             [FromQuery] string? school,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
+            [FromQuery] string? placementStatus,
             CancellationToken ct,
             ICompletionSummaryService service) =>
         {
@@ -29,7 +30,8 @@ public static class CompletionSummaryEndpoint
                     Name = name,
                     School = school,
                     DateFrom = dateFrom,
-                    DateTo = dateTo
+                    DateTo = dateTo,
+                    PlacementStatus = placementStatus
                 };
 
                 var pdf = await service.GeneratePdf(filters, ct);
@@ -46,6 +48,7 @@ public static class CompletionSummaryEndpoint
             [FromQuery] string? school,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
+            [FromQuery] string? placementStatus,
             CancellationToken ct,
             ICompletionSummaryService service) =>
         {
@@ -56,7 +59,8 @@ public static class CompletionSummaryEndpoint
                     Name = name,
                     School = school,
                     DateFrom = dateFrom,
-                    DateTo = dateTo
+                    DateTo = dateTo,
+                    PlacementStatus = placementStatus
                 };
 
                 var csv = await service.GenerateCsv(filters, ct);

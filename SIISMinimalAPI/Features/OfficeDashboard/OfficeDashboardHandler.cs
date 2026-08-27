@@ -24,9 +24,8 @@ public class OfficeDashboardHandler(AppDbContext context) : IOfficeDashboardServ
             .AsSplitQuery()
             .ToListAsync(ct);
 
-        var approvedCount = students.Count(t => t.Application.Status == ApplicationStatusEnum.Approved);
-        var pendingCount = students.Count(t => t.Application.Status == ApplicationStatusEnum.Pending);
-        var rejectedCount = students.Count(t => t.Application.Status == ApplicationStatusEnum.Rejected);
+        var ongoingCount = students.Count(t => t.Placement != null && t.Placement.PlacementStatus == Shared.Enums.PlacementStatusEnum.Ongoing);
+        var finishedCount = students.Count(t => t.Placement != null && t.Placement.PlacementStatus == Shared.Enums.PlacementStatusEnum.Finished);
 
         return new OfficeDashboardDto
         {
@@ -34,9 +33,8 @@ public class OfficeDashboardHandler(AppDbContext context) : IOfficeDashboardServ
             OfficeName = office.OfficeName,
             Department = office.Department ?? string.Empty,
             TotalStudents = students.Count,
-            ApprovedCount = approvedCount,
-            PendingCount = pendingCount,
-            RejectedCount = rejectedCount,
+            OngoingCount = ongoingCount,
+            FinishedCount = finishedCount,
             Students = students.Select(t => new StudentItemDto
             {
                 StudentUuid = t.StudentUUID,

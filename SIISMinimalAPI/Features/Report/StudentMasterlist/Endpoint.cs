@@ -20,6 +20,7 @@ public static class StudentMasterlistEndpoint
             [FromQuery] string? school,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
+            [FromQuery] string? placementStatus,
             CancellationToken ct,
             IStudentMasterlistService service) =>
         {
@@ -31,7 +32,8 @@ public static class StudentMasterlistEndpoint
                     Name = name,
                     School = school,
                     DateFrom = dateFrom,
-                    DateTo = dateTo
+                    DateTo = dateTo,
+                    PlacementStatus = placementStatus
                 };
 
                 var pdf = await service.GeneratePdf(filters, ct);
@@ -49,6 +51,7 @@ public static class StudentMasterlistEndpoint
             [FromQuery] string? school,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
+            [FromQuery] string? placementStatus,
             CancellationToken ct,
             IStudentMasterlistService service) =>
         {
@@ -60,7 +63,8 @@ public static class StudentMasterlistEndpoint
                     Name = name,
                     School = school,
                     DateFrom = dateFrom,
-                    DateTo = dateTo
+                    DateTo = dateTo,
+                    PlacementStatus = placementStatus
                 };
 
                 var csv = await service.GenerateCsv(filters, ct);

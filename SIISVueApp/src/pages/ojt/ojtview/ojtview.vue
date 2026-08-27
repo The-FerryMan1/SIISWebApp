@@ -103,6 +103,12 @@ const back = () => {
     router.back()
 }
 
+const goToProgress = () => {
+    if (ojtDetails.value?.studentUUID) {
+        router.push({ name: 'progress', params: { uuid: ojtDetails.value.studentUUID } })
+    }
+}
+
 
 const debounceDelete = useDebounceFn(async () => {
     const instance = await confModal.open({ title: 'Delete ojt', description: 'All connected record will be deleted' })
@@ -211,6 +217,11 @@ const submitTransfer = async () => {
                         <UTooltip text="Transfer Office">
                             <UButton @click="transferOpen = true" color="primary" variant="ghost" size="sm"
                                 icon="i-lucide-building-2" />
+                        </UTooltip>
+
+                        <UTooltip text="View Progress">
+                            <UButton @click="goToProgress" color="info" variant="ghost" size="sm"
+                                icon="i-lucide-bar-chart-2" />
                         </UTooltip>
 
                         <UTooltip text="Delete ojt">

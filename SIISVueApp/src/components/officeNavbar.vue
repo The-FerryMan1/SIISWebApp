@@ -17,12 +17,6 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: { name: 'office-dashboard' },
   },
   {
-    label: 'Interns',
-    icon: 'i-lucide-users',
-    active: route.name == 'office-interns',
-    to: { name: 'office-interns' },
-  },
-  {
     label: 'Reports',
     icon: 'i-lucide-summary',
     active: route.name == 'office-reports',

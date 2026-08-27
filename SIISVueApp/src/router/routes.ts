@@ -47,12 +47,6 @@ export const routes: RouteRecordRaw[] = [
         meta: { isRequiresOfficeAuth: true, title: 'Dashboard' },
       },
       {
-        path: 'interns',
-        component: () => import('../pages/office/interns.vue'),
-        name: 'office-interns',
-        meta: { isRequiresOfficeAuth: true, title: 'Interns' },
-      },
-      {
         path: 'reports',
         component: () => import('../pages/office/reports.vue'),
         name: 'office-reports',
@@ -69,6 +63,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/office/logs.vue'),
         name: 'office-logs',
         meta: { isRequiresOfficeAuth: true, title: 'Logs' },
+      },
+      {
+        path: 'progress/:uuid',
+        component: () => import('../pages/progress.vue'),
+        name: 'office-progress',
+        meta: { isRequiresOfficeAuth: true, title: 'Progress' },
       },
     ],
   },
@@ -177,6 +177,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/admin/logs.vue'),
         name: 'logs',
         meta: { isRequiresAuth: true, title: 'Logs' },
+      },
+      {
+        path: 'progress/:uuid',
+        component: () => import('../pages/progress.vue'),
+        name: 'progress',
+        meta: { isRequiresAuth: true, title: 'Progress' },
       }
     ],
   },

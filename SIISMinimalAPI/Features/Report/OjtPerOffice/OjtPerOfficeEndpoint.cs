@@ -42,6 +42,7 @@ public static class OjtPerOfficeEndpoint
             [FromQuery] ApplicationStatusEnum? status,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
+            [FromQuery] string? placementStatus,
             CancellationToken ct,
             IOjtPerOfficeService service) =>
         {
@@ -54,7 +55,8 @@ public static class OjtPerOfficeEndpoint
                     Office = office,
                     DateFrom = dateFrom,
                     DateTo = dateTo,
-                    Status = status?.ToString()
+                    Status = status?.ToString(),
+                    PlacementStatus = placementStatus
                 };
 
                 var pdf = await service.ListAllOjtPerOfficeFiltered(filters, ct);

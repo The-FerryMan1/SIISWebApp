@@ -1,5 +1,3 @@
-using SIISMinimalAPI.Features.Shared.Enums;
-
 namespace SIISMinimalAPI.Features.Shared.Models
 {
     public class Progress{
@@ -13,4 +11,3 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public Placement? Placement { get; set; }    
     }
 }
- 

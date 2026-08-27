@@ -327,6 +327,9 @@ namespace SIISMinimalAPI.Migrations
                     b.Property<long>("PlacementId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("PlacementStatus")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RemainingHours")
                         .HasColumnType("INTEGER");
 

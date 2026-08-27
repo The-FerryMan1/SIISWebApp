@@ -52,6 +52,7 @@ public static class OjtListEndpoint
             [FromQuery] string? office,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
+            [FromQuery] string? placementStatus,
             CancellationToken ct,
             IOjtListService service) =>
         {
@@ -64,7 +65,8 @@ public static class OjtListEndpoint
                     Office = office,
                     DateFrom = dateFrom,
                     DateTo = dateTo,
-                    Status = status?.ToString()
+                    Status = status?.ToString(),
+                    PlacementStatus = placementStatus
                 };
 
                 var result = await service.ListAllOjtFiltered(filters, ct);
@@ -82,6 +84,7 @@ public static class OjtListEndpoint
             [FromQuery] string? office,
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
+            [FromQuery] string? placementStatus,
             CancellationToken ct,
             IOjtListService service) =>
         {
@@ -93,7 +96,8 @@ public static class OjtListEndpoint
                     School = school,
                     Office = office,
                     DateFrom = dateFrom,
-                    DateTo = dateTo
+                    DateTo = dateTo,
+                    PlacementStatus = placementStatus
                 };
 
                 var result = await service.OjtListCsvFiltered(filters, ct);

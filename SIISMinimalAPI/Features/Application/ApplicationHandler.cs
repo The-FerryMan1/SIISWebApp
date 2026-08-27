@@ -35,7 +35,18 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
                 OfficeId = office.Id,
                 StartDate = DateOnly.FromDateTime(DateTime.Now),
                 EstimatedEndDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(3)),
-                AccumulatedHours = 0
+                AccumulatedHours = 0,
+                Progresses = new List<Shared.Models.Progress>
+                {
+                    new Shared.Models.Progress
+                    {
+                        TrainingHoursRendered = 0,
+                        TrainingHoursForWeek = 0,
+                        RemainingHours = exists.TotalInternshipHours,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    }
+                }
             };
         }
         else

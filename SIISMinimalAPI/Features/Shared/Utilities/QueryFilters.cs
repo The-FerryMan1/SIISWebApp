@@ -44,6 +44,11 @@ public static class QueryFilterExtensions
             query = query.Where(t => t.Application != null && t.Application.Status == status);
         }
 
+        if (!string.IsNullOrWhiteSpace(filters.PlacementStatus) && Enum.TryParse<PlacementStatusEnum>(filters.PlacementStatus, true, out var placementStatus))
+        {
+            query = query.Where(t => t.Placement != null && t.Placement.PlacementStatus == placementStatus);
+        }
+
         return query;
     }
 
@@ -113,6 +118,11 @@ public static class QueryFilterExtensions
         {
             var office = filters.Office.Trim();
             query = query.Where(t => t.Office != null && t.Office.OfficeName == office);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.PlacementStatus) && Enum.TryParse<PlacementStatusEnum>(filters.PlacementStatus, true, out var placementStatus))
+        {
+            query = query.Where(t => t.PlacementStatus == placementStatus);
         }
 
         return query;

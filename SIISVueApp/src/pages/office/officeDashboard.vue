@@ -64,12 +64,24 @@ const columns: TableColumn<any>[] = [
   }},
   {
     header: 'Actions',
-    cell: ({ row }) => h(UButton, {
-      class: 'p-1 hover:text-primary',
-      title: 'Edit dates',
-      icon: 'i-lucide-calendar',
-      onClick: () => openEditDates(row.original)
-    })
+    cell: ({ row }) => h('div', { class: 'flex gap-1' }, [
+      h(UButton, {
+        icon: 'i-lucide-bar-chart-2',
+        size: 'xs',
+        variant: 'ghost',
+        color: 'info',
+        title: 'View Progress',
+        onClick: () => viewProgress(row.original)
+      }),
+      h(UButton, {
+        icon: 'i-lucide-calendar',
+        size: 'xs',
+        variant: 'ghost',
+        color: 'primary',
+        title: 'Edit dates',
+        onClick: () => openEditDates(row.original)
+      }),
+    ])
   },
 ]
 
@@ -112,6 +124,13 @@ async function loadDashboard() {
 
 function goToStudent(uuid: string) {
   router.push({ name: 'ojt-details', params: { uuid } })
+}
+
+function viewProgress(student: any) {
+  const uuid = student.studentUuid || student.uuid
+  if (uuid) {
+    router.push({ name: 'office-progress', params: { uuid } })
+  }
 }
 
 function openEditDates(student: any) {
@@ -248,26 +267,23 @@ function logout() {
     </div>
 
     <template v-if="loading">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <USkeleton v-for="i in 4" :key="i" class="h-24 w-full" />
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <USkeleton v-for="i in 3" :key="i" class="h-24 w-full" />
       </div>
       <USkeleton class="h-32 w-full mt-6" />
       <USkeleton class="h-64 w-full mt-6" />
     </template>
 
     <template v-else-if="dashboard">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <UPageCard title="Total OJTs" icon="i-lucide-users" variant="outline">
           <p class="text-3xl font-bold text-primary">{{ dashboard.totalStudents }}</p>
         </UPageCard>
-        <UPageCard title="Approved" icon="i-lucide-check-circle" variant="outline">
-          <p class="text-3xl font-bold text-green-600">{{ dashboard.approvedCount }}</p>
+        <UPageCard title="Ongoing" icon="i-lucide-clock" variant="outline">
+          <p class="text-3xl font-bold text-yellow-600">{{ dashboard.ongoingCount }}</p>
         </UPageCard>
-        <UPageCard title="Pending" icon="i-lucide-clock" variant="outline">
-          <p class="text-3xl font-bold text-yellow-600">{{ dashboard.pendingCount }}</p>
-        </UPageCard>
-        <UPageCard title="Rejected" icon="i-lucide-x-circle" variant="outline">
-          <p class="text-3xl font-bold text-red-600">{{ dashboard.rejectedCount }}</p>
+        <UPageCard title="Finished" icon="i-lucide-check-circle" variant="outline">
+          <p class="text-3xl font-bold text-green-600">{{ dashboard.finishedCount }}</p>
         </UPageCard>
       </div>
 
