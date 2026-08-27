@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, useTemplateRef, watch, h } from 'vue'
+import { computed, ref, onMounted, useTemplateRef, watch, h, resolveComponent } from 'vue'
 import { useAxios } from '../../fetch/axios'
 import type { TableColumn, SelectItem } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/vue-table'
@@ -12,6 +12,8 @@ const selectedOffice = ref<number | undefined>(undefined)
 const selectedSchool = ref<string>('')
 const loading = ref(false)
 const selectedRow = ref<Record<string, boolean>>({})
+
+const UCheckBox = resolveComponent('UCheckbox')
 
 const table = useTemplateRef('table')
 const globalFilter = ref('')
@@ -131,19 +133,9 @@ const columns: TableColumn<any>[] = [
   {
     id: 'include',
     header: 'Include',
-    cell: ({ row }) =>
-      h('input', {
-        type: 'checkbox',
-        checked: selectedRow.value[row.original.studentUUID] || false,
-        onChange: (e: Event) => {
-          const target = e.target as HTMLInputElement
-          selectedRow.value[row.original.studentUUID] = target.checked
-          if (!target.checked) {
-            delete selectedRow.value[row.original.studentUUID]
-          }
-        },
-        'aria-label': 'Toggle include',
-      }),
+    cell: ({ row }) => {
+        return h(UCheckBox)
+    }
   },
   {
     accessorKey: 'fullName',

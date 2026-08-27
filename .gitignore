@@ -11,5 +11,5 @@ Thumbs.db
 
 # Logs
 *.log
-logs/
+
 publish/
