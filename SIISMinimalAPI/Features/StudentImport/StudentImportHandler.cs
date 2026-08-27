@@ -52,32 +52,19 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
 
         var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
 
-        var schoolNameFrequency = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        for (var rowNumber = 2; rowNumber <= lastRow; rowNumber++)
-        {
-            if (IsRowEmpty(worksheet.Row(rowNumber)))
-            {
-                continue;
-            }
+        var existingSchools = await _context.Students
+            .Where(s => !s.IsDeleted)
+            .Select(s => s.SchoolName)
+            .Distinct()
+            .ToListAsync(ct);
 
-            var rawSchoolName = GetCellValue(worksheet, headers, "SchoolName", rowNumber);
-            if (!string.IsNullOrWhiteSpace(rawSchoolName))
-            {
-                var normalized = NormalizeSchoolName(rawSchoolName);
-                if (!schoolNameFrequency.ContainsKey(normalized))
-                {
-                    schoolNameFrequency[normalized] = 0;
-                }
-                schoolNameFrequency[normalized]++;
-            }
-        }
-
-        var schoolsToNormalize = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kvp in schoolNameFrequency)
+        var schoolNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var school in existingSchools)
         {
-            if (kvp.Value > 2)
+            if (!string.IsNullOrWhiteSpace(school))
             {
-                schoolsToNormalize.Add(kvp.Key);
+                var normalized = NormalizeSchoolName(school);
+                schoolNameMap[normalized] = school;
             }
         }
 
@@ -88,6 +75,7 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
 
             if (IsRowEmpty(worksheet.Row(rowNumber)))
             {
+                result.TotalRows--;
                 continue;
             }
 
@@ -105,21 +93,44 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
                 if (await _context.Students.AnyAsync(s => s.Email.ToLower() == student.Email.ToLower(), ct))
                 {
                     result.SkippedCount++;
+                    result.Errors.Add(new StudentImportErrorDto
+                    {
+                        RowNumber = rowNumber,
+                        Email = rowEmail,
+                        Message = "Skipped: email already exists in the database."
+                    });
                     continue;
                 }
 
                 if (importedEmails.Contains(student.Email))
                 {
                     result.SkippedCount++;
+                    result.Errors.Add(new StudentImportErrorDto
+                    {
+                        RowNumber = rowNumber,
+                        Email = rowEmail,
+                        Message = "Skipped: duplicate email within this import file."
+                    });
                     continue;
                 }
 
                 importedEmails.Add(student.Email);
 
-                var normalizedSchoolName = NormalizeSchoolName(student.SchoolName);
-                if (schoolsToNormalize.Contains(normalizedSchoolName))
+                student.SchoolName = NormalizeSchoolName(student.SchoolName);
+
+                if (schoolNameMap.TryGetValue(student.SchoolName, out var existingSchoolName) && existingSchoolName != student.SchoolName)
                 {
-                    student.SchoolName = normalizedSchoolName;
+                    var studentsToUpdate = await _context.Students
+                        .Where(s => s.SchoolName == existingSchoolName && !s.IsDeleted)
+                        .ToListAsync(ct);
+
+                    foreach (var s in studentsToUpdate)
+                    {
+                        s.SchoolName = student.SchoolName;
+                    }
+
+                    schoolNameMap[student.SchoolName] = student.SchoolName;
+                    schoolNameMap.Remove(existingSchoolName);
                 }
 
                 var startDate = GetRequiredDate(worksheet, headers, "InternshipStartDate", rowNumber);
