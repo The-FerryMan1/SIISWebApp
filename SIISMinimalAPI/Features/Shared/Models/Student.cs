@@ -93,14 +93,12 @@ namespace SIISMinimalAPI.Features.Shared.Models
         [StringLength(255)]
         public string? OtherInternshipNature { get; set; }
 
-        [Required]
-        public StrandEnum Strand { get; set; }
+        public StrandEnum? Strand { get; set; }
 
         [StringLength(255)]
         public string? OtherStrand { get; set; }
 
-        [Required]
-        public DegreeEnum Degree { get; set; }
+        public DegreeEnum? Degree { get; set; }
 
         [StringLength(255)]
         public string? OtherDegree { get; set; }

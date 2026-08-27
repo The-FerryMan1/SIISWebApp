@@ -109,7 +109,7 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
                         table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.Application?.Status.ToString() ?? "N/A").FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.GradeLevel.ToString().Humanize(LetterCasing.Title)).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text($"{s.Strand.ToString().Humanize(LetterCasing.Title)} / {s.Degree.ToString().Humanize(LetterCasing.Title)}").FontSize(9);
+                        table.Cell().Element(DataCell).AlignCenter().Text($"{s.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A"} / {s.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A"}").FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.TotalInternshipHours.ToString()).FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.StartDate.ToString("MM/dd/yyyy")).FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.EstimatedEndDate.ToString("MM/dd/yyyy")).FontSize(9);
@@ -168,8 +168,8 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
             Office = t.Placement?.Office?.OfficeName ?? "N/A",
             Status = t.Application?.Status.ToString() ?? "N/A",
             GradeLevel = t.GradeLevel.ToString().Humanize(LetterCasing.Title),
-            Strand = t.Strand.ToString().Humanize(LetterCasing.Title),
-            Degree = t.Degree.ToString().Humanize(LetterCasing.Title),
+            Strand = t.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A",
+            Degree = t.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A",
             TotalHours = t.TotalInternshipHours,
             StartDate = t.Placement?.StartDate.ToString("MM/dd/yyyy"),
             EndDate = t.Placement?.EstimatedEndDate.ToString("MM/dd/yyyy"),

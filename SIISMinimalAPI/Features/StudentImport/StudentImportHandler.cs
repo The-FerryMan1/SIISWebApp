@@ -13,8 +13,8 @@ namespace SIISMinimalAPI.Features.StudentImport;
 
 public class StudentImportHandler(AppDbContext context, ILogService logService) : IStudentImportService
 {
-    private readonly AppDbContext _context;
-    private readonly ILogService _logService;
+    private readonly AppDbContext _context = context;
+    private readonly ILogService _logService = logService;
     private static readonly Regex PhoneRegex = new(@"^(\+63|0)\d{10}$", RegexOptions.Compiled);
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -51,6 +51,36 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
         var importedEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
+
+        var schoolNameFrequency = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var rowNumber = 2; rowNumber <= lastRow; rowNumber++)
+        {
+            if (IsRowEmpty(worksheet.Row(rowNumber)))
+            {
+                continue;
+            }
+
+            var rawSchoolName = GetCellValue(worksheet, headers, "SchoolName", rowNumber);
+            if (!string.IsNullOrWhiteSpace(rawSchoolName))
+            {
+                var normalized = NormalizeSchoolName(rawSchoolName);
+                if (!schoolNameFrequency.ContainsKey(normalized))
+                {
+                    schoolNameFrequency[normalized] = 0;
+                }
+                schoolNameFrequency[normalized]++;
+            }
+        }
+
+        var schoolsToNormalize = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in schoolNameFrequency)
+        {
+            if (kvp.Value > 2)
+            {
+                schoolsToNormalize.Add(kvp.Key);
+            }
+        }
+
         for (var rowNumber = 2; rowNumber <= lastRow; rowNumber++)
         {
             var skipRow = false;
@@ -86,7 +116,17 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
 
                 importedEmails.Add(student.Email);
 
+                var normalizedSchoolName = NormalizeSchoolName(student.SchoolName);
+                if (schoolsToNormalize.Contains(normalizedSchoolName))
+                {
+                    student.SchoolName = normalizedSchoolName;
+                }
+
+                var startDate = GetRequiredDate(worksheet, headers, "InternshipStartDate", rowNumber);
+                var estimatedEndDate = GetRequiredDate(worksheet, headers, "EstimatedInternshipEndDate", rowNumber);
+
                 var officeDeployment = GetCellValue(worksheet, headers, "OfficeDeployment", rowNumber);
+                long? officeId = null;
                 if (!string.IsNullOrWhiteSpace(officeDeployment))
                 {
                     var officeName = ExtractOfficeName(officeDeployment);
@@ -95,18 +135,29 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
 
                     if (office != null)
                     {
-                        var startDate = GetRequiredDate(worksheet, headers, "InternshipStartDate", rowNumber);
-                        var estimatedEndDate = GetRequiredDate(worksheet, headers, "EstimatedInternshipEndDate", rowNumber);
-
-                        student.Placement = new Placement
-                        {
-                            OfficeId = office.Id,
-                            StartDate = startDate,
-                            EstimatedEndDate = estimatedEndDate,
-                            AccumulatedHours = 0
-                        };
+                        officeId = office.Id;
                     }
                 }
+
+                student.Placement = new Placement
+                {
+                    OfficeId = officeId,
+                    StartDate = startDate,
+                    EstimatedEndDate = estimatedEndDate,
+                    AccumulatedHours = 0,
+                    PlacementStatus = PlacementStatusEnum.Ongoing,
+                    Progresses = new List<SIISMinimalAPI.Features.Shared.Models.Progress>
+                    {
+                        new SIISMinimalAPI.Features.Shared.Models.Progress
+                        {
+                            TrainingHoursRendered = 0,
+                            TrainingHoursForWeek = 0,
+                            RemainingHours = student.TotalInternshipHours,
+                            CreatedAt = DateTime.Now,
+                            UpdatedAt = DateTime.Now
+                        }
+                    }
+                };
 
                 await _context.Students.AddAsync(student, ct);
                 result.ImportedCount++;
@@ -297,8 +348,23 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
             : ParseEnum<InternshipNatureEnum>(internshipNatureRaw, "InternshipNature", rowNumber);
         var strandRaw = GetCellValue(worksheet, headers, "Strand", rowNumber);
         var degreeRaw = GetCellValue(worksheet, headers, "Degree", rowNumber);
-        var strand = ParseEnumOrDefault(strandRaw, StrandEnum.STEM);
-        var degree = ParseEnumOrDefault(degreeRaw, DegreeEnum.BSIT);
+
+        string? strand = null;
+        string? degree = null;
+
+        if (gradeLevel == GradeLevelEnum.SeniorHighSchool)
+        {
+            strand = string.IsNullOrWhiteSpace(strandRaw) ? null : strandRaw;
+            degree = null;
+        }
+        else if (gradeLevel == GradeLevelEnum.College)
+        {
+            strand = null;
+            degree = string.IsNullOrWhiteSpace(degreeRaw) ? null : degreeRaw;
+        }
+
+        var parsedStrand = string.IsNullOrWhiteSpace(strand) ? null : (StrandEnum?)ParseEnumOrDefault(strand, StrandEnum.STEM);
+        var parsedDegree = string.IsNullOrWhiteSpace(degree) ? null : (DegreeEnum?)ParseEnumOrDefault(degree, DegreeEnum.BSIT);
         var totalInternshipHours = GetFlexibleInt(worksheet, headers, "TotalInternshipHours", rowNumber);
 
         ValidateEmail(email, rowNumber);
@@ -353,8 +419,8 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
             SchoolContactPersonEmail = schoolContactPersonEmail,
             SchoolContactPersonPhone = schoolContactPersonPhone,
             InternshipNature = internshipNature,
-            Strand = strand,
-            Degree = degree,
+            Strand = parsedStrand,
+            Degree = parsedDegree,
             TotalInternshipHours = totalInternshipHours,
             Application = new SIISMinimalAPI.Features.Shared.Models.Application
             {
@@ -714,5 +780,18 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
         }
 
         return false;
+    }
+
+    private static string NormalizeSchoolName(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = raw.Trim();
+        var words = trimmed.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+        var normalizedWords = words.Select(w => char.ToUpperInvariant(w[0]) + w.Substring(1).ToLowerInvariant());
+        return string.Join(" ", normalizedWords);
     }
 }

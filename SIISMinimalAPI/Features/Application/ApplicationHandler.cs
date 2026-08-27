@@ -7,6 +7,7 @@ using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.Application.AssignAndApprove;
 using SIISMinimalAPI.Features.Application.GetById;
 using SIISMinimalAPI.Features.Shared.Models;
+using Humanizer;
 
 namespace SIISMinimalAPI.Features.Application;
 
@@ -97,8 +98,9 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
 
         return [.. applications.Select(t => {
 
-           var degreeStrand = t.Degree.ToString()
-                ?? t.Strand.ToString();
+           var degreeStrand = t.Degree?.ToString().Humanize(LetterCasing.Title)
+                ?? t.Strand?.ToString().Humanize(LetterCasing.Title)
+                ?? "N/A";
 
              return new ApplicationDto
          {

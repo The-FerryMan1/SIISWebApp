@@ -12,7 +12,7 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public DateOnly StartDate { get; set; }
         [DataType(DataType.Date)]
         public DateOnly EstimatedEndDate { get; set; }
-        public long OfficeId { get; set; }
+        public long? OfficeId { get; set; }
         public Office? Office { get; set; }
         public long StudentId { get; set; }
         public Student? Student { get; set; }

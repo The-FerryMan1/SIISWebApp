@@ -22,7 +22,7 @@ public class PlacementInfo
     public DateOnly StartDate { get; set; }
     public DateOnly EstimatedEndDate { get; set; }
     public int AccumulatedHours { get; set; }
-    public long OfficeId { get; set; }
+    public long? OfficeId { get; set; }
     public string OfficeName { get; set; } = string.Empty;
     public long StudentId { get; set; }
 }
@@ -46,8 +46,8 @@ public class StudentInfo
     public string SchoolContactPersonEmail { get; set; } = string.Empty;
     public string SchoolContactPersonPhone { get; set; } = string.Empty;
     public InternshipNatureEnum InternshipNature { get; set; }
-    public StrandEnum Strand { get; set; }
-    public DegreeEnum Degree { get; set; }
+    public StrandEnum? Strand { get; set; }
+    public DegreeEnum? Degree { get; set; }
     public int TotalInternshipHours { get; set; }
     public bool IsDeleted { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.Now;

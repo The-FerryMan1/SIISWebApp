@@ -89,8 +89,8 @@ columns.RelativeColumn(1.5f);   // Started Date
                     var status = ojt.Application?.Status;
                     var totalHours = ojt.TotalInternshipHours;
                     var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
-                    var degree = ojt.Degree.ToString().Humanize(LetterCasing.Title);
-                    var strand =  ojt.Strand.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var degree = ojt.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var strand =  ojt.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
                     var startedDate = ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-";
                     var estimatedDate = ojt.Placement?.EstimatedEndDate.ToString("MM/dd/yyyy") ?? "-";
                     var accumulatedHours = ojt.Placement?.AccumulatedHours.ToString() ?? "-";
@@ -223,8 +223,8 @@ columns.RelativeColumn(1.5f);   // Started Date
                     var totalHours = ojt.TotalInternshipHours;
                     var accumulatedHours = ojt.Placement?.AccumulatedHours.ToString() ?? "-";
                     var gradeLevel = ojt.GradeLevel.ToString().Humanize(LetterCasing.Title);
-                    var degree = ojt.Degree.ToString().Humanize(LetterCasing.Title);
-                    var strand =  ojt.Strand.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var degree = ojt.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
+                    var strand =  ojt.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A";
                     var startedDate = ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-";
                     var estimatedDate = ojt.Placement?.EstimatedEndDate.ToString("MM/dd/yyyy") ?? "-";
 
