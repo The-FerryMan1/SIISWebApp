@@ -11,13 +11,17 @@ const report = useReportStore()
 const router = useRouter()
 const toast = useToast()
 
-const reportType = ref<'masterlist' | 'expiring' | 'finished'>('masterlist')
+const reportType = ref<'masterlist' | 'ongoing' | 'finished'>('masterlist')
 const loading = ref(false)
+const school = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+const schools = ref<string[]>([])
 
 const reportTypeOptions: SelectItem[] = [
   { label: 'Masterlist', value: 'masterlist' },
-  { label: 'Expiring Internships', value: 'expiring' },
-  { label: 'Finished Internships', value: 'finished' },
+  { label: 'Ongoing', value: 'ongoing' },
+  { label: 'Finished', value: 'finished' },
 ]
 
 const myOfficeId = ref<number | null>(null)
@@ -33,30 +37,39 @@ async function loadMyOffice() {
 
 onMounted(async () => {
   await loadMyOffice()
+  try {
+    const data = await report.getOfficeSchools()
+    if (Array.isArray(data)) {
+      schools.value = data
+    }
+  } catch {
+    schools.value = []
+  }
 })
 
 async function generateReport() {
-  if (!myOfficeId.value) {
-    toast.add({ title: 'No office assigned', color: 'error' })
-    return
-  }
-
   loading.value = true
   try {
+    const filters = {
+      school: school.value || undefined,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
+    }
+
     let blob: Blob | undefined
     let filename = 'report'
 
     switch (reportType.value) {
       case 'masterlist':
-        blob = await report.officeMasterlistPdf(myOfficeId.value)
+        blob = await report.officeMasterlistPdf(filters)
         filename = 'masterlist'
         break
-      case 'expiring':
-        blob = await report.officeExpiringPdf(myOfficeId.value)
-        filename = 'expiring'
+      case 'ongoing':
+        blob = await report.officeOngoingPdf(filters)
+        filename = 'ongoing'
         break
       case 'finished':
-        blob = await report.officeFinishedPdf(myOfficeId.value)
+        blob = await report.officeFinishedPdf(filters)
         filename = 'finished'
         break
     }
@@ -99,6 +112,31 @@ function logout() {
             placeholder="Select report type"
             :allow-clear="false"
             class="w-full md:w-80"
+          />
+        </UFormField>
+
+        <UFormField label="School">
+          <USelect
+            v-model="school"
+            :items="schools"
+            placeholder="Filter by school"
+            class="w-full md:w-64"
+          />
+        </UFormField>
+
+        <UFormField label="Date From">
+          <UInput
+            v-model="dateFrom"
+            type="date"
+            class="w-full md:w-48"
+          />
+        </UFormField>
+
+        <UFormField label="Date To">
+          <UInput
+            v-model="dateTo"
+            type="date"
+            class="w-full md:w-48"
           />
         </UFormField>
 

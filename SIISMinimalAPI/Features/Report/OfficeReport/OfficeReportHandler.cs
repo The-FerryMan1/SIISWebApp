@@ -8,6 +8,7 @@ using QuestPDF.Infrastructure;
 using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
+using SIISMinimalAPI.Features.Shared.Utilities;
 
 namespace SIISMinimalAPI.Features.Report.OfficeReport;
 
@@ -15,22 +16,41 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
 {
     private readonly AppDbContext _context = context;
 
-    private IQueryable<Student> BaseQuery(long officeId)
+    private async Task<Office> GetOfficeAsync(string? officeName, CancellationToken ct)
     {
-        return _context.Students
-            .Include(t => t.Application)
-            .Include(t => t.Placement).ThenInclude(p => p.Office)
-            .Where(t => t.Placement != null && t.Placement!.OfficeId == officeId && !t.IsDeleted)
-            .AsNoTracking()
-            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
-    }
+        if (string.IsNullOrWhiteSpace(officeName))
+        {
+            throw new ArgumentException("Office is required", nameof(officeName));
+        }
 
-    public async Task<byte[]> GenerateMasterlistPdf(long officeId, CancellationToken ct)
-    {
-        var office = await _context.Offices.FirstOrDefaultAsync(o => o.Id == officeId && !o.IsDeleted, ct)
+        var office = await _context.Offices
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.OfficeName == officeName && !o.IsDeleted, ct)
+            ?? await _context.Offices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.OfficeName.ToLower() == officeName.ToLower() && !o.IsDeleted, ct)
             ?? throw new KeyNotFoundException("Office not found");
 
-        var students = await BaseQuery(officeId).ToListAsync(ct);
+        return office;
+    }
+
+    private IQueryable<Student> BuildQuery(CommonFilterOptions filters)
+    {
+        IQueryable<Student> query = _context.Students
+            .Include(t => t.Application)
+            .Include(t => t.Placement).ThenInclude(p => p.Office)
+            .Where(t => t.Placement != null && !t.IsDeleted)
+            .AsNoTracking()
+            .AsSplitQuery();
+
+        query = query.ApplyFilters(filters);
+        return query.OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
+    }
+
+    public async Task<byte[]> GenerateMasterlistPdf(CommonFilterOptions filters, CancellationToken ct)
+    {
+        var office = await GetOfficeAsync(filters.Office, ct);
+        var students = await BuildQuery(filters).ToListAsync(ct);
 
         QuestPDF.Settings.License = LicenseType.Community;
         var document = Document.Create(doc =>
@@ -57,23 +77,15 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                     table.ColumnsDefinition(columns =>
                     {
                         columns.ConstantColumn(35);
-                        columns.RelativeColumn(2.5f);
-                        columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1.2f);
-                        columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1.2f);
-                        columns.RelativeColumn(1.5f);
+                        columns.RelativeColumn(3f);
+                        columns.RelativeColumn(2f);
                     });
 
                     table.Header(header =>
                     {
                         header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
-                        header.Cell().Element(HeaderCell).Text("Student Name").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Status").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Grade Level").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Degree / Strand").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("End Date").Bold();
+                        header.Cell().Element(HeaderCell).Text("Name").Bold();
+                        header.Cell().Element(HeaderCell).Text("Placement Status").Bold();
 
                         static IContainer HeaderCell(IContainer container) => container
                             .DefaultTextStyle(x => x.FontSize(10))
@@ -87,11 +99,7 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                     {
                         table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                         table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Application?.Status.ToString() ?? "N/A").FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.GradeLevel.ToString().Humanize(LetterCasing.Title)).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text($"{s.Strand.ToString().Humanize(LetterCasing.Title)} / {s.Degree.ToString().Humanize(LetterCasing.Title)}").FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.StartDate.ToString("MM/dd/yyyy")).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.EstimatedEndDate.ToString("MM/dd/yyyy")).FontSize(9);
+                        table.Cell().Element(DataCell).Text(s.Placement?.PlacementStatus.ToString().Humanize(LetterCasing.Title) ?? "N/A").FontSize(9);
                     }
 
                     static IContainer DataCell(IContainer container) => container
@@ -113,14 +121,11 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
         return document.GeneratePdf();
     }
 
-    public async Task<byte[]> GenerateExpiringPdf(long officeId, CancellationToken ct)
+    public async Task<byte[]> GenerateOngoingPdf(CommonFilterOptions filters, CancellationToken ct)
     {
-        var office = await _context.Offices.FirstOrDefaultAsync(o => o.Id == officeId && !o.IsDeleted, ct)
-            ?? throw new KeyNotFoundException("Office not found");
-
-        var threshold = DateOnly.FromDateTime(DateTime.Now.AddDays(30));
-        var students = await BaseQuery(officeId)
-            .Where(t => t.Placement!.EstimatedEndDate <= threshold)
+        var office = await GetOfficeAsync(filters.Office, ct);
+        var students = await BuildQuery(filters)
+            .Where(t => t.Placement!.PlacementStatus == PlacementStatusEnum.Ongoing)
             .ToListAsync(ct);
 
         QuestPDF.Settings.License = LicenseType.Community;
@@ -133,13 +138,13 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
 
                 page.Header().PaddingBottom(15).Column(col =>
                 {
-                    col.Item().Text($"Expiring Internships - {office.OfficeName}")
+                    col.Item().Text($"Ongoing Internships - {office.OfficeName}")
                         .FontSize(20).Bold().AlignCenter();
 
                     col.Item().PaddingTop(5).Text($"Generated: {DateTime.Now:MMMM dd, yyyy}")
                         .FontSize(10).FontColor(Colors.Grey.Darken2).AlignCenter();
 
-                    col.Item().PaddingTop(3).Text($"Expiring within 30 days: {students.Count}")
+                    col.Item().PaddingTop(3).Text($"Ongoing Students: {students.Count}")
                         .FontSize(10).FontColor(Colors.Grey.Darken2).AlignCenter();
                 });
 
@@ -150,21 +155,17 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                         columns.ConstantColumn(35);
                         columns.RelativeColumn(2.5f);
                         columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1.2f);
                         columns.RelativeColumn(1.5f);
                         columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1.2f);
                     });
 
                     table.Header(header =>
                     {
                         header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
-                        header.Cell().Element(HeaderCell).Text("Student Name").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Status").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("End Date").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Total Hours").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Accumulated").Bold();
+                        header.Cell().Element(HeaderCell).Text("Name").Bold();
+                        header.Cell().Element(HeaderCell).Text("School").Bold();
+                        header.Cell().Element(HeaderCell).AlignCenter().Text("Total Internship Hours").Bold();
+                        header.Cell().Element(HeaderCell).AlignCenter().Text("Accumulated Hours").Bold();
 
                         static IContainer HeaderCell(IContainer container) => container
                             .DefaultTextStyle(x => x.FontSize(10))
@@ -178,9 +179,7 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                     {
                         table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                         table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Application?.Status.ToString() ?? "N/A").FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.StartDate.ToString("MM/dd/yyyy")).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.EstimatedEndDate.ToString("MM/dd/yyyy")).FontSize(9);
+                        table.Cell().Element(DataCell).Text(s.SchoolName).FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.TotalInternshipHours.ToString()).FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.AccumulatedHours.ToString()).FontSize(9);
                     }
@@ -204,13 +203,12 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
         return document.GeneratePdf();
     }
 
-    public async Task<byte[]> GenerateFinishedPdf(long officeId, CancellationToken ct)
+    public async Task<byte[]> GenerateFinishedPdf(CommonFilterOptions filters, CancellationToken ct)
     {
-        var office = await _context.Offices.FirstOrDefaultAsync(o => o.Id == officeId && !o.IsDeleted, ct)
-            ?? throw new KeyNotFoundException("Office not found");
-
-        var students = await BaseQuery(officeId)
-            .Where(t => t.Placement!.AccumulatedHours >= t.TotalInternshipHours)
+        var office = await GetOfficeAsync(filters.Office, ct);
+        var students = await BuildQuery(filters)
+            .Where(t => t.Placement!.PlacementStatus == PlacementStatusEnum.Finished
+                && t.Placement!.AccumulatedHours >= t.TotalInternshipHours)
             .ToListAsync(ct);
 
         QuestPDF.Settings.License = LicenseType.Community;
@@ -238,23 +236,15 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                     table.ColumnsDefinition(columns =>
                     {
                         columns.ConstantColumn(35);
-                        columns.RelativeColumn(2.5f);
-                        columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1.2f);
-                        columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1.2f);
-                        columns.RelativeColumn(1.2f);
+                        columns.RelativeColumn(3f);
+                        columns.RelativeColumn(3f);
                     });
 
                     table.Header(header =>
                     {
                         header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
-                        header.Cell().Element(HeaderCell).Text("Student Name").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Status").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Total Hours").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Accumulated").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").Bold();
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("End Date").Bold();
+                        header.Cell().Element(HeaderCell).Text("Name").Bold();
+                        header.Cell().Element(HeaderCell).Text("School").Bold();
 
                         static IContainer HeaderCell(IContainer container) => container
                             .DefaultTextStyle(x => x.FontSize(10))
@@ -268,11 +258,7 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                     {
                         table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                         table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Application?.Status.ToString() ?? "N/A").FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.TotalInternshipHours.ToString()).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.AccumulatedHours.ToString()).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.StartDate.ToString("MM/dd/yyyy")).FontSize(9);
-                        table.Cell().Element(DataCell).AlignCenter().Text(s.Placement!.EstimatedEndDate.ToString("MM/dd/yyyy")).FontSize(9);
+                        table.Cell().Element(DataCell).Text(s.SchoolName).FontSize(9);
                     }
 
                     static IContainer DataCell(IContainer container) => container

@@ -1,8 +1,10 @@
 using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Shared.Utilities;
 
 namespace SIISMinimalAPI.Features.Report.OfficeReport;
 
@@ -14,6 +16,18 @@ public static class OfficeReportEndpoint
             .WithTags("OfficeReport")
             .RequireRateLimiting("standard")
             .RequireCors("AllowFrontend");
+
+        group.MapGet("/schools", [Authorize] async Task<IResult>(AppDbContext context, CancellationToken ct) =>
+        {
+            var schools = await context.Students
+                .Where(t => !t.IsDeleted && !string.IsNullOrEmpty(t.SchoolName))
+                .Select(t => t.SchoolName!)
+                .Distinct()
+                .OrderBy(t => t)
+                .ToListAsync(ct);
+
+            return TypedResults.Ok(schools);
+        }).RequireAuthorization();
 
         group.MapGet("/my-office", [Authorize] async Task<IResult>(ClaimsPrincipal user, AppDbContext context, CancellationToken ct) =>
         {
@@ -35,12 +49,48 @@ public static class OfficeReportEndpoint
             return TypedResults.Ok(new { id = office.Id, officeName = office.OfficeName });
         });
 
-        group.MapGet("/masterlist", [Authorize] async Task<IResult>(long officeId, CancellationToken ct, IOfficeReportService service) =>
+        group.MapGet("/masterlist", [Authorize] async Task<IResult>(
+            ClaimsPrincipal user,
+            [FromQuery] string? name,
+            [FromQuery] string? school,
+            [FromQuery] DateTime? dateFrom,
+            [FromQuery] DateTime? dateTo,
+            [FromQuery] string? status,
+            [FromQuery] string? placementStatus,
+            AppDbContext context,
+            CancellationToken ct,
+            IOfficeReportService service) =>
         {
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return TypedResults.Unauthorized();
+            }
+
+            var office = await context.Offices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.UserId == userId && !o.IsDeleted, ct);
+
+            if (office is null)
+            {
+                return TypedResults.NotFound("No office assigned to this account");
+            }
+
+            var filters = new CommonFilterOptions
+            {
+                Office = office.OfficeName,
+                Name = name,
+                School = school,
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+                Status = status,
+                PlacementStatus = placementStatus
+            };
+
             try
             {
-                var pdf = await service.GenerateMasterlistPdf(officeId, ct);
-                return TypedResults.File(pdf, "application/pdf", $"masterlist_{officeId}_{DateTime.Now:yyyyMMdd}.pdf");
+                var pdf = await service.GenerateMasterlistPdf(filters, ct);
+                return TypedResults.File(pdf, "application/pdf", $"masterlist_{office.Id}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
             {
@@ -48,12 +98,48 @@ public static class OfficeReportEndpoint
             }
         }).RequireAuthorization();
 
-        group.MapGet("/expiring", [Authorize] async Task<IResult>(long officeId, CancellationToken ct, IOfficeReportService service) =>
+        group.MapGet("/ongoing", [Authorize] async Task<IResult>(
+            ClaimsPrincipal user,
+            [FromQuery] string? name,
+            [FromQuery] string? school,
+            [FromQuery] DateTime? dateFrom,
+            [FromQuery] DateTime? dateTo,
+            [FromQuery] string? status,
+            [FromQuery] string? placementStatus,
+            AppDbContext context,
+            CancellationToken ct,
+            IOfficeReportService service) =>
         {
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return TypedResults.Unauthorized();
+            }
+
+            var office = await context.Offices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.UserId == userId && !o.IsDeleted, ct);
+
+            if (office is null)
+            {
+                return TypedResults.NotFound("No office assigned to this account");
+            }
+
+            var filters = new CommonFilterOptions
+            {
+                Office = office.OfficeName,
+                Name = name,
+                School = school,
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+                Status = status,
+                PlacementStatus = placementStatus
+            };
+
             try
             {
-                var pdf = await service.GenerateExpiringPdf(officeId, ct);
-                return TypedResults.File(pdf, "application/pdf", $"expiring_{officeId}_{DateTime.Now:yyyyMMdd}.pdf");
+                var pdf = await service.GenerateOngoingPdf(filters, ct);
+                return TypedResults.File(pdf, "application/pdf", $"ongoing_{office.Id}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
             {
@@ -61,12 +147,48 @@ public static class OfficeReportEndpoint
             }
         }).RequireAuthorization();
 
-        group.MapGet("/finished", [Authorize] async Task<IResult>(long officeId, CancellationToken ct, IOfficeReportService service) =>
+        group.MapGet("/finished", [Authorize] async Task<IResult>(
+            ClaimsPrincipal user,
+            [FromQuery] string? name,
+            [FromQuery] string? school,
+            [FromQuery] DateTime? dateFrom,
+            [FromQuery] DateTime? dateTo,
+            [FromQuery] string? status,
+            [FromQuery] string? placementStatus,
+            AppDbContext context,
+            CancellationToken ct,
+            IOfficeReportService service) =>
         {
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return TypedResults.Unauthorized();
+            }
+
+            var office = await context.Offices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.UserId == userId && !o.IsDeleted, ct);
+
+            if (office is null)
+            {
+                return TypedResults.NotFound("No office assigned to this account");
+            }
+
+            var filters = new CommonFilterOptions
+            {
+                Office = office.OfficeName,
+                Name = name,
+                School = school,
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+                Status = status,
+                PlacementStatus = placementStatus
+            };
+
             try
             {
-                var pdf = await service.GenerateFinishedPdf(officeId, ct);
-                return TypedResults.File(pdf, "application/pdf", $"finished_{officeId}_{DateTime.Now:yyyyMMdd}.pdf");
+                var pdf = await service.GenerateFinishedPdf(filters, ct);
+                return TypedResults.File(pdf, "application/pdf", $"finished_{office.Id}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
             {

@@ -1,77 +1,56 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useReportStore } from '../../stores/report.ts'
-import { OfficeOptions, OfficeNameEnum } from '../../shared/officeEnum.ts'
+import { OfficeOptions } from '../../shared/officeEnum.ts'
 import type { SelectItem } from '@nuxt/ui'
 
 const report = useReportStore()
 const toast = useToast()
 
 type ReportType = 
-    | 'studentMasterlist'
-    | 'pendingApplications'
-    | 'schoolSummary'
-    | 'placementUtilization'
-    | 'hoursProgress'
-    | 'completionSummary'
-    | 'rejectedApplications'
-    | 'importAudit'
-    | 'officePerformance'
-    | 'ojtList'
-    | 'ojtPerOffice'
-    | 'expiringInternships'
+    | 'masterlist'
+    | 'ongoing'
+    | 'finished'
+    | 'rejected'
+    | 'approved'
+    | 'pending'
 
-const reportType = ref<ReportType>('studentMasterlist')
+const reportType = ref<ReportType>('masterlist')
 const selectedOffice = ref<string>('')
-const selectedStatus = ref<string>('')
 const dateFrom = ref<string>('')
 const dateTo = ref<string>('')
-const days = ref<number>(30)
-
+const school = ref<string>('')
+const schools = ref<string[]>([])
 const loading = ref(false)
 
-const statusOptions: SelectItem[] = [
-    { label: 'All', value: '' },
-    { label: 'Pending', value: '0' },
-    { label: 'Approved', value: '1' },
-    { label: 'Rejected', value: '2' },
-]
-
 const reportTypeOptions: SelectItem[] = [
-    { label: 'Student Masterlist per Office', value: 'studentMasterlist' },
-    { label: 'Pending Applications Report', value: 'pendingApplications' },
-    { label: 'Application Summary by School', value: 'schoolSummary' },
-    { label: 'Placement Utilization Report', value: 'placementUtilization' },
-    { label: 'Hours Progress Report', value: 'hoursProgress' },
-    { label: 'Completion Summary Report', value: 'completionSummary' },
-    { label: 'Rejected Applications Report', value: 'rejectedApplications' },
-    { label: 'Import Audit Log', value: 'importAudit' },
-    { label: 'Office Performance Report', value: 'officePerformance' },
-    { label: 'OJT List (All Offices)', value: 'ojtList' },
-    { label: 'OJT Per Office', value: 'ojtPerOffice' },
-    { label: 'Expiring Internships', value: 'expiringInternships' },
+    { label: 'Masterlist', value: 'masterlist' },
+    { label: 'Ongoing List', value: 'ongoing' },
+    { label: 'Finished List', value: 'finished' },
+    { label: 'Rejected Applications', value: 'rejected' },
+    { label: 'Approved Applications', value: 'approved' },
+    { label: 'Pending Applications', value: 'pending' },
 ]
 
-const isStudentMasterlist = computed(() => reportType.value === 'studentMasterlist')
-const isOjtList = computed(() => reportType.value === 'ojtList')
-const isOjtPerOffice = computed(() => reportType.value === 'ojtPerOffice')
-const isExpiring = computed(() => reportType.value === 'expiringInternships')
-const needsOffice = computed(() => isStudentMasterlist.value || isOjtPerOffice.value || isExpiring.value)
-
-const officeNameOptions = computed<SelectItem[]>(() => {
-  const keys = Object.keys(OfficeNameEnum).filter(k => isNaN(Number(k)))
-  return keys.map(k => {
-    const enumVal = OfficeNameEnum[k as keyof typeof OfficeNameEnum] as number
-    const found = OfficeOptions.find(o => (o as any).value === enumVal)
-    const label = (found as any)?.label || k
-    return { label, value: label }
-  })
-})
+const isApplicationReport = computed(() => reportType.value === 'rejected' || reportType.value === 'approved' || reportType.value === 'pending')
+const isInternReport = computed(() => reportType.value === 'masterlist' || reportType.value === 'ongoing' || reportType.value === 'finished')
+const needsOffice = computed(() => reportType.value === 'masterlist' || reportType.value === 'approved')
+const needsDate = computed(() => true)
+const needsStatus = computed(() => false)
 
 const officeSelectItems = computed(() => {
-    if (isOjtList.value) return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
-    if (isStudentMasterlist.value) return officeNameOptions.value
-    return OfficeOptions
+    return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
+})
+
+onMounted(async () => {
+    try {
+      const data = await report.getSchools()
+      if (Array.isArray(data)) {
+        schools.value = data
+      }
+    } catch {
+      schools.value = []
+    }
 })
 
 function openPdf(blob: Blob | undefined) {
@@ -95,89 +74,47 @@ function downloadBlob(blob: Blob | undefined, filename: string) {
     URL.revokeObjectURL(url)
 }
 
-async function generatePdf() {
-    if (isStudentMasterlist.value && !selectedOffice.value) {
-        toast.add({ title: 'Please select an office for masterlist report', color: 'warning' })
-        return
+function getFilters() {
+    return {
+        name: '',
+        school: school.value || undefined,
+        dateFrom: dateFrom.value || undefined,
+        dateTo: dateTo.value || undefined,
+        office: selectedOffice.value || undefined,
     }
+}
 
+async function generatePdf() {
     loading.value = true
     try {
         let blob: Blob | undefined
         let filename = 'report'
+        const filters = getFilters()
 
         switch (reportType.value) {
-            case 'studentMasterlist':
-                blob = await report.studentMasterlistPdf(selectedOffice.value)
-                filename = 'student-masterlist'
+            case 'masterlist':
+                blob = await report.adminMasterlistPdf(filters)
+                filename = 'masterlist'
                 break
-            case 'pendingApplications':
-                blob = await report.pendingApplicationsPdf()
-                filename = 'pending-applications'
+            case 'ongoing':
+                blob = await report.adminOngoingPdf(filters)
+                filename = 'ongoing'
                 break
-            case 'schoolSummary':
-                blob = await report.schoolSummaryPdf()
-                filename = 'school-summary'
+            case 'finished':
+                blob = await report.adminFinishedPdf(filters)
+                filename = 'finished'
                 break
-            case 'placementUtilization':
-                blob = await report.placementUtilizationPdf()
-                filename = 'placement-utilization'
-                break
-            case 'hoursProgress':
-                blob = await report.hoursProgressPdf()
-                filename = 'hours-progress'
-                break
-            case 'completionSummary':
-                blob = await report.completionSummaryPdf()
-                filename = 'completion-summary'
-                break
-            case 'rejectedApplications':
-                blob = await report.rejectedApplicationsPdf()
+            case 'rejected':
+                blob = await report.adminRejectedPdf(filters)
                 filename = 'rejected-applications'
                 break
-            case 'ojtList': {
-                const hasFilters = selectedOffice.value || selectedStatus.value || dateFrom.value || dateTo.value
-                if (hasFilters) {
-                    blob = await report.pdfReportFiltered('/report/ojtList', {
-                        status: selectedStatus.value ? parseInt(selectedStatus.value) : undefined,
-                        office: selectedOffice.value || undefined,
-                        dateFrom: dateFrom.value || undefined,
-                        dateTo: dateTo.value || undefined,
-                    })
-                } else {
-                    blob = await report.pdfReport('/report/ojtList', selectedStatus.value ? parseInt(selectedStatus.value) : undefined)
-                }
-                filename = 'ojt-list'
+            case 'approved':
+                blob = await report.adminApprovedPdf(filters)
+                filename = 'approved-applications'
                 break
-            }
-            case 'ojtPerOffice': {
-                if (!selectedOffice.value) {
-                    toast.add({ title: 'Please select an office', color: 'warning' })
-                    return
-                }
-                const hasFilters = selectedStatus.value || dateFrom.value || dateTo.value
-                if (hasFilters) {
-                    blob = await report.pdfReportPerOfficeFiltered('/report/ojtPerOffice', {
-                        office: parseInt(selectedOffice.value),
-                        status: selectedStatus.value ? parseInt(selectedStatus.value) : undefined,
-                        dateFrom: dateFrom.value || undefined,
-                        dateTo: dateTo.value || undefined,
-                    })
-                } else {
-                    blob = await report.pdfReportPerOffice('/report/ojtPerOffice', parseInt(selectedOffice.value))
-                }
-                filename = 'ojt-per-office'
-                break
-            }
-            case 'expiringInternships': {
-                const officeId = selectedOffice.value ? parseInt(selectedOffice.value) : undefined
-                blob = await report.adminExpiringPdf(officeId, days.value)
-                filename = `expiring-internships-${days.value}days`
-                break
-            }
-            case 'officePerformance':
-                blob = await report.officePerformancePdf()
-                filename = 'office-performance'
+            case 'pending':
+                blob = await report.adminPendingPdf(filters)
+                filename = 'pending-applications'
                 break
         }
 
@@ -190,78 +127,36 @@ async function generatePdf() {
 }
 
 async function generateCsv() {
-    if (isStudentMasterlist.value && !selectedOffice.value) {
-        toast.add({ title: 'Please select an office for masterlist report', color: 'warning' })
-        return
-    }
-
     loading.value = true
     try {
         let blob: Blob | undefined
         let filename = 'report'
+        const filters = getFilters()
 
         switch (reportType.value) {
-            case 'studentMasterlist':
-                blob = await report.studentMasterlistCsv(selectedOffice.value)
-                filename = 'student-masterlist.csv'
+            case 'masterlist':
+                blob = await report.adminMasterlistCsv(filters)
+                filename = 'masterlist.csv'
                 break
-            case 'pendingApplications':
-                blob = await report.pendingApplicationsCsv()
-                filename = 'pending-applications.csv'
+            case 'ongoing':
+                blob = await report.adminOngoingCsv(filters)
+                filename = 'ongoing.csv'
                 break
-            case 'schoolSummary':
-                blob = await report.schoolSummaryCsv()
-                filename = 'school-summary.csv'
+            case 'finished':
+                blob = await report.adminFinishedCsv(filters)
+                filename = 'finished.csv'
                 break
-            case 'placementUtilization':
-                blob = await report.placementUtilizationCsv()
-                filename = 'placement-utilization.csv'
-                break
-            case 'hoursProgress':
-                blob = await report.hoursProgressCsv()
-                filename = 'hours-progress.csv'
-                break
-            case 'completionSummary':
-                blob = await report.completionSummaryCsv()
-                filename = 'completion-summary.csv'
-                break
-            case 'rejectedApplications':
-                blob = await report.rejectedApplicationsCsv()
+            case 'rejected':
+                blob = await report.adminRejectedCsv(filters)
                 filename = 'rejected-applications.csv'
                 break
-            case 'importAudit':
-                blob = await report.importAuditCsv()
-                filename = 'import-audit.csv'
+            case 'approved':
+                blob = await report.adminApprovedCsv(filters)
+                filename = 'approved-applications.csv'
                 break
-            case 'ojtList': {
-                const hasFilters = selectedOffice.value || selectedStatus.value || dateFrom.value || dateTo.value
-                if (hasFilters) {
-                    blob = await report.csvReportFiltered('/report/ojtList/csv/filtered', {
-                        office: selectedOffice.value || undefined,
-                        dateFrom: dateFrom.value || undefined,
-                        dateTo: dateTo.value || undefined,
-                    })
-                } else {
-                    blob = await report.csvExport('/report/ojtList/csv', selectedStatus.value ? parseInt(selectedStatus.value) : undefined)
-                }
-                filename = 'ojt-list.csv'
-                break
-            }
-            case 'ojtPerOffice': {
-                if (!selectedOffice.value) {
-                    toast.add({ title: 'Please select an office', color: 'warning' })
-                    return
-                }
-                blob = await report.csvExportPerOffice('/report/ojtPerOffice/csv', parseInt(selectedOffice.value))
-                filename = 'ojt-per-office.csv'
-                break
-            }
-            case 'expiringInternships':
-                toast.add({ title: 'CSV export not available for Expiring Internships', color: 'warning' })
-                return
-            case 'officePerformance':
-                blob = await report.officePerformanceCsv()
-                filename = 'office-performance.csv'
+            case 'pending':
+                blob = await report.adminPendingCsv(filters)
+                filename = 'pending-applications.csv'
                 break
         }
 
@@ -283,19 +178,15 @@ async function generateCsv() {
         </div>
 
         <UCard>
-            <template #header>
-                <div class="flex flex-col gap-4">
-                    <UFormField label="Report Type">
-                        <USelect
-                            v-model="reportType"
-                            :items="reportTypeOptions"
-                            class="w-full md:w-96"
-                        />
-                    </UFormField>
-                </div>
-            </template>
-
             <div class="flex flex-wrap gap-4 items-end">
+                <UFormField label="Report Type">
+                    <USelect
+                        v-model="reportType"
+                        :items="reportTypeOptions"
+                        class="w-full md:w-96"
+                    />
+                </UFormField>
+
                 <UFormField v-if="needsOffice" label="Office" required>
                     <USelect
                         v-model="selectedOffice"
@@ -305,25 +196,16 @@ async function generateCsv() {
                     />
                 </UFormField>
 
-                <UFormField v-if="isExpiring" label="Days Threshold">
-                    <UInput
-                        type="number"
-                        v-model="days"
-                        :min="1"
-                        class="w-full md:w-32"
-                    />
-                </UFormField>
-
-                <UFormField v-if="isOjtList || isOjtPerOffice" label="Status">
+                <UFormField label="School">
                     <USelect
-                        v-model="selectedStatus"
-                        :items="statusOptions"
-                        placeholder="All statuses"
-                        class="w-full md:w-48"
+                        v-model="school"
+                        :items="schools"
+                        placeholder="Filter by school"
+                        class="w-full md:w-64"
                     />
                 </UFormField>
 
-                <UFormField v-if="isOjtList || isOjtPerOffice" label="Date From">
+                <UFormField label="Date From">
                     <UInput
                         type="date"
                         v-model="dateFrom"
@@ -331,7 +213,7 @@ async function generateCsv() {
                     />
                 </UFormField>
 
-                <UFormField v-if="isOjtList || isOjtPerOffice" label="Date To">
+                <UFormField label="Date To">
                     <UInput
                         type="date"
                         v-model="dateTo"
@@ -349,7 +231,6 @@ async function generateCsv() {
                 />
 
                 <UButton
-                    v-if="reportType !== 'expiringInternships'"
                     icon="i-lucide-file-spreadsheet"
                     label="Download CSV"
                     color="secondary"

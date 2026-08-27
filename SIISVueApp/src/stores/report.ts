@@ -136,54 +136,225 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
      }
 
-     const officeMasterlistPdf = async (officeId: number) => {
-         try {
-             const { data } = await useAxios.get('/report/office/masterlist', {
-                 params: { officeId },
-                 responseType: 'blob',
-             });
-             return data
-         } catch (error) {
-             const err = error as AxiosError
-             console.log(err)
-         }
-     }
-
-     const officeExpiringPdf = async (officeId: number) => {
-         try {
-             const { data } = await useAxios.get('/report/office/expiring', {
-                 params: { officeId },
-                 responseType: 'blob',
-             });
-             return data
-         } catch (error) {
-             const err = error as AxiosError
-             console.log(err)
-         }
-     }
-
-     const officeFinishedPdf = async (officeId: number) => {
-         try {
-             const { data } = await useAxios.get('/report/office/finished', {
-                 params: { officeId },
-                 responseType: 'blob',
-             });
-             return data
-         } catch (error) {
-             const err = error as AxiosError
-             console.log(err)
-         }
-     }
-
-      const adminExpiringPdf = async (officeId?: number, days: number = 30) => {
+      const officeMasterlistPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string } = {}) => {
           try {
-              const { data } = await useAxios.get('/report/admin/expiring', {
-                  params: {
-                      officeId: officeId,
-                      days: days,
-                  },
+              const { data } = await useAxios.get('/report/office/masterlist', {
+                  params: filters,
+                  responseType: 'blob',
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const officeOngoingPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/office/ongoing', {
+                  params: filters,
+                  responseType: 'blob',
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const officeFinishedPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/office/finished', {
+                  params: filters,
+                  responseType: 'blob',
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminExpiringPdf = async (officeId?: number, days: number = 30, school?: string, dateFrom?: string, dateTo?: string) => {
+           try {
+               const { data } = await useAxios.get('/report/admin/expiring', {
+                   params: {
+                       officeId: officeId,
+                       days: days,
+                       school: school,
+                       dateFrom: dateFrom,
+                       dateTo: dateTo,
+                   },
+                   responseType: 'blob',
+                   headers: { 'Content-Type': 'application/pdf' },
+               });
+               return data
+           } catch (error) {
+               const err = error as AxiosError
+               console.log(err)
+           }
+       }
+
+      const adminMasterlistPdf = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string; placementStatus?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/masterlist/pdf', {
+                  params: filters,
                   responseType: 'blob',
                   headers: { 'Content-Type': 'application/pdf' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminMasterlistCsv = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string; placementStatus?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/masterlist/csv', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/csv' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminOngoingPdf = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/ongoing/pdf', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/pdf' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminOngoingCsv = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/ongoing/csv', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/csv' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminFinishedPdf = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/finished/pdf', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/pdf' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminFinishedCsv = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/finished/csv', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/csv' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminRejectedPdf = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/rejected/pdf', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/pdf' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminRejectedCsv = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/rejected/csv', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/csv' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminApprovedPdf = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/approved/pdf', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/pdf' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminApprovedCsv = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string; office?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/approved/csv', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/csv' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminPendingPdf = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/pending/pdf', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/pdf' },
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const adminPendingCsv = async (filters: { name?: string; school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/admin/pending/csv', {
+                  params: filters,
+                  responseType: 'blob',
+                  headers: { 'Content-Type': 'application/csv' },
               });
               return data
           } catch (error) {
@@ -452,38 +623,74 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-       return {
-          pdfReport,
-          csvExport,
-          pdfReportPerOffice,
-          csvExportPerOffice,
-          pdfReportFiltered,
-          csvReportFiltered,
-          pdfReportPerOfficeFiltered,
-          previewPdf,
-          officeMasterlistPdf,
-          officeExpiringPdf,
-          officeFinishedPdf,
-          adminExpiringPdf,
-          getMyOffice,
-          studentMasterlistPdf,
-          studentMasterlistCsv,
-          pendingApplicationsPdf,
-          pendingApplicationsCsv,
-          schoolSummaryPdf,
-          schoolSummaryCsv,
-          placementUtilizationPdf,
-          placementUtilizationCsv,
-          requirementsCompliancePdf,
-          requirementsComplianceCsv,
-          hoursProgressPdf,
-          hoursProgressCsv,
-          completionSummaryPdf,
-          completionSummaryCsv,
-          rejectedApplicationsPdf,
-          rejectedApplicationsCsv,
-          importAuditCsv,
-          officePerformancePdf,
-          officePerformanceCsv,
-       }
+      const getSchools = async () => {
+         try {
+             const { data } = await useAxios.get('/report/admin/schools')
+             return data as string[]
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+             return []
+         }
+     }
+
+      const getOfficeSchools = async () => {
+         try {
+             const { data } = await useAxios.get('/report/office/schools')
+             return data as string[]
+         } catch (error) {
+             const err = error as AxiosError
+             console.log(err)
+             return []
+         }
+     }
+
+        return {
+           pdfReport,
+           csvExport,
+           pdfReportPerOffice,
+           csvExportPerOffice,
+           pdfReportFiltered,
+           csvReportFiltered,
+           pdfReportPerOfficeFiltered,
+           previewPdf,
+           officeMasterlistPdf,
+           officeOngoingPdf,
+           officeFinishedPdf,
+           adminExpiringPdf,
+           adminMasterlistPdf,
+           adminMasterlistCsv,
+           adminOngoingPdf,
+           adminOngoingCsv,
+           adminFinishedPdf,
+           adminFinishedCsv,
+           adminRejectedPdf,
+           adminRejectedCsv,
+           adminApprovedPdf,
+           adminApprovedCsv,
+           adminPendingPdf,
+           adminPendingCsv,
+           getMyOffice,
+           getSchools,
+           getOfficeSchools,
+           studentMasterlistPdf,
+           studentMasterlistCsv,
+           pendingApplicationsPdf,
+           pendingApplicationsCsv,
+           schoolSummaryPdf,
+           schoolSummaryCsv,
+           placementUtilizationPdf,
+           placementUtilizationCsv,
+           requirementsCompliancePdf,
+           requirementsComplianceCsv,
+           hoursProgressPdf,
+           hoursProgressCsv,
+           completionSummaryPdf,
+           completionSummaryCsv,
+           rejectedApplicationsPdf,
+           rejectedApplicationsCsv,
+           importAuditCsv,
+           officePerformancePdf,
+           officePerformanceCsv,
+        }
 })
