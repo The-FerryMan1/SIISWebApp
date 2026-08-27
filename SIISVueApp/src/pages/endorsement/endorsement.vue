@@ -13,7 +13,7 @@ const selectedSchool = ref<string>('')
 const loading = ref(false)
 const selectedRow = ref<Record<string, boolean>>({})
 
-const UCheckBox = resolveComponent('UCheckbox')
+const UCheckbox = resolveComponent('UCheckbox')
 
 const table = useTemplateRef('table')
 const globalFilter = ref('')
@@ -128,18 +128,29 @@ async function generateEndorsement() {
     toast.add({ title: 'Failed to generate endorsement', color: 'error' })
   }
 }
-
+const rowSelection = ref({ 1: true })
 const columns: TableColumn<any>[] = [
-  {
-    id: 'include',
-    header: 'Include',
-    cell: ({ row }) => {
-        return h(UCheckBox)
-    }
+   {
+    id: 'select',
+    header: ({ table }) =>
+      h(UCheckbox, {
+        modelValue: table.getIsSomePageRowsSelected()
+          ? 'indeterminate'
+          : table.getIsAllPageRowsSelected(),
+        'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+          table.toggleAllPageRowsSelected(!!value),
+        'aria-label': 'Select all'
+      }),
+    cell: ({ row }) =>
+      h(UCheckbox, {
+        modelValue: row.getIsSelected(),
+        'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
+        'aria-label': 'Select row'
+      })
   },
   {
     accessorKey: 'fullName',
-    header: 'Student Name',
+    header: 'Student Fullname',
   },
   {
     accessorKey: 'degreeStrand',
@@ -254,6 +265,7 @@ const columns: TableColumn<any>[] = [
             :items-per-page="table?.tableApi?.getState().pagination.pageSize"
             :total="table?.tableApi?.getFilteredRowModel().rows.length"
             @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+            v-model:row-selection="rowSelection"
           />
         </div>
       </template>

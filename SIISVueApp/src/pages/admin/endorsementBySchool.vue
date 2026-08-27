@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, useTemplateRef, watch } from 'vue'
+import { computed, ref, onMounted, useTemplateRef, watch, h } from 'vue'
 import { useAxios } from '../../fetch/axios'
 import type { SelectItem } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/vue-table'
@@ -12,6 +12,26 @@ const selectedSchool = ref<string>('')
 const students = ref<any[]>([])
 const selectedOffice = ref<string>('')
 const loading = ref(false)
+const selectedRow = ref<Record<string, boolean>>({})
+
+function isRowSelected(uuid: string) {
+  return !!(selectedRow.value && selectedRow.value[uuid])
+}
+
+function toggleRow(uuid: string) {
+  if (!selectedRow.value) {
+    selectedRow.value = {}
+  }
+  const current = selectedRow.value[uuid] || false
+  selectedRow.value[uuid] = !current
+  if (!selectedRow.value[uuid]) {
+    delete selectedRow.value[uuid]
+  }
+}
+
+function getSelectedUuids() {
+  return Object.keys(selectedRow.value || {}).filter((key) => selectedRow.value![key])
+}
 
 const table = useTemplateRef('table')
 const globalFilter = ref('')
@@ -96,11 +116,21 @@ async function printEndorsement() {
     return
   }
 
+  const selectedUuids = getSelectedUuids()
+  if (!selectedUuids.length) {
+    toast.add({ title: 'Please select at least one student', color: 'warning' })
+    return
+  }
+
   try {
-    const url = `/endorsement/school/${encodeURIComponent(selectedSchool.value)}${selectedOffice.value ? '?office=' + encodeURIComponent(selectedOffice.value) : ''}`
-    const { data } = await useAxios.get(url, {
-      responseType: 'blob',
-    })
+    const { data } = await useAxios.post(
+      '/endorsement',
+      {
+        office: selectedOffice.value || undefined,
+        uuids: selectedUuids,
+      },
+      { responseType: 'blob' },
+    )
 
     const blobUrl = URL.createObjectURL(data)
     const win = window.open(blobUrl, '_blank')
@@ -184,6 +214,17 @@ async function printEndorsement() {
         v-model:pagination="pagination"
         :data="filteredStudents ?? []"
         :columns="[
+          {
+            id: 'include',
+            header: 'Include',
+            cell: ({ row }) =>
+              h('input', {
+                type: 'checkbox',
+                checked: isRowSelected(row.original.studentUUID as string),
+                onChange: () => toggleRow(row.original.studentUUID as string),
+                'aria-label': 'Toggle include',
+              }),
+          },
           { accessorKey: 'fullName', header: 'Student Name' },
           { accessorKey: 'degreeStrand', header: 'Degree / Strand' },
           { accessorKey: 'officeName', header: 'Office' },
