@@ -59,12 +59,15 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
             .ToListAsync(ct);
 
         var schoolNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var schoolFingerprints = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var school in existingSchools)
         {
             if (!string.IsNullOrWhiteSpace(school))
             {
                 var normalized = NormalizeSchoolName(school);
                 schoolNameMap[normalized] = school;
+                var fingerprint = GetSchoolNameFingerprint(school);
+                schoolFingerprints[fingerprint] = school;
             }
         }
 
@@ -116,9 +119,10 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
 
                 importedEmails.Add(student.Email);
 
-                student.SchoolName = NormalizeSchoolName(student.SchoolName);
+                var normalizedSchoolName = NormalizeSchoolName(student.SchoolName);
+                var schoolFingerprint = GetSchoolNameFingerprint(student.SchoolName);
 
-                if (schoolNameMap.TryGetValue(student.SchoolName, out var existingSchoolName) && existingSchoolName != student.SchoolName)
+                if (schoolNameMap.TryGetValue(normalizedSchoolName, out var existingSchoolName) && existingSchoolName != normalizedSchoolName)
                 {
                     var studentsToUpdate = await _context.Students
                         .Where(s => s.SchoolName == existingSchoolName && !s.IsDeleted)
@@ -126,12 +130,52 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
 
                     foreach (var s in studentsToUpdate)
                     {
-                        s.SchoolName = student.SchoolName;
+                        s.SchoolName = normalizedSchoolName;
                     }
 
-                    schoolNameMap[student.SchoolName] = student.SchoolName;
+                    schoolNameMap[normalizedSchoolName] = normalizedSchoolName;
                     schoolNameMap.Remove(existingSchoolName);
+                    schoolFingerprints[schoolFingerprint] = normalizedSchoolName;
                 }
+                else if (schoolFingerprints.TryGetValue(schoolFingerprint, out var matchedSchool) && matchedSchool != normalizedSchoolName)
+                {
+                    var studentsToUpdate = await _context.Students
+                        .Where(s => s.SchoolName == matchedSchool && !s.IsDeleted)
+                        .ToListAsync(ct);
+
+                    foreach (var s in studentsToUpdate)
+                    {
+                        s.SchoolName = normalizedSchoolName;
+                    }
+
+                    schoolNameMap[normalizedSchoolName] = normalizedSchoolName;
+                    schoolNameMap.Remove(matchedSchool);
+                    schoolFingerprints[schoolFingerprint] = normalizedSchoolName;
+                }
+                else
+                {
+                    foreach (var kvp in schoolNameMap.ToList())
+                    {
+                        if (GetSchoolNameSimilarity(kvp.Key, normalizedSchoolName) > 0.7)
+                        {
+                            var studentsToUpdate = await _context.Students
+                                .Where(s => s.SchoolName == kvp.Value && !s.IsDeleted)
+                                .ToListAsync(ct);
+
+                            foreach (var s in studentsToUpdate)
+                            {
+                                s.SchoolName = normalizedSchoolName;
+                            }
+
+                            schoolNameMap[normalizedSchoolName] = normalizedSchoolName;
+                            schoolNameMap.Remove(kvp.Key);
+                            schoolFingerprints[schoolFingerprint] = normalizedSchoolName;
+                            break;
+                        }
+                    }
+                }
+
+                student.SchoolName = normalizedSchoolName;
 
                 var startDate = GetRequiredDate(worksheet, headers, "InternshipStartDate", rowNumber);
                 var estimatedEndDate = GetRequiredDate(worksheet, headers, "EstimatedInternshipEndDate", rowNumber);
@@ -804,5 +848,42 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
         var words = trimmed.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
         var normalizedWords = words.Select(w => char.ToUpperInvariant(w[0]) + w.Substring(1).ToLowerInvariant());
         return string.Join(" ", normalizedWords);
+    }
+
+    private static string GetSchoolNameFingerprint(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return string.Empty;
+        }
+
+        var normalized = raw.ToLowerInvariant();
+        var words = normalized.Split(new[] {' ', ',', '.', '-', '/', '&', '(', ')'}, StringSplitOptions.RemoveEmptyEntries);
+        Array.Sort(words, StringComparer.Ordinal);
+        return string.Join(" ", words);
+    }
+
+    private static double GetSchoolNameSimilarity(string school1, string school2)
+    {
+        if (string.IsNullOrWhiteSpace(school1) || string.IsNullOrWhiteSpace(school2))
+        {
+            return 0.0;
+        }
+
+        var words1 = new HashSet<string>(school1.ToLowerInvariant().Split(new[] {' ', ',', '.', '-', '/', '&', '(', ')'}, StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
+        var words2 = new HashSet<string>(school2.ToLowerInvariant().Split(new[] {' ', ',', '.', '-', '/', '&', '(', ')'}, StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
+
+        if (words1.Count == 0 && words2.Count == 0)
+        {
+            return 1.0;
+        }
+
+        var intersection = new HashSet<string>(words1, StringComparer.Ordinal);
+        intersection.IntersectWith(words2);
+
+        var union = new HashSet<string>(words1, StringComparer.Ordinal);
+        union.UnionWith(words2);
+
+        return (double)intersection.Count / union.Count;
     }
 }
