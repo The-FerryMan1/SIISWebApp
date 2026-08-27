@@ -7,6 +7,7 @@ public class ApplicationDto
 {
     public long Id { get; set; }
     public Guid ApplicationUUID { get; set; }
+    public Guid StudentUUID { get; set; }
     public string FullName {get; set;}
     public string Status {get; set;}
     public string DegreeStrand { get; set; }

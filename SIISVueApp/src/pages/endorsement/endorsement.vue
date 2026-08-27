@@ -1,259 +1,270 @@
 <script setup lang="ts">
-import z from 'zod'
-import { OfficeNameEnum, OfficeNameLabels, OfficesArray } from '../admin/types/officeSelectValue'
-import { computed, h, ref, resolveComponent, useTemplateRef, watch } from 'vue'
-
-import { storeToRefs } from 'pinia'
-import { useOJtStore, type Ojt } from '../../stores/ojt'
-import type { TableColumn } from '@nuxt/ui'
+import { computed, ref, onMounted, useTemplateRef, watch, h } from 'vue'
 import { useAxios } from '../../fetch/axios'
+import type { TableColumn, SelectItem } from '@nuxt/ui'
+import { getPaginationRowModel } from '@tanstack/vue-table'
+import { OfficeNameLabels, OfficeNameEnum, OfficesArray } from '../admin/types/officeSelectValue'
 
-type Payload = {
-  office: string
-  uuids: string[]
-}
+const toast = useToast()
 
-const ojt = useOJtStore()
-const { ojts } = storeToRefs(ojt)
-const officeSchema = z.object({
-  office: z.enum(OfficeNameEnum, { error: 'Office is required' }),
-})
-type OfficeSchema = z.infer<typeof officeSchema>
+const applications = ref<any[]>([])
+const selectedOffice = ref<number | undefined>(undefined)
+const selectedSchool = ref<string>('')
+const loading = ref(false)
+const selectedRow = ref<Record<string, boolean>>({})
 
-const UCheckbox = resolveComponent('UCheckbox')
-const selectedOffice = ref<Partial<OfficeSchema>>({
-  office: undefined,
-})
-const selectedUniv = ref<string>()
-const selectedRow = ref()
 const table = useTemplateRef('table')
-const payload = ref<Partial<Payload>>({
-  office: undefined,
-  uuids: undefined,
+const globalFilter = ref('')
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 10,
+})
+
+const officeOptions = computed<SelectItem[]>(() => [
+  { label: 'All offices', value: undefined },
+  ...OfficesArray,
+])
+
+const schools = computed(() => {
+  const set = new Set<string>()
+  applications.value.forEach((t) => {
+    if (t.schoolName) {
+      set.add(t.schoolName)
+    }
+  })
+  return Array.from(set).sort()
+})
+
+const filteredApplications = computed(() => {
+  const q = globalFilter.value.trim().toLowerCase()
+  let data = applications.value
+  if (q) {
+    data = data.filter((t: any) =>
+      [t.fullName, t.schoolName, t.officeName, t.status]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q)),
+    )
+  }
+  if (selectedOffice.value !== undefined) {
+    const officeName = OfficeNameLabels[selectedOffice.value as OfficeNameEnum]
+    data = data.filter((t: any) => t.officeName === officeName)
+  }
+  if (selectedSchool.value) {
+    data = data.filter((t: any) => t.schoolName === selectedSchool.value)
+  }
+  return data
 })
 
 watch(
-  selectedOffice,
-  async () => {
-    try {
-      await ojt.ojtInit()
-    } catch (error) {}
+  () => pagination.value.pageSize,
+  (size) => {
+    table.value?.tableApi?.setPageSize(size)
+    pagination.value.pageIndex = 0
   },
-  { immediate: true },
 )
 
-const univ = computed(() => ojts.value.map((t) => t.universitySchool).filter(Boolean))
+onMounted(async () => {
+  await loadApplications()
+})
 
-const genderLabel = (g: number) => ['Male', 'Female', 'Other'][g] ?? 'Unknown'
-const iconGender = (g: number | null) => {
-  if (g === null || g === undefined) return 'i-lucide-help-circle'
-  return ['i-lucide-mars', 'i-lucide-venus', 'i-lucide-circle-small'][g] ?? 'i-lucide-help-circle'
+async function loadApplications() {
+  loading.value = true
+  try {
+    const { data } = await useAxios.get('/application')
+    applications.value = data.filter((item: any) => item.status === 'Approved')
+  } catch {
+    toast.add({ title: 'Failed to load applications', color: 'error' })
+  } finally {
+    loading.value = false
+  }
 }
-const UChip = resolveComponent('UChip')
-const UIcon = resolveComponent('UIcon')
-const columns: TableColumn<Ojt>[] = [
+
+const selectedStudentUuids = computed(() => {
+  return Object.keys(selectedRow.value).filter((key) => selectedRow.value[key])
+})
+
+function toggleInclude(uuid: string) {
+  selectedRow.value[uuid] = !selectedRow.value[uuid]
+  if (!selectedRow.value[uuid]) {
+    delete selectedRow.value[uuid]
+  }
+}
+
+function toggleAllFiltered() {
+  const current = filteredApplications.value.map((t: any) => t.studentUUID as string)
+  const allSelected = current.every((uuid) => selectedRow.value[uuid])
+  if (allSelected) {
+    current.forEach((uuid) => delete selectedRow.value[uuid])
+  } else {
+    current.forEach((uuid) => (selectedRow.value[uuid] = true))
+  }
+}
+
+async function generateEndorsement() {
+  if (!selectedStudentUuids.value.length) {
+    toast.add({ title: 'Please select at least one student to include', color: 'warning' })
+    return
+  }
+
+  const officeName = selectedOffice.value !== undefined ? OfficeNameLabels[selectedOffice.value as OfficeNameEnum] : ''
+
+  try {
+    const { data } = await useAxios.post(
+      '/endorsement',
+      {
+        office: officeName,
+        uuids: selectedStudentUuids.value,
+      },
+      { responseType: 'blob' },
+    )
+
+    const blobUrl = URL.createObjectURL(data)
+    const win = window.open(blobUrl, '_blank')
+    win?.print()
+    URL.revokeObjectURL(blobUrl)
+  } catch {
+    toast.add({ title: 'Failed to generate endorsement', color: 'error' })
+  }
+}
+
+const columns: TableColumn<any>[] = [
   {
-    id: 'select',
-    header: ({ table }) =>
-      h(UCheckbox, {
-        modelValue: table.getIsSomePageRowsSelected()
-          ? 'indeterminate'
-          : table.getIsAllPageRowsSelected(),
-        'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
-          table.toggleAllPageRowsSelected(!!value),
-        'aria-label': 'Select all',
-      }),
+    id: 'include',
+    header: 'Include',
     cell: ({ row }) =>
-      h(UCheckbox, {
-        modelValue: row.getIsSelected(),
-        'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
-        'aria-label': 'Select row',
+      h('input', {
+        type: 'checkbox',
+        checked: selectedRow.value[row.original.studentUUID] || false,
+        onChange: (e: Event) => {
+          const target = e.target as HTMLInputElement
+          selectedRow.value[row.original.studentUUID] = target.checked
+          if (!target.checked) {
+            delete selectedRow.value[row.original.studentUUID]
+          }
+        },
+        'aria-label': 'Toggle include',
       }),
   },
   {
-    accessorKey: 'ojtUUID',
-    header: '#',
-    cell: ({ row }) => {
-      return h('span', { class: ' text-xs ' }, `#${row.getValue('ojtUUID')}`)
-    },
+    accessorKey: 'fullName',
+    header: 'Student Name',
   },
   {
-    accessorKey: 'lastName',
-    header: 'Lastname',
-    cell: ({ row }) => {
-      const createdAt = row.getValue('createdAt') as string
-
-      const isNew = createdAt
-        ? Date.now() < new Date(createdAt).getTime() + 86400000 // 24h from created
-        : false
-
-      return isNew
-        ? h(UChip, { color: 'primary', size: 'sm', label: 'New' }, () => row.getValue('lastName'))
-        : row.getValue('lastName')
-    },
+    accessorKey: 'degreeStrand',
+    header: 'Degree / Strand',
   },
   {
-    accessorKey: 'firstName',
-    header: 'Firstname',
-    cell: ({ row }) => row.getValue('firstName'),
-  },
-  {
-    accessorKey: 'middleName',
-    header: 'Middlename',
-    cell: ({ row }) => {
-      const value = row.getValue('middleName') as string | null
-
-      return value ? h('span', {}, value) : h('span', { class: 'text-muted' }, 'N/A')
-    },
-  },
-  {
-    accessorKey: 'gender',
-    header: 'Gender',
-    cell: ({ row }) => {
-      const value = row.getValue('gender') as number | null
-
-      if (value === null || value === undefined) {
-        return h('span', { class: 'text-muted italic' }, 'N/A')
-      }
-
-      return h('div', { class: 'flex items-center gap-2' }, [
-        h(UIcon, { name: iconGender(value), class: 'size-4' }),
-        h('span', genderLabel(value)),
-      ])
-    },
-  },
-  {
-    accessorKey: 'dateOfBirth',
-    header: 'Date of birth',
-    cell: ({ row }) => {
-      return new Date(row.getValue('dateOfBirth')).toDateString().slice(3)
-    },
-  },
-  {
-    accessorKey: 'dateOfBirth',
-    header: 'Age',
-    cell: ({ row }) => {
-      return getAge(row.getValue('dateOfBirth'))
-    },
+    accessorKey: 'schoolName',
+    header: 'School',
   },
   {
     accessorKey: 'officeName',
     header: 'Office',
     cell: ({ row }) => {
       const value = row.getValue('officeName') as string | null
-      if (value == null || value == undefined) {
-        return h('span', { class: 'text-muted' }, 'N/A')
-      } else {
-        return h('span', {}, value)
-      }
+      return value ? h('span', {}, value) : h('span', { class: 'text-muted' }, 'N/A')
     },
   },
   {
-    header: 'Start date - Estimated end ',
-    cell: ({ row }) =>
-      `${new Date(row.original.startDate).toDateString()} - ${new Date(row.original.estimatedEndDate).toDateString()}`,
-  },
-  {
-    accessorKey: 'createdAt',
-    header: 'Created At',
-    cell: ({ row }) => new Date(row.getValue('createdAt')).toDateString(),
-  },
-  {
-    accessorKey: 'updatedAt',
-    header: 'Updated At',
-    cell: ({ row }) => {
-      return row.getValue('updatedAt')
-        ? new Date(row.getValue('updatedAt')).toDateString()
-        : h('span', { class: 'italic' }, 'Not updated')
-    },
+    accessorKey: 'status',
+    header: 'Status',
   },
 ]
-const getAge = (birthDate: string | Date): number => {
-  const today = new Date()
-  const birth = new Date(birthDate)
-
-  let age = today.getFullYear() - birth.getFullYear()
-  const monthDiff = today.getMonth() - birth.getMonth()
-
-  // Adjust if birthday hasn't occurred yet this year
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--
-  }
-
-  return age
-}
-const selectedShit = computed(() =>
-  table.value?.tableApi.getSelectedRowModel().rows.map((t: any) => t.getValue('ojtUUID') as string),
-)
-
-const generate = async () => {
-  const officeValue = selectedOffice.value.office
-  const officeName = officeValue !== undefined ? OfficeNameLabels[officeValue] : ''
-  payload.value = {
-    office: officeName,
-    uuids: selectedShit.value,
-  }
-  try {
-    await useAxios.post('/endorsement', payload.value)
-  } catch (error) {
-    console.log(error)
-  }
-
-  console.log(payload.value)
-}
-
-const doubleFilter = computed(() =>
-  ojts.value.filter((t) => t.universitySchool == selectedUniv.value),
-)
-
-watch(
-  selectedOffice,
-  async () => {
-    try {
-      await ojt.ojtInit()
-    } catch (error) {}
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
-  <UMain class="space-y-5">
-    <div class="px-10 py-2 my-10">
-      <div>
-        <h2 class="text-4xl font-black text-primary">Endorsement</h2>
-        <p class="text-muted text-sm">Multiple/Bulk endorsement letter generation</p>
-      </div>
+  <UMain class="space-y-6">
+    <div>
+      <h2 class="text-4xl font-black text-primary">Endorsement</h2>
+      <p class="text-muted text-sm">Select students to generate bulk endorsement letter</p>
     </div>
-    <UPageCard>
+
+    <UCard>
+      <div class="flex flex-wrap gap-4 items-end">
+        <UFormField label="Office">
+          <USelect
+            v-model="selectedOffice"
+            :items="officeOptions"
+            placeholder="All offices"
+            class="w-full md:w-80"
+          />
+        </UFormField>
+
+        <UFormField label="School">
+          <USelect
+            v-model="selectedSchool"
+            :items="schools"
+            placeholder="All schools"
+            class="w-full md:w-80"
+          />
+        </UFormField>
+
+        <UFormField label="Search Student">
+          <UInput
+            v-model="globalFilter"
+            class="w-full md:w-80"
+            placeholder="Search by name..."
+            icon="i-lucide-search"
+          />
+        </UFormField>
+
+        <UButton
+          icon="i-lucide-printer"
+          label="Generate Endorsement"
+          color="primary"
+          variant="solid"
+          :loading="loading"
+          @click="generateEndorsement"
+        />
+      </div>
+    </UCard>
+
+    <UCard v-if="applications.length > 0">
       <template #header>
-        <div class="flex gap-4 items-end w-125">
-          <UFormField name="selected.office" label="Select Office" required class="w-full">
-            <USelect
-              icon="i-lucide-building"
-              v-model="selectedOffice.office"
-              placeholder="Select office"
-              :items="OfficesArray"
-              class="w-full"
-            />
-          </UFormField>
-          <UFormField v-if="selectedOffice.office != undefined" label="Select School" required>
-            <USelect
-              v-model="selectedUniv"
-              icon="i-lucide-building"
-              placeholder="Select School"
-              :items="univ"
-              class="w-full"
-            />
-          </UFormField>
-          <UButton @click="generate" label="Generate selected rows" />
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold">Approved Students</h3>
+          <UInput
+            v-model.number="pagination.pageSize"
+            type="number"
+            :min="1"
+            class="w-full sm:w-24"
+            placeholder="Limit"
+            icon="i-lucide-list-ordered"
+          />
         </div>
       </template>
-      <UTable ref="table" v-model:row-selection="selectedRow" :data="doubleFilter ?? []" :columns />
-    </UPageCard>
-    <div class="px-4 py-3.5 border-t border-accented text-sm text-muted">
-      {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
-      {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
-    </div>
+
+      <UTable
+        ref="table"
+        sticky
+        v-model:global-filter="globalFilter"
+        v-model:pagination="pagination"
+        v-model:row-selection="selectedRow"
+        :data="filteredApplications ?? []"
+        :columns="columns"
+        class="w-full"
+        :pagination-options="{
+          getPaginationRowModel: getPaginationRowModel(),
+        }"
+      />
+
+      <div v-if="!filteredApplications?.length" class="flex items-center justify-center h-32 text-muted">
+        No approved students found
+      </div>
+
+      <template #footer>
+        <div class="flex justify-between border-t border-default pt-4 px-4">
+          <div class="text-sm text-muted">
+            {{ selectedStudentUuids.length }} student(s) included for endorsement
+          </div>
+          <UPagination
+            :page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+            :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+            :total="table?.tableApi?.getFilteredRowModel().rows.length"
+            @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+          />
+        </div>
+      </template>
+    </UCard>
   </UMain>
 </template>

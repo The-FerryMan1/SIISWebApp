@@ -100,18 +100,19 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
            var degreeStrand = t.Degree.ToString()
                 ?? t.Strand.ToString();
 
-            return new ApplicationDto
-        {
-            Id = t.Application.Id,
-            ApplicationUUID = t.Application.ApplicationUUID,
-            FullName = t.FullName,
-            Status = t.Application.Status.ToString(),
-            DegreeStrand = degreeStrand,
-            SchoolName = t.SchoolName,
-            OfficeName = t.Placement?.Office?.OfficeName,
-            CreatedAt = t.Application.CreatedAt,
-            UpdatedAt = t.Application.UpdatedAt
-        };
+             return new ApplicationDto
+         {
+             Id = t.Application.Id,
+             ApplicationUUID = t.Application.ApplicationUUID,
+             StudentUUID = t.StudentUUID,
+             FullName = t.FullName,
+             Status = t.Application.Status.ToString(),
+             DegreeStrand = degreeStrand,
+             SchoolName = t.SchoolName,
+             OfficeName = t.Placement?.Office?.OfficeName,
+             CreatedAt = t.Application.CreatedAt,
+             UpdatedAt = t.Application.UpdatedAt
+         };
         })];
     }
 
