@@ -235,6 +235,13 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
 
         query = ApplyCommonStudentFilters(query, filters);
         query = ApplyApplicationDateFilter(query, filters);
+        
+        // Apply placement status filter if specified
+        if (!string.IsNullOrWhiteSpace(filters.PlacementStatus) && Enum.TryParse<PlacementStatusEnum>(filters.PlacementStatus, true, out var placementStatus))
+        {
+            query = query.Where(t => t.Placement != null && t.Placement.PlacementStatus == placementStatus);
+        }
+        
         query = query.OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
         var students = await query.ToListAsync(ct);
@@ -290,6 +297,13 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
 
         query = ApplyCommonStudentFilters(query, filters);
         query = ApplyApplicationDateFilter(query, filters);
+        
+        // Apply placement status filter if specified
+        if (!string.IsNullOrWhiteSpace(filters.PlacementStatus) && Enum.TryParse<PlacementStatusEnum>(filters.PlacementStatus, true, out var placementStatus))
+        {
+            query = query.Where(t => t.Placement != null && t.Placement.PlacementStatus == placementStatus);
+        }
+        
         query = query.OrderBy(t => t.LastName).ThenBy(t => t.FirstName);
 
         var students = await query.ToListAsync(ct);

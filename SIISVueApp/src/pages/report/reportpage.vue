@@ -22,21 +22,23 @@ interface ReportFilters {
   school: string
   dateFrom: string
   dateTo: string
+  placementStatus: string
 }
 
 const filterStore: Record<ReportType, ReportFilters> = {
-  masterlist: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
-  ongoing: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
-  finished: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
-  rejected: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
-  approved: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
-  pending: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
+  masterlist: { selectedOffice: '', school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  ongoing: { selectedOffice: '', school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  finished: { selectedOffice: '', school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  rejected: { selectedOffice: '', school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  approved: { selectedOffice: '', school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  pending: { selectedOffice: '', school: '', dateFrom: '', dateTo: '', placementStatus: '' },
 }
 
 const selectedOffice = ref(filterStore[reportType.value].selectedOffice)
 const dateFrom = ref(filterStore[reportType.value].dateFrom)
 const dateTo = ref(filterStore[reportType.value].dateTo)
 const school = ref(filterStore[reportType.value].school)
+const placementStatus = ref(filterStore[reportType.value].placementStatus)
 const schools = ref<string[]>([])
 const loading = ref(false)
 
@@ -54,6 +56,7 @@ const isInternReport = computed(() => reportType.value === 'masterlist' || repor
 const needsOffice = computed(() => reportType.value === 'masterlist' || reportType.value === 'approved')
 const needsDate = computed(() => true)
 const needsStatus = computed(() => false)
+const needsPlacementStatus = computed(() => reportType.value === 'masterlist')
 
 const officeSelectItems = computed(() => {
     return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
@@ -64,14 +67,16 @@ watch(reportType, (newType) => {
   school.value = filterStore[newType].school
   dateFrom.value = filterStore[newType].dateFrom
   dateTo.value = filterStore[newType].dateTo
+  placementStatus.value = filterStore[newType].placementStatus
 })
 
-watch([selectedOffice, school, dateFrom, dateTo], ([office, sch, from, to]) => {
+watch([selectedOffice, school, dateFrom, dateTo, placementStatus], ([office, sch, from, to, status]) => {
   filterStore[reportType.value] = {
     selectedOffice: office,
     school: sch,
     dateFrom: from,
     dateTo: to,
+    placementStatus: status,
   }
 })
 
@@ -87,11 +92,12 @@ onMounted(async () => {
 })
 
 function clearFilters() {
-  const empty: ReportFilters = { selectedOffice: '', school: '', dateFrom: '', dateTo: '' }
+  const empty: ReportFilters = { selectedOffice: '', school: '', dateFrom: '', dateTo: '', placementStatus: '' }
   selectedOffice.value = ''
   school.value = ''
   dateFrom.value = ''
   dateTo.value = ''
+  placementStatus.value = ''
   filterStore[reportType.value] = empty
 }
 
@@ -117,13 +123,23 @@ function downloadBlob(blob: Blob | undefined, filename: string) {
 }
 
 function getFilters() {
-    return {
+    const baseFilters = {
         name: '',
         school: school.value || undefined,
         dateFrom: dateFrom.value || undefined,
         dateTo: dateTo.value || undefined,
         office: selectedOffice.value || undefined,
     }
+    
+    // Add placement status filter only for masterlist reports
+    if (reportType.value === 'masterlist') {
+        return {
+            ...baseFilters,
+            placementStatus: placementStatus.value || undefined,
+        }
+    }
+    
+    return baseFilters
 }
 
 async function generatePdf() {
@@ -259,6 +275,19 @@ async function generateCsv() {
                     <UInput
                         type="date"
                         v-model="dateTo"
+                        class="w-full md:w-48"
+                    />
+                </UFormField>
+
+                <UFormField v-if="needsPlacementStatus" label="Placement Status">
+                    <USelect
+                        v-model="placementStatus"
+                        :items="[
+                            { label: 'All Status', value: '' },
+                            { label: 'Ongoing', value: 'Ongoing' },
+                            { label: 'Finished', value: 'Finished' }
+                        ]"
+                        placeholder="Select status"
                         class="w-full md:w-48"
                     />
                 </UFormField>
