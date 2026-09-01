@@ -18,18 +18,26 @@ interface OfficeReportFilters {
   school: string
   dateFrom: string
   dateTo: string
+  placementStatus: string
 }
 
 const officeFilterStore: Record<'masterlist' | 'ongoing' | 'finished', OfficeReportFilters> = {
-  masterlist: { school: '', dateFrom: '', dateTo: '' },
-  ongoing: { school: '', dateFrom: '', dateTo: '' },
-  finished: { school: '', dateFrom: '', dateTo: '' },
+  masterlist: { school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  ongoing: { school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  finished: { school: '', dateFrom: '', dateTo: '', placementStatus: '' },
 }
 
 const school = ref(officeFilterStore[reportType.value].school)
 const dateFrom = ref(officeFilterStore[reportType.value].dateFrom)
 const dateTo = ref(officeFilterStore[reportType.value].dateTo)
+const placementStatus = ref(officeFilterStore[reportType.value].placementStatus)
 const schools = ref<string[]>([])
+
+const placementStatusOptions: SelectItem[] = [
+  { label: 'All Status', value: '' },
+  { label: 'Ongoing', value: 'Ongoing' },
+  { label: 'Finished', value: 'Finished' },
+]
 
 const reportTypeOptions: SelectItem[] = [
   { label: 'Masterlist', value: 'masterlist' },
@@ -43,13 +51,15 @@ watch(reportType, (newType) => {
   school.value = officeFilterStore[newType].school
   dateFrom.value = officeFilterStore[newType].dateFrom
   dateTo.value = officeFilterStore[newType].dateTo
+  placementStatus.value = officeFilterStore[newType].placementStatus
 })
 
-watch([school, dateFrom, dateTo], ([sch, from, to]) => {
+watch([school, dateFrom, dateTo, placementStatus], ([sch, from, to, status]) => {
   officeFilterStore[reportType.value] = {
     school: sch,
     dateFrom: from,
     dateTo: to,
+    placementStatus: status,
   }
 })
 
@@ -75,10 +85,11 @@ onMounted(async () => {
 })
 
 function clearFilters() {
-  const empty: OfficeReportFilters = { school: '', dateFrom: '', dateTo: '' }
+  const empty: OfficeReportFilters = { school: '', dateFrom: '', dateTo: '', placementStatus: '' }
   school.value = ''
   dateFrom.value = ''
   dateTo.value = ''
+  placementStatus.value = ''
   officeFilterStore[reportType.value] = empty
 }
 
@@ -89,6 +100,7 @@ async function generateReport() {
       school: school.value || undefined,
       dateFrom: dateFrom.value || undefined,
       dateTo: dateTo.value || undefined,
+      placementStatus: placementStatus.value || undefined,
     }
 
     let blob: Blob | undefined
@@ -172,6 +184,16 @@ function logout() {
             v-model="dateTo"
             type="date"
             class="w-full md:w-48"
+          />
+        </UFormField>
+
+        <UFormField label="Placement Status">
+          <USelect
+            v-model="placementStatus"
+            :items="placementStatusOptions"
+            placeholder="Filter by status"
+            :allow-clear="false"
+            class="w-full md:w-64"
           />
         </UFormField>
 

@@ -18,6 +18,7 @@ const table = useTemplateRef('table')
 const loading = ref(false)
 const dashboard = ref<any>(null)
 const searchQuery = ref('')
+const placementStatusFilter = ref('')
 const editOpen = ref(false)
 const editingStudent = ref<any>(null)
 const editForm = ref({ startDate: '', estimatedEndDate: '', accumulatedHours: 0 })
@@ -28,7 +29,7 @@ const profileForm = ref({ lastName: '', firstName: '', middleName: '', username:
 const pagination = ref({ pageIndex: 0, pageSize: 10 })
 
 watch(
-  () => searchQuery.value,
+  () => [searchQuery.value, placementStatusFilter.value],
   () => {
     pagination.value.pageIndex = 0
   }
@@ -87,9 +88,17 @@ const columns: TableColumn<any>[] = [
 
 const filteredStudents = computed(() => {
   if (!dashboard.value?.students?.length) return []
+  let students = dashboard.value.students
+  
+  // Filter by placement status
+  if (placementStatusFilter.value) {
+    students = students.filter((s: any) => s.placementStatus === placementStatusFilter.value)
+  }
+  
+  // Filter by search query
   const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return dashboard.value.students
-  return dashboard.value.students.filter((s: any) =>
+  if (!q) return students
+  return students.filter((s: any) =>
     [s.fullName, s.email, s.school, s.status, s.officeName, s.placementStatus].some((v) =>
       String(v ?? '').toLowerCase().includes(q)
     )
@@ -312,14 +321,29 @@ function logout() {
 
       <UCard>
         <template #header>
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-lg font-semibold">Assigned OJTs</h3>
-            <UInput
-              v-model="searchQuery"
-              icon="i-lucide-search"
-              placeholder="Search students..."
-              class="w-full md:w-64"
-            />
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">Assigned OJTs</h3>
+              <UInput
+                v-model="searchQuery"
+                icon="i-lucide-search"
+                placeholder="Search students..."
+                class="w-full md:w-64"
+              />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-muted">Filter by Placement Status</label>
+              <USelect
+                v-model="placementStatusFilter"
+                :items="[
+                  { label: 'All Status', value: '' },
+                  { label: 'Ongoing', value: 'Ongoing' },
+                  { label: 'Finished', value: 'Finished' }
+                ]"
+                placeholder="Select status"
+                class="w-full md:w-48"
+              />
+            </div>
           </div>
         </template>
 

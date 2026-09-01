@@ -136,7 +136,7 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
      }
 
-      const officeMasterlistPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+      const officeMasterlistPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
           try {
               const { data } = await useAxios.get('/report/office/masterlist', {
                   params: filters,
@@ -149,7 +149,7 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
       }
 
-      const officeOngoingPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+      const officeOngoingPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
           try {
               const { data } = await useAxios.get('/report/office/ongoing', {
                   params: filters,
@@ -162,7 +162,7 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
       }
 
-      const officeFinishedPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string } = {}) => {
+      const officeFinishedPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
           try {
               const { data } = await useAxios.get('/report/office/finished', {
                   params: filters,
