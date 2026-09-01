@@ -58,12 +58,12 @@ export const UseAuthStore = defineStore('auth', () => {
 
       const roles = data.roles ?? []
 
-      if (roles.includes('Admin') || roles.includes('OPG')) {
+      if (roles.includes('Admin')) {
         await useVerify()
         return { role: 'admin' as const }
       }
 
-      if (roles.includes('Officer')) {
+      if (roles.includes('OPG') || roles.includes('Officer')) {
         const officeAuth = useOfficeAccountStore()
         officeAuth.setAccount(data)
         localStorage.setItem('officeAuth', 'true')

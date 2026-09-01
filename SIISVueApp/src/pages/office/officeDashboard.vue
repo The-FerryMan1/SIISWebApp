@@ -5,7 +5,7 @@ import { useOfficeAccountStore } from '../../stores/officeAuth'
 import { useAxios } from '../../fetch/axios'
 import { useRouter } from 'vue-router'
 import { getPaginationRowModel } from '@tanstack/vue-table'
-import { validateDateRange, validateAccumulatedHours, isNonEmpty } from '../../utils/validators'
+import { validateDateRange, validateAccumulatedHours, isNonEmpty, abbreviateEmail } from '../../utils/validators'
 
 const officeAuth = useOfficeAccountStore()
 const router = useRouter()
@@ -42,6 +42,11 @@ const columns: TableColumn<any>[] = [
     return h('span', { class: color }, status)
   }},
   { accessorKey: 'school', header: 'School' },
+  { accessorKey: 'placementStatus', header: 'Placement Status', cell: ({ row }) => {
+    const status = row.getValue('placementStatus') as string | null
+    const color = status === 'Ongoing' ? 'text-yellow-600 font-semibold' : status === 'Finished' ? 'text-green-600 font-semibold' : 'text-muted'
+    return h('span', { class: color }, status || 'N/A')
+  }},
   { accessorKey: 'startDate', header: 'Start Date', cell: ({ row }) => {
     const v = row.getValue('startDate') as string
     return v ? new Date(v).toLocaleDateString() : '-'
@@ -90,7 +95,7 @@ const filteredStudents = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return dashboard.value.students
   return dashboard.value.students.filter((s: any) =>
-    [s.fullName, s.email, s.school, s.status, s.officeName].some((v) =>
+    [s.fullName, s.email, s.school, s.status, s.officeName, s.placementStatus].some((v) =>
       String(v ?? '').toLowerCase().includes(q)
     )
   )
@@ -303,7 +308,7 @@ function logout() {
           <div>
             <p class="text-sm font-medium text-muted">Account</p>
             <div class="flex items-center gap-2">
-              <p class="text-base">{{ officeAuth.account?.email }}</p>
+              <p class="text-base">{{ abbreviateEmail(officeAuth.account?.email) }}</p>
               <UButton icon="i-lucide-pen" size="xs" variant="ghost" color="primary" @click="openEditProfile" />
             </div>
           </div>

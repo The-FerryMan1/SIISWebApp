@@ -78,11 +78,23 @@ namespace SIISMinimalAPI.Data
                 await dbContext.SaveChangesAsync();
             }
 
+            var opgOffice = await dbContext.Offices
+                .FirstOrDefaultAsync(o => o.OfficeName == "Office of the Provincial Governor" && !o.IsDeleted);
+
+            var opgUserFromDb = await userManager.FindByEmailAsync(opgEmail);
+
             var offices = await dbContext.Offices.Where(o => !o.IsDeleted).ToListAsync();
             foreach (var office in offices)
             {
-                string officerUsername = office.OfficeName.ToLower().Replace(" ", "");
-                string officerEmail = $"{office.OfficeName.ToLower().Replace(" ", "")}@siis.local";
+                if (opgOffice != null && opgUserFromDb != null && office.Id == opgOffice.Id)
+                {
+                    office.UserId = opgUserFromDb.Id;
+                    continue;
+                }
+
+                string officerAbbrev = OfficeEnumLabels.GetAbbreviation(office.OfficeName);
+                string officerUsername = officerAbbrev;
+                string officerEmail = $"{officerAbbrev}@siis.local";
                 var officer = await userManager.FindByEmailAsync(officerEmail);
 
                 if (officer is null)

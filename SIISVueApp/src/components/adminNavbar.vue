@@ -75,24 +75,6 @@ const items = computed<NavigationMenuItem[]>(() => {
     },
   ]
 
-  if (auth.isOPG) {
-    return [
-      {
-        label: 'OPG Dashboard',
-        icon: 'i-lucide-bar-chart-2',
-        active: route.name == 'opg-dashboard',
-        to: { name: 'opg-dashboard' },
-      },
-      {
-        label: 'Analytics',
-        icon: 'i-lucide-pie-chart',
-        active: route.name == 'analytics',
-        to: { name: 'analytics' },
-      },
-      ...baseItems.filter((item) => item.label !== 'Dashboard'),
-    ]
-  }
-
   if (auth.isAdmin) {
     return [
       ...baseItems,

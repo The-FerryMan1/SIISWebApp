@@ -45,6 +45,7 @@ public class OfficeDashboardHandler(AppDbContext context) : IOfficeDashboardServ
                 EstimatedEndDate = t.Placement!.EstimatedEndDate,
                 TotalHours = t.TotalInternshipHours,
                 AccumulatedHours = t.Placement!.AccumulatedHours,
+                PlacementStatus = t.Placement!.PlacementStatus.ToString()
             }).ToList(),
         };
     }

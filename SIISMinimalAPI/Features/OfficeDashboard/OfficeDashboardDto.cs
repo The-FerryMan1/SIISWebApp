@@ -21,6 +21,7 @@ public class StudentItemDto
     public DateOnly EstimatedEndDate { get; set; }
     public int TotalHours { get; set; }
     public int AccumulatedHours { get; set; }
+    public string? PlacementStatus { get; set; }
     public double HoursProgress => TotalHours > 0 ? Math.Round((AccumulatedHours / (double)TotalHours) * 100, 1) : 0;
 }
 

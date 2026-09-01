@@ -17,3 +17,15 @@ export function validateAccumulatedHours(value: number | undefined | null, max?:
   if (typeof max === 'number' && value > max) return { valid: false, message: `Accumulated hours cannot exceed ${max}` }
   return { valid: true }
 }
+
+export function abbreviateEmail(email: string | undefined | null): string {
+  if (!email) return ''
+  const parts = email.split('@')
+  const localPart = parts[0]
+  const domain = parts[1]
+  if (!domain || !localPart) return email
+  if (localPart.length <= 1) return email
+  const firstChar = localPart[0]
+  const maskedLocal = firstChar + '*'.repeat(Math.min(localPart.length - 1, 5))
+  return `${maskedLocal}@${domain}`
+}

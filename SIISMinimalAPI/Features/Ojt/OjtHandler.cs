@@ -44,6 +44,7 @@ public class OjtHandler(AppDbContext context, ILogService logService) : IOjtServ
             UniversitySchool = t.SchoolName,
             EstimatedEndDate = t.Placement?.EstimatedEndDate,
             StartDate = t.Placement?.StartDate,
+            PlacementStatus = t.Placement?.PlacementStatus.ToString(),
             Gender = t.Gender,
             CreatedAt = t.CreatedAt,
             UpdatedAt = t.UpdatedAt,
@@ -73,7 +74,8 @@ public class OjtHandler(AppDbContext context, ILogService logService) : IOjtServ
           Office = ojt.Placement?.Office?.OfficeName ?? string.Empty,
           StartDate = ojt.Placement?.StartDate ?? DateOnly.MinValue,
           EstimatedEndDate = ojt.Placement?.EstimatedEndDate ?? DateOnly.MinValue,
-          AccumulatedHours = ojt.Placement?.AccumulatedHours ?? 0
+          AccumulatedHours = ojt.Placement?.AccumulatedHours ?? 0,
+          PlacementStatus = ojt.Placement?.PlacementStatus.ToString()
         };
     }
 }

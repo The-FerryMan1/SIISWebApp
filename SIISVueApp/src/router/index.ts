@@ -20,9 +20,6 @@ router.beforeEach(async (to, from) => {
   document.title = `SIIS - ${to.meta?.title || to.name?.toString().toLocaleUpperCase() || 'Home'}`
 
   if (isAdminAuth && to.path == '/') {
-    if (auth.isOPG) {
-      return { name: 'opg-dashboard' }
-    }
     return { name: 'dashboard' }
   }
 

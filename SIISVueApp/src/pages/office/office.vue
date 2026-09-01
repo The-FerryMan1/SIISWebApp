@@ -5,6 +5,7 @@ import { getPaginationRowModel } from '@tanstack/vue-table'
 import OjtCountChart from './partials/ojtCountChart.vue'
 import { onMounted, computed, ref, h } from 'vue'
 import { useAxios } from '../../fetch/axios'
+import { abbreviateEmail } from '../../utils/validators'
 
 const office = useOfficeStore()
 const toast = useToast()
@@ -38,7 +39,7 @@ const columns: TableColumn<Office>[] = [
   {
     accessorKey: 'userEmail',
     header: 'Officer Account',
-    cell: ({ row }) => row.getValue('userEmail') || 'Not assigned',
+    cell: ({ row }) => abbreviateEmail(row.getValue('userEmail')) || 'Not assigned',
   },
   {
     accessorKey: 'department',

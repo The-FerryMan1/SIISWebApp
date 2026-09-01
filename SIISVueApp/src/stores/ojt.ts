@@ -16,6 +16,7 @@ export interface Ojt {
   officeName: string
   estimatedEndDate: string
   startDate: string
+  placementStatus: string
 }
 
 export interface OjtDetails {
@@ -34,6 +35,7 @@ export interface OjtDetails {
   startDate: string
   estimatedEndDate: string
   accumulatedHours: number
+  placementStatus: string
 }
 
 export const useOJtStore = defineStore('ojt', () => {

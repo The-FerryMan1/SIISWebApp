@@ -17,6 +17,7 @@ public class OjtDto
     public string? UniversitySchool {get;set;}
     public DateOnly? StartDate {get; set;}
     public DateOnly? EstimatedEndDate {get; set;}
+    public string? PlacementStatus {get; set;}
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 

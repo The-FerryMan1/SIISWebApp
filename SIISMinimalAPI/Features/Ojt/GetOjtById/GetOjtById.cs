@@ -20,4 +20,5 @@ public class GetOjtById
     public DateOnly StartDate { get; set; }
     public DateOnly EstimatedEndDate { get; set; }
     public int AccumulatedHours { get; set; }
+    public string? PlacementStatus { get; set; }
 }

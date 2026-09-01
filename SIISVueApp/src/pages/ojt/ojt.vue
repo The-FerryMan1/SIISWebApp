@@ -113,6 +113,18 @@ const columns: TableColumn<Ojt>[] = [
     },
   },
   {
+    accessorKey: 'placementStatus',
+    header: 'Placement Status',
+    cell: ({ row }) => {
+      const value = row.getValue('placementStatus') as string | null
+      if (!value) {
+        return h('span', { class: 'text-muted' }, 'N/A')
+      }
+      const color = value === 'Ongoing' ? 'text-yellow-600 font-semibold' : value === 'Finished' ? 'text-green-600 font-semibold' : 'text-muted'
+      return h('span', { class: color }, value)
+    },
+  },
+  {
     header: 'Start date - Estimated end ',
     cell: ({ row }) =>
       `${new Date(row.original.startDate).toDateString()} - ${new Date(row.original.estimatedEndDate).toDateString()}`,

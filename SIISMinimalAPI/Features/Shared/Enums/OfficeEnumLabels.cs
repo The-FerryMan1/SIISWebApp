@@ -47,4 +47,24 @@ public static class OfficeEnumLabels
 
     public static string GetLabel(OfficeNameEnum office) =>
         Labels.TryGetValue(office, out var label) ? label : office.ToString();
+
+    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "of", "the", "and", "or", "for", "in", "on", "at", "to", "a", "an"
+    };
+
+    public static string GetAbbreviation(string officeName)
+    {
+        if (string.IsNullOrWhiteSpace(officeName))
+        {
+            return string.Empty;
+        }
+
+        var words = officeName.Split(new[] {' ', '-', ','}, StringSplitOptions.RemoveEmptyEntries);
+        var abbrev = string.Concat(words
+            .Where(w => !StopWords.Contains(w.Trim()))
+            .Select(w => char.ToLowerInvariant(w.Trim()[0])));
+
+        return abbrev;
+    }
 }
