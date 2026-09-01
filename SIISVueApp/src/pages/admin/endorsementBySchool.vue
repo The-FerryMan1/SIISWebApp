@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, useTemplateRef, watch, h } from 'vue'
 import { useAxios } from '../../fetch/axios'
+import { useRouter } from 'vue-router'
 import type { SelectItem } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import { OfficeNameLabels } from './types/officeSelectValue'
+
+const router = useRouter()
 
 const toast = useToast()
 
@@ -172,6 +175,15 @@ async function printEndorsement() {
             @update:model-value="loadStudents"
           />
         </UFormField>
+
+        <UButton
+          icon="i-lucide-settings"
+          label="Endorsement Settings"
+          color="secondary"
+          variant="outline"
+          :loading="loading"
+          @click="router.push({ name: 'endorsement-settings' })"
+        />
 
         <UButton
           icon="i-lucide-printer"

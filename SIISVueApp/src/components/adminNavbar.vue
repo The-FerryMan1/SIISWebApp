@@ -79,6 +79,12 @@ const items = computed<NavigationMenuItem[]>(() => {
     return [
       ...baseItems,
       {
+        label: 'Endorsement Settings',
+        icon: 'i-lucide-settings',
+        active: route.name == 'endorsement-settings',
+        to: { name: 'endorsement-settings' },
+      },
+      {
         label: 'Analytics',
         icon: 'i-lucide-pie-chart',
         active: route.name == 'analytics',

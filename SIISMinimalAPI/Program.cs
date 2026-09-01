@@ -85,6 +85,8 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddControllers();
 
+builder.Services.Configure<EndorsementSettings>(builder.Configuration.GetSection("EndorsementSettings"));
+
     
 builder.Services.AddCors(options =>
 {
@@ -199,6 +201,7 @@ app.UseRateLimiter();
 app.MapOnBoardingEnpoints();
 app.MapToApplication();
 app.MapToEndorsement();
+app.MapToEndorsementSettings();
 app.MapToOffice();
 app.MapToOjt();
 app.MapToAuth();
