@@ -350,16 +350,16 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
                 yield return "Internship";
                 break;
             case "strand":
-                yield return "Course Strand (for senior highschool)";
+                yield return "Course Strand (for Senior High School)";
                 break;
             case "degree":
-                yield return "Course Degree (for college student)";
+                yield return "Course Degree (for college students)";
                 break;
             case "totalinternshiphours":
                 yield return "Total number of internship hours";
                 break;
             case "officedeployment":
-                yield return "Office deployment";
+                yield return "Office Deployment";
                 break;
             case "internshipstartdate":
                 yield return "Internship Start Date";

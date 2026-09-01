@@ -36,11 +36,6 @@ watch(
 
 const columns: TableColumn<any>[] = [
   { accessorKey: 'fullName', header: 'Student Name' },
-  { accessorKey: 'status', header: 'Status', cell: ({ row }) => {
-    const status = row.getValue('status') as string
-    const color = status === 'Approved' ? 'text-green-600 font-semibold' : status === 'Pending' ? 'text-yellow-600 font-semibold' : 'text-red-600 font-semibold'
-    return h('span', { class: color }, status)
-  }},
   { accessorKey: 'school', header: 'School' },
   { accessorKey: 'placementStatus', header: 'Placement Status', cell: ({ row }) => {
     const status = row.getValue('placementStatus') as string | null

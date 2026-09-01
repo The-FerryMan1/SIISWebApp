@@ -514,7 +514,7 @@ const submitTransfer = async () => {
 
       <div class="flex justify-end gap-3 pt-4">
         <UModal ref="modal" v-if="isPending" title="Assign office & approve" :description="route.params.uuid as string">
-          <UButton label=" Assign office & approve" color="success" icon="i-lucide-check" variant="solid" size="sm" />
+          <UButton label="Assign office & approve" color="success" icon="i-lucide-check" variant="solid" size="sm" />
 
           <template #body>
             <UForm class="flex flex-col gap-3" :schema="officeSchema" :state="selectedOffice"
@@ -525,7 +525,7 @@ const submitTransfer = async () => {
               </UFormField>
 
               <div class="ms-auto">
-                <UButton type="submit" color="primary" icon="i-lucide-send" label="approve" />
+                <UButton type="submit" color="primary" icon="i-lucide-send" label="Approve" />
               </div>
             </UForm>
           </template>

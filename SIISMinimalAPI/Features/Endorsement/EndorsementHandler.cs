@@ -94,8 +94,8 @@ public class EndorsementHandler(AppDbContext context, UserManager<User> userMana
                     content.Item().AlignLeft().Text(text =>
                     {
                         text.Span("Respectfully endorsing the following student of the ").FontSize(12);
-                        text.Span(stud.SchoolName ?? "the university").Bold().FontSize(12);
-                        text.Span($", to conduct his/her on-the-job training ({stud.TotalInternshipHours} hours) in your office:").FontSize(12);
+                        text.Span(stud.SchoolName ?? "their university").Bold().FontSize(12);
+                        text.Span($", to conduct their on-the-job training ({stud.TotalInternshipHours} hours) in your office:").FontSize(12);
                     });
 
                     content.Item().PaddingVertical(10);
@@ -208,7 +208,7 @@ public class EndorsementHandler(AppDbContext context, UserManager<User> userMana
                     content.Item().AlignLeft().Text(text =>
                     {
                         text.Span("Respectfully endorsing the following students of the ").FontSize(12);
-                        text.Span(students.First().SchoolName ?? "the university").Bold().FontSize(12);
+                        text.Span(students.First().SchoolName ?? "their university").Bold().FontSize(12);
                         text.Span($", to conduct their on-the-job training in your office:").FontSize(12);
                     });
 

@@ -126,9 +126,9 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
          .Include(t => t.Placement).ThenInclude(p => p.Office)
          .AsSplitQuery()
          .AsNoTracking()
-         .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct);
+          .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, cancellationToken: ct);
 
-        if (application is null) throw new KeyNotFoundException("application not found");
+        if (application is null) throw new KeyNotFoundException("Application not found");
 
         return MapToDto(application);
     }
@@ -141,9 +141,9 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
          .Include(t => t.Placement).ThenInclude(p => p.Office)
          .AsSplitQuery()
          .AsNoTracking()
-         .FirstOrDefaultAsync(t => t.StudentUUID == studentUuid, cancellationToken: ct);
+          .FirstOrDefaultAsync(t => t.StudentUUID == studentUuid, cancellationToken: ct);
 
-        if (application is null) throw new KeyNotFoundException("application not found");
+        if (application is null) throw new KeyNotFoundException("Application not found");
 
         return MapToDto(application);
     }

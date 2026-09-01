@@ -72,12 +72,12 @@ const changePassForm = useTemplateRef('changePassForm')
 const changePassSchema = z
   .object({
     currentPassword: z.string('Invalid password'),
-    newPassword: z.string('Invalid password').min(8, 'Enter alteast 8 characters'),
-    confirm: z.string('Invalid password').min(8, 'Enter alteast 8 characters'),
+    newPassword: z.string('Invalid password').min(8, 'Enter at least 8 characters'),
+    confirm: z.string('Invalid password').min(8, 'Enter at least 8 characters'),
   })
   .refine((data) => data.newPassword == data.confirm, {
     path: ['confirm'],
-    error: "Password don't match",
+    error: "Passwords don't match",
   })
 
 type ChangePassSchema = z.infer<typeof changePassSchema>
@@ -99,7 +99,7 @@ const changePassSubmit = async (event: FormSubmitEvent<ChangePassSchema>) => {
     } catch (error) {
       const status = error as AxiosError
       if (status.status == 401) {
-        toast.add({ title: 'Operation Failed, wrong current password', color: 'error' })
+            toast.add({ title: 'Operation failed: wrong current password', color: 'error' })
       } else {
         toast.add({ title: 'Operation Failed', color: 'error' })
       }

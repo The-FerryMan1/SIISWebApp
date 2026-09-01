@@ -79,7 +79,7 @@ onMounted(async () => {
     <div class="flex items-center justify-between mb-4">
       <div>
         <h1 class="text-3xl font-black text-primary">Requirements</h1>
-        <p class="text-muted text-sm">Submitted intern requirements</p>
+        <p class="text-muted text-sm">Submitted OJT Requirements</p>
       </div>
     </div>
 

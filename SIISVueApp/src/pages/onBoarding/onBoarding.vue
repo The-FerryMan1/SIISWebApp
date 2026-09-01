@@ -291,14 +291,14 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
               <UFormField name="student.schoolName" label="Name of School" required>
                 <UInput
                   v-model="state.student.schoolName"
-                  placeholder="Enter the school name"
+                  placeholder="Enter your school name"
                   class="w-full"
                 />
               </UFormField>
               <UFormField name="student.schoolContactPerson" label="Contact Person" required>
                 <UInput
                   v-model="state.student.schoolContactPerson"
-                  placeholder="Enter the contact person"
+                  placeholder="Enter the contact person's name"
                   class="w-full"
                 />
               </UFormField>
@@ -306,7 +306,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                 <UInput
                   v-model="state.student.schoolContactPersonEmail"
                   type="email"
-                  placeholder="Enter the email of the contact person"
+                  placeholder="Enter the contact person's email"
                   class="w-full"
                 />
               </UFormField>
@@ -321,7 +321,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
             <UFormField name="student.schoolAddress" label="School Address" required class="mt-4">
               <UTextarea
                 v-model="state.student.schoolAddress"
-                placeholder="Enter the school address"
+                  placeholder="Enter your school address"
                 :rows="3"
                 class="w-full"
               />
@@ -371,7 +371,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                 <UInput
                   v-model="state.student.totalInternshipHours"
                   type="number"
-                  placeholder="Enter the total hours of internship"
+                  placeholder="Enter total internship hours"
                   min="0"
                   class="w-full"
                 />

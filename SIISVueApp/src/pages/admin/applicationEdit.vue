@@ -160,7 +160,7 @@ watch(fileUploaded, (value)=>{
   </div>
 
   <div>
-    <h1 class="text-2xl font-black text-primary">Edit application</h1>
+    <h1 class="text-2xl font-black text-primary">Edit Application</h1>
     <div class="flex items-center gap-2 mt-1">
       <p class="text-muted text-sm">Modify application details</p>
     </div>
@@ -179,7 +179,7 @@ watch(fileUploaded, (value)=>{
         <UFormField label="Last name" title="Last Name" name="lastName">
           <UInput
             v-model="details.student.lastName"
-            placeholder="enter your last name"
+            placeholder="Enter your last name"
             class="w-full"
           />
         </UFormField>
@@ -187,7 +187,7 @@ watch(fileUploaded, (value)=>{
         <UFormField label="First name" title="First name" name="firstName">
           <UInput
             v-model="details.student.firstName"
-            placeholder="enter your first name"
+            placeholder="Enter your first name"
             class="w-full"
           />
         </UFormField>
@@ -195,7 +195,7 @@ watch(fileUploaded, (value)=>{
         <UFormField label="Middle name" title="Middle Name" name="middleName">
           <UInput
             v-model="details.student.middleName"
-            placeholder="enter your middle name"
+            placeholder="Enter your middle name"
             class="w-full"
           />
         </UFormField>
@@ -203,7 +203,7 @@ watch(fileUploaded, (value)=>{
         <UFormField label="Email address" title="Email Address" name="EmaillAddress">
           <UInput
             v-model="details.student.email"
-            placeholder="enter your email address"
+            placeholder="Enter your email address"
             class="w-full"
             disabled
           />
@@ -213,7 +213,7 @@ watch(fileUploaded, (value)=>{
           <UInput
             type="date"
             v-model="details.student.dateOfBirth"
-            placeholder="enter your email address"
+            placeholder="Enter your date of birth"
             class="w-full"
           />
         </UFormField>

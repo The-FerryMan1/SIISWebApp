@@ -111,7 +111,7 @@ const goToProgress = () => {
 
 
 const debounceDelete = useDebounceFn(async () => {
-    const instance = await confModal.open({ title: 'Delete ojt', description: 'All connected record will be deleted' })
+    const instance = await confModal.open({ title: 'Delete OJT', description: 'All connected records will be deleted' })
     if (instance) {
         await ojt.deleteRequest(route.params.uuid as string)
         toast.add({ title: 'OJT deleted successfully', color: 'success' })
@@ -224,7 +224,7 @@ const submitTransfer = async () => {
                                 icon="i-lucide-bar-chart-2" />
                         </UTooltip>
 
-                        <UTooltip text="Delete ojt">
+                        <UTooltip text="Delete OJT">
                             <UButton @click="debounceDelete" color="error" variant="ghost" size="sm"
                                 icon="i-lucide-trash" />
                         </UTooltip>

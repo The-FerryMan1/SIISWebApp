@@ -67,7 +67,7 @@ const option = ref({
 </script>
 
 <template>
-  <UCard title="OJT count per office">
+  <UCard title="OJT Count per Office">
     <VChart :option="option" autoresize style="height: 400px; width: 100%" />
   </UCard>
 </template>

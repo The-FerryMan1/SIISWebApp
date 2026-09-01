@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useReportStore } from '../../stores/report.ts'
 import { OfficeOptions } from '../../shared/officeEnum.ts'
 import type { SelectItem } from '@nuxt/ui'
@@ -16,10 +16,27 @@ type ReportType =
     | 'pending'
 
 const reportType = ref<ReportType>('masterlist')
-const selectedOffice = ref<string>('')
-const dateFrom = ref<string>('')
-const dateTo = ref<string>('')
-const school = ref<string>('')
+
+interface ReportFilters {
+  selectedOffice: string
+  school: string
+  dateFrom: string
+  dateTo: string
+}
+
+const filterStore: Record<ReportType, ReportFilters> = {
+  masterlist: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
+  ongoing: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
+  finished: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
+  rejected: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
+  approved: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
+  pending: { selectedOffice: '', school: '', dateFrom: '', dateTo: '' },
+}
+
+const selectedOffice = ref(filterStore[reportType.value].selectedOffice)
+const dateFrom = ref(filterStore[reportType.value].dateFrom)
+const dateTo = ref(filterStore[reportType.value].dateTo)
+const school = ref(filterStore[reportType.value].school)
 const schools = ref<string[]>([])
 const loading = ref(false)
 
@@ -42,6 +59,22 @@ const officeSelectItems = computed(() => {
     return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
 })
 
+watch(reportType, (newType) => {
+  selectedOffice.value = filterStore[newType].selectedOffice
+  school.value = filterStore[newType].school
+  dateFrom.value = filterStore[newType].dateFrom
+  dateTo.value = filterStore[newType].dateTo
+})
+
+watch([selectedOffice, school, dateFrom, dateTo], ([office, sch, from, to]) => {
+  filterStore[reportType.value] = {
+    selectedOffice: office,
+    school: sch,
+    dateFrom: from,
+    dateTo: to,
+  }
+})
+
 onMounted(async () => {
     try {
       const data = await report.getSchools()
@@ -52,6 +85,15 @@ onMounted(async () => {
       schools.value = []
     }
 })
+
+function clearFilters() {
+  const empty: ReportFilters = { selectedOffice: '', school: '', dateFrom: '', dateTo: '' }
+  selectedOffice.value = ''
+  school.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
+  filterStore[reportType.value] = empty
+}
 
 function openPdf(blob: Blob | undefined) {
     if (blob) {
@@ -237,6 +279,15 @@ async function generateCsv() {
                     variant="solid"
                     :loading="loading"
                     @click="generateCsv"
+                />
+
+                <UButton
+                    icon="i-lucide-x"
+                    label="Clear Filter"
+                    color="neutral"
+                    variant="outline"
+                    :loading="loading"
+                    @click="clearFilters"
                 />
             </div>
         </UCard>

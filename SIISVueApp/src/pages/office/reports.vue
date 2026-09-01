@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useOfficeAccountStore } from '../../stores/officeAuth'
 import { useReportStore } from '../../stores/report.ts'
 import type { SelectItem } from '@nuxt/ui'
@@ -13,9 +13,22 @@ const toast = useToast()
 
 const reportType = ref<'masterlist' | 'ongoing' | 'finished'>('masterlist')
 const loading = ref(false)
-const school = ref('')
-const dateFrom = ref('')
-const dateTo = ref('')
+
+interface OfficeReportFilters {
+  school: string
+  dateFrom: string
+  dateTo: string
+}
+
+const officeFilterStore: Record<'masterlist' | 'ongoing' | 'finished', OfficeReportFilters> = {
+  masterlist: { school: '', dateFrom: '', dateTo: '' },
+  ongoing: { school: '', dateFrom: '', dateTo: '' },
+  finished: { school: '', dateFrom: '', dateTo: '' },
+}
+
+const school = ref(officeFilterStore[reportType.value].school)
+const dateFrom = ref(officeFilterStore[reportType.value].dateFrom)
+const dateTo = ref(officeFilterStore[reportType.value].dateTo)
 const schools = ref<string[]>([])
 
 const reportTypeOptions: SelectItem[] = [
@@ -25,6 +38,20 @@ const reportTypeOptions: SelectItem[] = [
 ]
 
 const myOfficeId = ref<number | null>(null)
+
+watch(reportType, (newType) => {
+  school.value = officeFilterStore[newType].school
+  dateFrom.value = officeFilterStore[newType].dateFrom
+  dateTo.value = officeFilterStore[newType].dateTo
+})
+
+watch([school, dateFrom, dateTo], ([sch, from, to]) => {
+  officeFilterStore[reportType.value] = {
+    school: sch,
+    dateFrom: from,
+    dateTo: to,
+  }
+})
 
 async function loadMyOffice() {
   try {
@@ -46,6 +73,14 @@ onMounted(async () => {
     schools.value = []
   }
 })
+
+function clearFilters() {
+  const empty: OfficeReportFilters = { school: '', dateFrom: '', dateTo: '' }
+  school.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
+  officeFilterStore[reportType.value] = empty
+}
 
 async function generateReport() {
   loading.value = true
@@ -147,6 +182,15 @@ function logout() {
         variant="solid"
         :loading="loading"
         @click="generateReport"
+      />
+
+      <UButton
+        icon="i-lucide-x"
+        label="Clear Filter"
+        color="neutral"
+        variant="outline"
+        :loading="loading"
+        @click="clearFilters"
       />
     </div>
   </UCard>
