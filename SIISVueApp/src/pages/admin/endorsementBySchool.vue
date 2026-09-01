@@ -157,21 +157,23 @@ async function printEndorsement() {
     <UCard>
       <div class="flex flex-wrap gap-4 items-end">
         <UFormField label="School / University" required>
-          <USelect
+          <USelectMenu
             v-model="selectedSchool"
             :items="schoolOptions"
             placeholder="Select school"
             class="w-full md:w-80"
+            value-key="value"
             @update:model-value="loadStudents"
           />
         </UFormField>
 
         <UFormField label="Office" v-if="selectedSchool">
-          <USelect
+          <USelectMenu
             v-model="selectedOffice"
             :items="officeOptions"
             placeholder="All offices"
             class="w-full md:w-80"
+            value-key="value"
             @update:model-value="loadStudents"
           />
         </UFormField>

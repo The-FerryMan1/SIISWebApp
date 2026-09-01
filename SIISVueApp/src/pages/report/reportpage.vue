@@ -238,7 +238,7 @@ async function generateCsv() {
         <UCard>
             <div class="flex flex-wrap gap-4 items-end">
                 <UFormField label="Report Type">
-                    <USelect
+                    <USelectMenu
                         v-model="reportType"
                         :items="reportTypeOptions"
                         class="w-full md:w-96"
@@ -246,7 +246,7 @@ async function generateCsv() {
                 </UFormField>
 
                 <UFormField v-if="needsOffice" label="Office" required>
-                    <USelect
+                    <USelectMenu
                         v-model="selectedOffice"
                         :items="officeSelectItems"
                         placeholder="Select office"
@@ -255,7 +255,7 @@ async function generateCsv() {
                 </UFormField>
 
                 <UFormField label="School">
-                    <USelect
+                    <USelectMenu
                         v-model="school"
                         :items="schools"
                         placeholder="Filter by school"
@@ -280,7 +280,7 @@ async function generateCsv() {
                 </UFormField>
 
                 <UFormField v-if="needsPlacementStatus" label="Placement Status">
-                    <USelect
+                    <USelectMenu
                         v-model="placementStatus"
                         :items="[
                             { label: 'All Status', value: '' },
@@ -289,6 +289,7 @@ async function generateCsv() {
                         ]"
                         placeholder="Select status"
                         class="w-full md:w-48"
+                        value-key="value"
                     />
                 </UFormField>
 

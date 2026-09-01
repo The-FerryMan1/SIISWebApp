@@ -153,17 +153,18 @@ function logout() {
     <UCard>
       <div class="flex flex-wrap gap-4 items-end">
         <UFormField label="Report Type">
-          <USelect
+          <USelectMenu
             v-model="reportType"
             :items="reportTypeOptions"
             placeholder="Select report type"
             :allow-clear="false"
             class="w-full md:w-80"
+            value-key="value"
           />
         </UFormField>
 
         <UFormField label="School">
-          <USelect
+          <USelectMenu
             v-model="school"
             :items="schools"
             placeholder="Filter by school"
@@ -188,7 +189,7 @@ function logout() {
         </UFormField>
 
         <UFormField label="Placement Status">
-          <USelect
+          <USelectMenu
             v-model="placementStatus"
             :items="placementStatusOptions"
             placeholder="Filter by status"

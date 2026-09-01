@@ -333,13 +333,14 @@ function logout() {
             </div>
             <div>
               <label class="text-sm font-medium text-muted">Filter by Placement Status</label>
-              <USelect
+              <USelectMenu
                 v-model="placementStatusFilter"
                 :items="[
                   { label: 'All Status', value: '' },
                   { label: 'Ongoing', value: 'Ongoing' },
                   { label: 'Finished', value: 'Finished' }
                 ]"
+                value-key="value"
                 placeholder="Select status"
                 class="w-full md:w-48"
               />

@@ -185,16 +185,17 @@ const columns: TableColumn<any>[] = [
     <UCard>
       <div class="flex flex-wrap gap-4 items-end">
         <UFormField label="Office">
-          <USelect
+          <USelectMenu
             v-model="selectedOffice"
             :items="officeOptions"
             placeholder="All offices"
             class="w-full md:w-80"
+            value-key="value"
           />
         </UFormField>
 
         <UFormField label="School">
-          <USelect
+          <USelectMenu
             v-model="selectedSchool"
             :items="schools"
             placeholder="All schools"

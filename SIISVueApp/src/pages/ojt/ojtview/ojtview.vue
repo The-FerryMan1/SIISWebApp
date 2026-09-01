@@ -294,7 +294,7 @@ const submitTransfer = async () => {
           <template #body>
             <UForm class="flex flex-col gap-3">
               <UFormField label="New Office" required>
-                <USelect v-model="transferForm.office" :items="OfficesArray.map(o => ({ label: o.label, value: o.label }))" placeholder="Select office" class="w-full" />
+                <USelectMenu v-model="transferForm.office" :items="OfficesArray.map(o => ({ label: o.label, value: o.label }))" placeholder="Select office" class="w-full" value-key="value" />
               </UFormField>
               <UFormField label="Start Date" required>
                 <UInput v-model="transferForm.startDate" type="date" class="w-full" />

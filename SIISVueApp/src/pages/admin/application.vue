@@ -263,7 +263,7 @@ watch(pageSize, (size) => {
             />
 
             <div class="ms-auto flex items-center gap-2">
-              <USelect v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" />
+              <USelectMenu v-model="statusSelectedFIlter" :items="statusFilter" class="ms-auto" value-key="value" />
               <UInput
                 v-model.number="pageSize"
                 type="number"

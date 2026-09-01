@@ -316,7 +316,7 @@ watch(pageSize, (size) => {
             />
 
             <div class="ms-auto flex items-center gap-2">
-              <USelect v-model="genderSelectedFIlter" :items="genderFilter" class="ms-auto" />
+              <USelectMenu v-model="genderSelectedFIlter" :items="genderFilter" class="ms-auto" value-key="value" />
               <UInput
                 v-model.number="pageSize"
                 type="number"

@@ -10,19 +10,34 @@ const toast = useToast()
 
 const table = useTemplateRef('table')
 const globalFilter = ref('')
+const studentFilter = ref<{ label: string; value: string } | null>(null)
 const pagination = ref({
   pageIndex: 0,
   pageSize: 10,
 })
 
+const studentOptions = computed(() => {
+  const uniqueNames = new Set(requirements.value.map(r => r.studentName).filter(Boolean))
+  return [
+    { label: 'All Students', value: '' },
+    ...Array.from(uniqueNames).map(name => ({ label: name, value: name }))
+  ]
+})
+
 const filteredRequirements = computed(() => {
   const q = globalFilter.value.trim().toLowerCase()
-  if (!q) return requirements.value
-  return requirements.value.filter((r: any) =>
-    [r.fileName, r.fileType, r.studentName, r.studentEmail, r.officeName, r.status]
-      .filter(Boolean)
-      .some((v) => String(v).toLowerCase().includes(q))
-  )
+  const selectedStudent = studentFilter.value?.value?.trim() ?? ''
+  
+  return requirements.value.filter((r: any) => {
+    const matchesSearch = !q || 
+      [r.fileName, r.fileType, r.studentName, r.studentEmail, r.officeName, r.status]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q))
+    
+    const matchesStudent = !selectedStudent || r.studentName === selectedStudent
+    
+    return matchesSearch && matchesStudent
+  })
 })
 
 watch(
@@ -91,6 +106,14 @@ onMounted(async () => {
             class="w-full sm:w-64"
             placeholder="Search requirements..."
             icon="i-lucide-search"
+          />
+          <USelectMenu
+            v-model="studentFilter"
+            :items="studentOptions"
+            placeholder="Filter by student"
+            class="w-full sm:w-64"
+            searchable
+            value-key="value"
           />
           <UInput
             v-model.number="pagination.pageSize"

@@ -252,19 +252,21 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                 />
               </UFormField>
               <UFormField name="student.gender" label="Gender" required>
-                <USelect
+                <USelectMenu
                   v-model="state.student.gender"
                   placeholder="Select gender"
                   :items="genderItems"
                   class="w-full"
+                  value-key="value"
                 />
               </UFormField>
               <UFormField name="student.gradeLevel" label="Grade Level" required>
-                <USelect
+                <USelectMenu
                   v-model="state.student.gradeLevel"
                   placeholder="Select grade level"
                   :items="gradeLevelItems"
                   class="w-full"
+                  value-key="value"
                 />
               </UFormField>
               <UFormField name="student.contactNumber" label="Contact Number" required>
@@ -332,27 +334,30 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
           <UPageCard title="Internship Details" icon="i-lucide-file" variant="outline">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <UFormField name="student.internshipNature" label="Nature of Internship" required>
-                <USelect
+                <USelectMenu
                   v-model.number="state.student.internshipNature"
                   placeholder="Select internship nature"
                   :items="internshipNatureItems"
                   class="w-full"
+                  value-key="value"
                 />
               </UFormField>
               <UFormField name="student.strand" v-if="isSeniorHigh" label="Strand" required>
-                <USelect
+                <USelectMenu
                   v-model.number="state.student.strand"
                   placeholder="Select strand"
                   :items="strandItems"
                   class="w-full"
+                  value-key="value"
                 />
               </UFormField>
               <UFormField v-if="isCollege" name="student.degree" label="Degree" required>
-                <USelect
+                <USelectMenu
                   v-model.number="state.student.degree"
                   placeholder="Select degree"
                   :items="degreeItems"
                   class="w-full"
+                  value-key="value"
                 />
               </UFormField>
               <UFormField name="student.internshipStartDate" label="Start Date" required>

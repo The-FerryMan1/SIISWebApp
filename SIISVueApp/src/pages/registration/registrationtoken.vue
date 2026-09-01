@@ -215,7 +215,7 @@ const back = () => {
                 <div class="w-full flex justify-start items-center">
                     <UInput v-model="globalFilter" class="max-w-sm " placeholder="Filter..." />
 
-                    <USelect
+                     <USelectMenu
                         class=""
                         v-model="selectedFilter" :items="filterItem"
                     />

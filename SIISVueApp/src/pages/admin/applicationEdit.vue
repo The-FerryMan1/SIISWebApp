@@ -219,7 +219,7 @@ watch(fileUploaded, (value)=>{
         </UFormField>
 
         <UFormField label="Gender" title="Gender" name="Gender">
-          <USelect
+          <USelectMenu
             class="w-full"
             v-model="details.student.gender"
             :items="[
@@ -227,6 +227,7 @@ watch(fileUploaded, (value)=>{
               { label: 'Female', value: 1 },
               { label: 'others', value: 2 },
             ]"
+            value-key="value"
           />
         </UFormField>
 
@@ -239,13 +240,14 @@ watch(fileUploaded, (value)=>{
         </UFormField>
 
         <UFormField label="Grade level" title="Grade level" name="GradeLevel">
-          <USelect
+          <USelectMenu
             class="w-full"
             v-model="details.student.gradeLevel"
             :items="[
               { label: 'Senior High School', value: 0 },
               { label: 'College', value: 1 },
             ]"
+            value-key="value"
           />
         </UFormField>
 
@@ -323,18 +325,19 @@ watch(fileUploaded, (value)=>{
         icon="i-lucide-file-text"
       >
         <UFormField label="Internship nature" title="Internship nature" name="InternshipNature">
-          <USelect
+          <USelectMenu
             class="w-full"
             v-model="details.student.internshipNature"
             :items="[
               { label: 'On-the-Job-Training', value: 0 },
               { label: 'Work Immersion', value: 1 },
             ]"
+            value-key="value"
           />
         </UFormField>
 
         <UFormField v-if="details.student.strand" label="Strand" title="strand" name="strand">
-          <USelect
+          <USelectMenu
             class="w-full"
             v-model="details.student.strand"
             :items="[
@@ -344,11 +347,12 @@ watch(fileUploaded, (value)=>{
               { label: 'GAS', value: 3 },
               { label: 'ICT', value: 4 },
             ]"
+            value-key="value"
           />
         </UFormField>
 
         <UFormField v-if="details.student.degree" label="Degree" title="degree" name="degree">
-          <USelect
+          <USelectMenu
             class="w-full"
             v-model="details.student.degree"
             :items="[
@@ -365,6 +369,7 @@ watch(fileUploaded, (value)=>{
               { label: 'BSPharma', value: 10 },
               { label: 'BSPsych', value: 11 },
             ]"
+            value-key="value"
           />
         </UFormField>
 

@@ -223,10 +223,10 @@ app.MapToCompletionSummary();
 app.MapToRejectedApplications();
 app.MapToImportAudit();
 app.MapToOfficePerformance();
-app.MapToRequirements();
-app.MapToLogs();
-app.MapToPlacementTransfer();
-app.MapToProgress();
+        app.MapToRequirements();
+        app.MapToLogs();
+        app.MapToPlacementTransfer();
+        app.MapToProgress();
 
 //seed
 using (var scope = app.Services.CreateScope())

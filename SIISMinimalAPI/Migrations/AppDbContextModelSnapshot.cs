@@ -183,7 +183,7 @@ namespace SIISMinimalAPI.Migrations
                     b.HasIndex("StudentId")
                         .IsUnique();
 
-                    b.HasIndex("Uuid");
+                     b.HasIndex("Uuid");
 
                     b.ToTable("Applications");
                 });
@@ -669,7 +669,7 @@ namespace SIISMinimalAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Student");
+                     b.Navigation("Student");
                 });
 
             modelBuilder.Entity("SIISMinimalAPI.Features.Shared.Models.Office", b =>

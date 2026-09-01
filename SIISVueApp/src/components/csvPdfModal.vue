@@ -50,7 +50,7 @@ function selectFormat( format: 'pdf' | 'csv') {
 
                
                 <UFormField name="selected" :label="selectPlaceholder">
-                    <USelect :placeholder="selectPlaceholder" v-model="model" :items  class="w-full" />
+                    <USelectMenu :placeholder="selectPlaceholder" v-model="model" :items class="w-full" value-key="value" />
                 </UFormField>
                 <div class="flex justify-end gap-2 my-2">
                     <UButton icon="i-lucide-file-text" color="primary" @click="selectFormat('pdf')">

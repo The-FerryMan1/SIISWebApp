@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Data;
+using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Features.Requirements;
@@ -34,6 +35,7 @@ public static class RequirementsEndpoint
                 FileName = r.FileName,
                 FileType = r.FileType,
                 FilePath = r.FilePath,
+                RequirementType = r.RequirementType,
                 CreatedAt = r.CreatedAt,
                 StudentId = r.StudentId,
                 StudentName = r.Student != null ? $"{r.Student.FirstName} {r.Student.LastName}" : "Unknown",
@@ -55,6 +57,7 @@ public class RequirementDto
     public string FileName { get; set; } = string.Empty;
     public string FileType { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;
+    public RequirementTypeEnum RequirementType { get; set; }
     public DateTime CreatedAt { get; set; }
     public long StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
