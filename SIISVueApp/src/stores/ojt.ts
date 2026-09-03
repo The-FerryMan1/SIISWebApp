@@ -26,12 +26,10 @@ export interface OjtDetails {
   firstName: string
   middleName: string
   contactNumber: string
-  address: string
-  officeId: number
-  office: string
-  dateOfBirth: string
-  gender: number
-  gradeLevel: number
+   address: string
+   officeId: number
+   office: string
+   gradeLevel: number
   startDate: string
   estimatedEndDate: string
   accumulatedHours: number

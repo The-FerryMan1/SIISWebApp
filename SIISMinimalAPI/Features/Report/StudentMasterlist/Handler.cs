@@ -74,6 +74,7 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
                     {
                         columns.ConstantColumn(35);
                         columns.RelativeColumn(2.2f);
+                        columns.RelativeColumn(1.5f);
                         columns.RelativeColumn(1.2f);
                         columns.RelativeColumn(1.5f);
                         columns.RelativeColumn(1.5f);
@@ -87,6 +88,7 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
                     {
                         header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
                         header.Cell().Element(HeaderCell).Text("Student Name").Bold();
+                        header.Cell().Element(HeaderCell).Text("School").Bold();
                         header.Cell().Element(HeaderCell).AlignCenter().Text("Status").Bold();
                         header.Cell().Element(HeaderCell).AlignCenter().Text("Grade Level").Bold();
                         header.Cell().Element(HeaderCell).AlignCenter().Text("Degree / Strand").Bold();
@@ -107,6 +109,7 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
                     {
                         table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                         table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
+                        table.Cell().Element(DataCell).Text(s.SchoolName).FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.Application?.Status.ToString() ?? "N/A").FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text(s.GradeLevel.ToString().Humanize(LetterCasing.Title)).FontSize(9);
                         table.Cell().Element(DataCell).AlignCenter().Text($"{s.Strand?.ToString().Humanize(LetterCasing.Title) ?? "N/A"} / {s.Degree?.ToString().Humanize(LetterCasing.Title) ?? "N/A"}").FontSize(9);
@@ -165,6 +168,7 @@ public class StudentMasterlistHandler(AppDbContext context) : IStudentMasterlist
         var records = students.Select(t => new StudentMasterlistDto
         {
             Name = t.FullName,
+            School = t.SchoolName,
             Office = t.Placement?.Office?.OfficeName ?? "N/A",
             Status = t.Application?.Status.ToString() ?? "N/A",
             GradeLevel = t.GradeLevel.ToString().Humanize(LetterCasing.Title),

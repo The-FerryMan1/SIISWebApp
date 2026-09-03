@@ -78,6 +78,7 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                     {
                         columns.ConstantColumn(35);
                         columns.RelativeColumn(3f);
+                        columns.RelativeColumn(2.5f);
                         columns.RelativeColumn(2f);
                     });
 
@@ -85,6 +86,7 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                     {
                         header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
                         header.Cell().Element(HeaderCell).Text("Name").Bold();
+                        header.Cell().Element(HeaderCell).Text("School").Bold();
                         header.Cell().Element(HeaderCell).Text("Placement Status").Bold();
 
                         static IContainer HeaderCell(IContainer container) => container
@@ -94,13 +96,14 @@ public class OfficeReportHandler(AppDbContext context) : IOfficeReportService
                             .BorderColor(Colors.Black);
                     });
 
-                    int index = 1;
-                    foreach (var s in students)
-                    {
-                        table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
-                        table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
-                        table.Cell().Element(DataCell).Text(s.Placement?.PlacementStatus.ToString().Humanize(LetterCasing.Title) ?? "N/A").FontSize(9);
-                    }
+            int index = 1;
+            foreach (var s in students)
+            {
+                table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
+                table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
+                table.Cell().Element(DataCell).Text(s.SchoolName).FontSize(9);
+                table.Cell().Element(DataCell).Text(s.Placement?.PlacementStatus.ToString().Humanize(LetterCasing.Title) ?? "N/A").FontSize(9);
+            }
 
                     static IContainer DataCell(IContainer container) => container
                         .Padding(0)

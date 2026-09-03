@@ -124,8 +124,8 @@ public class PendingApplicationsHandler(AppDbContext context) : IPendingApplicat
             Name = t.FullName,
             Email = t.Email,
             School = t.SchoolName,
-            SubmissionDate = t.Application!.CreatedAt,
-            Status = t.Application.Status.ToString()
+            SubmissionDate = t.Application?.CreatedAt,
+            Status = t.Application?.Status.ToString() ?? "N/A"
         }).ToList();
 
         using var memoryStream = new MemoryStream();

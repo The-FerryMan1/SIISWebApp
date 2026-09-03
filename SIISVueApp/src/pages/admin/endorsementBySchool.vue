@@ -231,7 +231,7 @@ async function printEndorsement() {
           {
             id: 'include',
             header: 'Include',
-            cell: ({ row }) =>
+            cell: ({ row }: { row: { original: { studentUUID: string } } }) =>
               h('input', {
                 type: 'checkbox',
                 checked: isRowSelected(row.original.studentUUID as string),

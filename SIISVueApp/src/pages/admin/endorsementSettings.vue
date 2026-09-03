@@ -154,7 +154,7 @@ async function resetSettings() {
           </UFormField>
 
           <UFormField label="Attachment Note">
-            <UInput v-model="settings.body.attachmentNote" placeholder="e.g., Attached are the resume(s) of the student(s) for your reference." class="w-full" />
+            <UInput v-model="settings.body.attachmentNote" placeholder="e.g., Attached are the development letter(s) of the student(s) for your reference." class="w-full" />
           </UFormField>
 
           <UFormField label="Thank You">

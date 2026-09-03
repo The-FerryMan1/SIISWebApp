@@ -5,6 +5,7 @@ namespace SIISMinimalAPI.Features.Report.StudentMasterlist;
 public class StudentMasterlistDto
 {
     public string? Name { get; set; } = string.Empty;
+    public string? School { get; set; } = string.Empty;
     public string? Office { get; set; } = string.Empty;
     public string? Status { get; set; } = string.Empty;
     public string? GradeLevel { get; set; } = string.Empty;

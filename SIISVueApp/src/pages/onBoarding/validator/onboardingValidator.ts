@@ -48,9 +48,7 @@ export const StudentInfoSchema = z.object({
     .min(1, 'Contact number is required')
     .max(20)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
-  address: z.string().min(1, 'Address is required').max(200),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  gender: z.coerce.number({ error: 'Gender is required' }).int().min(0, 'Invalid gender').max(2, 'Invalid gender'),
+   address: z.string().min(1, 'Address is required').max(200),
   gradeLevel: z.coerce
     .number({ error: 'Grade level is required' })
     .int()
@@ -145,9 +143,7 @@ export const StudentUpdateDtoSchema = z.object({
     .min(11, 'Contact number is required')
     .max(11)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Invalid contact number format'),
-  address: z.string().min(1, 'Address is required').max(200),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  gender: z.coerce.number().int().min(0, 'Gender is required').max(2),
+   address: z.string().min(1, 'Address is required').max(200),
   gradeLevel: z.coerce
     .number({ error: 'Grade level is required' })
     .int()

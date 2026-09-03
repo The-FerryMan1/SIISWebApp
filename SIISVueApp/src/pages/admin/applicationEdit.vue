@@ -95,9 +95,7 @@ const onSubmit = async () => {
     formData.append('student.middleName', student.middleName)
     formData.append('student.contactNumber', student.contactNumber)
     formData.append('student.address', student.address)
-    formData.append('student.dateOfBirth', student.dateOfBirth)
     formData.append('student.email', student.email)
-    formData.append('student.gender', String(student.gender))
     formData.append('student.gradeLevel', String(student.gradeLevel))
 
     formData.append('school.name', student.schoolName)
@@ -209,28 +207,6 @@ watch(fileUploaded, (value)=>{
           />
         </UFormField>
 
-        <UFormField label="Date of birth" title="Date of Birth" name="DateofBirth">
-          <UInput
-            type="date"
-            v-model="details.student.dateOfBirth"
-            placeholder="Enter your date of birth"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="Gender" title="Gender" name="Gender">
-          <USelectMenu
-            class="w-full"
-            v-model="details.student.gender"
-            :items="[
-              { label: 'Male', value: 0 },
-              { label: 'Female', value: 1 },
-              { label: 'others', value: 2 },
-            ]"
-            value-key="value"
-          />
-        </UFormField>
-
         <UFormField label="Contact No." title="Contact number" name="Contact">
           <UInput
             v-model="details.student.contactNumber"
@@ -239,7 +215,7 @@ watch(fileUploaded, (value)=>{
           />
         </UFormField>
 
-        <UFormField label="Grade level" title="Grade level" name="GradeLevel">
+        <UFormField label="Educational Level" title="Educational Level" name="EducationalLevel">
           <USelectMenu
             class="w-full"
             v-model="details.student.gradeLevel"
@@ -431,6 +407,24 @@ watch(fileUploaded, (value)=>{
             />
           </UFormField>
         </UForm>
+      </UPageCard>
+
+      <UPageCard
+        v-if="details?.student"
+        title="Additional Documents"
+        description="Upload supporting documents"
+        icon="i-lucide-folder"
+      >
+        <UFormField label="Resume" name="resumeFile">
+          <UFileUpload
+            v-model="fileUploaded"
+            file-icon="i-lucide-file-user"
+            description="Upload Resume or CV (PDF, DOC, DOCX)"
+            accept=".pdf,.doc,.docx"
+            class="w-full"
+            multiple
+          />
+        </UFormField>
       </UPageCard>
     </UForm>
 

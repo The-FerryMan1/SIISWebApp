@@ -65,10 +65,8 @@ export interface StudentInfo {
   firstName: string
   middleName: string
   contactNumber: string
-  address: string
-  dateOfBirth: string
-  gender: GenderEnum
-  gradeLevel: GradeLevelEnum
+   address: string
+   gradeLevel: GradeLevelEnum
   schoolName: string
   schoolAddress: string
   schoolContactPerson: string

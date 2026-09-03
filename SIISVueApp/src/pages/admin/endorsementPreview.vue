@@ -77,7 +77,7 @@ function getIntroText() {
             </p>
           </div>
 
-          <p class="text-sm mb-4">{{ props.settings.body.attachmentNote || 'Attached are the resume(s) of the student(s) for your reference.' }}</p>
+          <p class="text-sm mb-4">{{ props.settings.body.attachmentNote || 'Attached are the development letter(s) of the student(s) for your reference.' }}</p>
           <p class="text-sm mb-4">{{ props.settings.body.thankYou || 'Thank you very much.' }}</p>
           <p class="text-sm mb-1">{{ props.settings.footer.closing || 'Very truly yours,' }}</p>
 

@@ -29,25 +29,20 @@ watch(
 
 // ─── Formatters ─────────────────────────────────────────────
 
-const formatKey = (key: string) =>
-    key
+const formatKey = (key: string) => {
+    const labels: Record<string, string> = {
+        gradeLevel: 'Educational Level',
+    }
+    if (labels[key]) return labels[key]
+    return key
         .replace(/([A-Z])/g, ' $1')
         .replace(/^./, (str) => str.toUpperCase())
-
-const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    })
-
-const genderLabel = (g: number) =>
-    ['Male', 'Female', 'Other'][g] ?? 'Unknown'
+}
 
 const officeLabel = (g: number) =>
     OfficesArray[g]?.label ?? `Office ${g}`
 
-const gradeLabel = (g: number) => {
+const educationalLevelLabel = (g: number) => {
     const grades: Record<number, string> = {
         0: 'Senior High School',
         1: 'College',
@@ -81,21 +76,24 @@ const fieldMeta: Record<string, { icon: string; color: string }> = {
     contactNumber: { icon: 'i-lucide-phone', color: 'green' },
     address: { icon: 'i-lucide-map-pin', color: 'amber' },
     office: { icon: 'i-lucide-building-2', color: 'blue' },
-    dateOfBirth: { icon: 'i-lucide-calendar', color: 'rose' },
-    gender: { icon: 'i-lucide-users', color: 'purple' },
     gradeLevel: { icon: 'i-lucide-graduation-cap', color: 'teal' },
 }
 
 const formatValue = (key: keyof OjtDetails, value: unknown): string => {
     if (value === null || value === undefined) return '—'
-    if (key === 'gender' && typeof value === 'number') return genderLabel(value)
     if (key === 'office' && typeof value === 'number') return officeLabel(value)
-    if (key === 'gradeLevel' && typeof value === 'number') return gradeLabel(value)
-    if (key === 'dateOfBirth' && typeof value === 'string') return formatDate(value)
+    if (key === 'gradeLevel' && typeof value === 'number') return educationalLevelLabel(value)
     return String(value)
 }
 
 const isFullWidth = (key: string) => key === 'address' || key === 'studentUUID'
+
+const visibleFields = computed(() => {
+    if (!ojtDetails.value) return []
+    return Object.keys(ojtDetails.value).filter(
+        (k) => k !== 'gender' && k !== 'dateOfBirth'
+    )
+})
 
 
 
@@ -246,13 +244,10 @@ const submitTransfer = async () => {
                         </h3>
                         <div class="flex flex-wrap gap-2 mt-1.5">
                             <UBadge color="primary" variant="soft" size="sm">
-                                {{ gradeLabel(ojtDetails.gradeLevel) }}
+                                {{ educationalLevelLabel(ojtDetails.gradeLevel) }}
                             </UBadge>
                             <UBadge color="info" variant="soft" size="sm">
                                 {{ ojtDetails.office }}
-                            </UBadge>
-                            <UBadge color="success" variant="soft" size="sm">
-                                {{ genderLabel(ojtDetails.gender) }}
                             </UBadge>
                         </div>
                     </div>
@@ -266,23 +261,23 @@ const submitTransfer = async () => {
                 </h4>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div v-for="(value, key) in ojtDetails" :key="key"
+                    <div v-for="field in visibleFields" :key="field"
                         class="flex items-start gap-3 p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800/60 hover:border-gray-200 dark:hover:border-gray-700 transition-colors"
-                        :class="{ 'sm:col-span-2': isFullWidth(key as string) }">
+                        :class="{ 'sm:col-span-2': isFullWidth(field) }">
                         <!-- Icon -->
                         <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                            :class="`bg-${fieldMeta[key as string]?.color}-50 dark:bg-${fieldMeta[key as string]?.color}-900/20 text-${fieldMeta[key as string]?.color}-500`">
-                            <UIcon :name="fieldMeta[key as string]?.icon ?? 'i-lucide-circle-dot'" class="w-4 h-4" />
+                            :class="`bg-${fieldMeta[field]?.color}-50 dark:bg-${fieldMeta[field]?.color}-900/20 text-${fieldMeta[field]?.color}-500`">
+                            <UIcon :name="fieldMeta[field]?.icon ?? 'i-lucide-circle-dot'" class="w-4 h-4" />
                         </div>
 
                         <!-- Label + Value -->
                         <div class="min-w-0 flex-1">
                             <p class="text-[11px] text-gray-400 uppercase tracking-wide">
-                                {{ formatKey(key as string) }}
+                                {{ formatKey(field) }}
                             </p>
                             <p class="text-sm font-medium truncate"
-                                :class="key === 'studentUUID' ? 'font-mono text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
-                                {{ formatValue(key as keyof OjtDetails, value) }}
+                                :class="field === 'studentUUID' ? 'font-mono text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
+                                {{ formatValue(field as keyof OjtDetails, ojtDetails[field as keyof OjtDetails] as any) }}
                             </p>
                         </div>
                     </div>

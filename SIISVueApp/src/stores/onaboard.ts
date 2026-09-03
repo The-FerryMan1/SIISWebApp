@@ -13,10 +13,8 @@ export const useOnBoardStore = defineStore('onboard', () => {
       firstName: '',
       middleName: '',
       address: '',
-      contactNumber: '',
-      dateOfBirth: '',
+       contactNumber: '',
       email: '',
-      gender: 0,
       gradeLevel: 1,
       schoolName: '',
       schoolAddress: '',
@@ -30,8 +28,9 @@ export const useOnBoardStore = defineStore('onboard', () => {
       totalInternshipHours: 0,
     },
     requirements: [] as any[],
-    moaFile: null as File | null,
-    resumeFile: null as File | null,
+     moaFile: null as File | null,
+     developmentLetterFile: null as File | null,
+     resumeFile: null as File | null,
   })
 
   const toDataForm = (): FormData => {
@@ -43,10 +42,8 @@ export const useOnBoardStore = defineStore('onboard', () => {
     formData.append('student.firstName', String(s.firstName))
     formData.append('student.middleName', String(s.middleName))
     formData.append('student.address', String(s.address))
-    formData.append('student.contactNumber', String(s.contactNumber))
-    formData.append('student.dateOfBirth', String(s.dateOfBirth))
+     formData.append('student.contactNumber', String(s.contactNumber))
     formData.append('student.email', String(s.email))
-    formData.append('student.gender', String(s.gender))
     formData.append('student.gradeLevel', String(s.gradeLevel))
 
     formData.append('school.name', String(s.schoolName))
@@ -72,17 +69,22 @@ export const useOnBoardStore = defineStore('onboard', () => {
     formData.append('internship.internshipTotalHours', String(s.totalInternshipHours))
     formData.append('internship.accumulatedHours', '0')
 
-    const moa = normalizeFile(state.value.moaFile)
-    if (moa) {
-      formData.append('moaFile', moa, moa.name)
-    }
+     const moa = normalizeFile(state.value.moaFile)
+     if (moa) {
+       formData.append('moaFile', moa, moa.name)
+     }
 
-    const resume = normalizeFile(state.value.resumeFile)
-    if (resume) {
-      formData.append('resumeFile', resume, resume.name)
-    }
+      const developmentLetter = normalizeFile(state.value.developmentLetterFile)
+      if (developmentLetter) {
+        formData.append('developmentLetterFile', developmentLetter, developmentLetter.name)
+      }
 
-    return formData
+      const resume = normalizeFile(state.value.resumeFile)
+      if (resume) {
+        formData.append('resumeFile', resume, resume.name)
+      }
+
+     return formData
   }
 
   const normalizeFile = (file: File | File[] | null | undefined): File | null => {
@@ -127,9 +129,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
         middleName: '',
         address: '',
         contactNumber: '',
-        dateOfBirth: '',
         email: '',
-        gender: 0,
         gradeLevel: 1,
         schoolName: '',
         schoolAddress: '',
@@ -144,6 +144,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
       },
       requirements: [] as any[],
       moaFile: null,
+      developmentLetterFile: null,
       resumeFile: null,
     }
 

@@ -72,8 +72,7 @@ const statusColor = (status: ApplicationStatusEnum) => {
 
 const statusLabel = (status: ApplicationStatusEnum) => ApplicationStatusEnum[status] ?? 'Unknown'
 
-const genderLabel = (g: number) => ['Male', 'Female', 'Other'][g] ?? 'Unknown'
-const gradeLabel = (g: number) => {
+const educationalLevelLabel = (g: number) => {
   const grades: Record<number, string> = {
     0: 'Senior High School',
     1: 'College',
@@ -110,7 +109,7 @@ const natureLabel = (n: number) =>
   ({ 0: 'On-the-Job-Training', 1: 'Work Immersion' })[n] ?? 'Unknown'
 
 const requirementTypeLabel = (t: number) =>
-  ({ 0: 'MOA', 1: 'Resume', 2: 'Other' })[t] ?? 'Unknown'
+  ({ 0: 'Notarized MOA', 1: 'Development Letter', 2: 'Other' })[t] ?? 'Unknown'
 
 // --- Requirements Table Columns ---
 const requirementColumns: TableColumn<any>[] = [
@@ -450,14 +449,8 @@ const submitTransfer = async () => {
               <UFormField label="Address">
                 <UInput v-model="details.student.address" class="w-full" variant="soft" />
               </UFormField>
-              <UFormField label="Date of Birth">
-                <UInput v-model="details.student.dateOfBirth" class="w-full" variant="soft" />
-              </UFormField>
-              <UFormField label="Gender">
-                <UInput :model-value="genderLabel(details.student.gender)" class="w-full" variant="soft" />
-              </UFormField>
-              <UFormField label="Grade Level">
-                <UInput :model-value="gradeLabel(details.student.gradeLevel)" class="w-full" variant="soft" />
+              <UFormField label="Educational Level">
+                <UInput :model-value="educationalLevelLabel(details.student.gradeLevel)" class="w-full" variant="soft" />
               </UFormField>
             </UForm>
           </UPageCard>

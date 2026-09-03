@@ -62,6 +62,10 @@ const officeSelectItems = computed(() => {
     return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
 })
 
+const schoolSelectItems = computed(() => {
+    return [{ label: 'All Schools', value: '' }, ...schools.value.map((s) => ({ label: s, value: s }))]
+})
+
 watch(reportType, (newType) => {
   selectedOffice.value = filterStore[newType].selectedOffice
   school.value = filterStore[newType].school
@@ -124,7 +128,6 @@ function downloadBlob(blob: Blob | undefined, filename: string) {
 
 function getFilters() {
     const baseFilters = {
-        name: '',
         school: school.value || undefined,
         dateFrom: dateFrom.value || undefined,
         dateTo: dateTo.value || undefined,
@@ -176,7 +179,11 @@ async function generatePdf() {
                 break
         }
 
-        openPdf(blob)
+         if (blob) {
+            openPdf(blob)
+        } else {
+            toast.add({ title: 'No report data generated. Please check your filters.', color: 'warning' })
+        }
     } catch {
         toast.add({ title: 'Failed to generate PDF report', color: 'error' })
     } finally {
@@ -218,8 +225,12 @@ async function generateCsv() {
                 break
         }
 
-        downloadBlob(blob, filename)
-        toast.add({ title: 'CSV downloaded successfully', color: 'success' })
+        if (blob) {
+            downloadBlob(blob, filename)
+            toast.add({ title: 'CSV downloaded successfully', color: 'success' })
+        } else {
+            toast.add({ title: 'No report data generated. Please check your filters.', color: 'warning' })
+        }
     } catch {
         toast.add({ title: 'Failed to generate CSV report', color: 'error' })
     } finally {
@@ -257,9 +268,10 @@ async function generateCsv() {
                 <UFormField label="School">
                     <USelectMenu
                         v-model="school"
-                        :items="schools"
+                        :items="schoolSelectItems"
                         placeholder="Filter by school"
                         class="w-full md:w-64"
+                        value-key="value"
                     />
                 </UFormField>
 

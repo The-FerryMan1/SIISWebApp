@@ -5,6 +5,7 @@ namespace SIISMinimalAPI.Features.Report.AdminReport;
 public class AdminReportMasterlistDto
 {
     public string? Name { get; set; } = string.Empty;
+    public string? School { get; set; } = string.Empty;
     public string? PlacementStatus { get; set; } = string.Empty;
     public string? OfficeAssigned { get; set; } = string.Empty;
 }

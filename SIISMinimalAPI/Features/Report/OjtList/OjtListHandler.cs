@@ -56,23 +56,25 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
         {
             table.ColumnsDefinition(columns =>
             {
-                columns.ConstantColumn(35);
-                columns.RelativeColumn(2.2f);
-                columns.RelativeColumn(1.2f);
-                columns.RelativeColumn(1.8f);
-                columns.RelativeColumn(0.9f);
-                columns.RelativeColumn(1.1f);
-                columns.RelativeColumn(1.1f);
-                columns.RelativeColumn(1.2f);
-            });
+                    columns.ConstantColumn(35);
+                    columns.RelativeColumn(2.2f);
+                    columns.RelativeColumn(1.2f);
+                    columns.RelativeColumn(1.5f);
+                    columns.RelativeColumn(1.8f);
+                    columns.RelativeColumn(0.9f);
+                    columns.RelativeColumn(1.1f);
+                    columns.RelativeColumn(1.1f);
+                    columns.RelativeColumn(1.2f);
+                });
 
-            // Header row
-            table.Header(header =>
-            {
-                header.Cell().Element(HeaderCell).AlignCenter().Text("#").SemiBold();
-                header.Cell().Element(HeaderCell).Text("Student Name").SemiBold();
-                header.Cell().Element(HeaderCell).AlignCenter().Text("Status").SemiBold();
-                header.Cell().Element(HeaderCell).Text("Office").SemiBold();
+                // Header row
+                table.Header(header =>
+                {
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("#").SemiBold();
+                    header.Cell().Element(HeaderCell).Text("Student Name").SemiBold();
+                    header.Cell().Element(HeaderCell).AlignCenter().Text("Status").SemiBold();
+                    header.Cell().Element(HeaderCell).Text("School").SemiBold();
+                    header.Cell().Element(HeaderCell).Text("Office").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Internship hours").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Created").SemiBold();
@@ -88,6 +90,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                 table.Cell().Element(DataCell).Text(fullname).FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Application?.Status.ToString() ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).Text(ojt.SchoolName ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).Text(ojt.Placement?.Office?.OfficeName ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.TotalInternshipHours.ToString() ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
@@ -129,15 +132,16 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
            .AsSplitQuery().OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
            .ToListAsync(ct);
 
-       var records = ojts.Select(t => new OjtListDto
-       {
-           Name = t.FullName,
-           Office = t.Placement?.Office?.OfficeName ?? "N/A",
-           StartDate = t.Placement!.StartDate,
-           Status = t.Application.Status.ToString(),
-           TotalHours = t.TotalInternshipHours,
-           AccumulatedHours = t.Placement!.AccumulatedHours
-       }).ToList();
+        var records = ojts.Select(t => new OjtListDto
+        {
+            Name = t.FullName,
+            School = t.SchoolName,
+            Office = t.Placement?.Office?.OfficeName ?? "N/A",
+            StartDate = t.Placement?.StartDate,
+            Status = t.Application?.Status.ToString() ?? "N/A",
+            TotalHours = t.TotalInternshipHours,
+            AccumulatedHours = t.Placement?.AccumulatedHours
+        }).ToList();
 
     using var memoryStream = new MemoryStream();
     using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, leaveOpen: true))
@@ -186,6 +190,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 columns.ConstantColumn(35);
                 columns.RelativeColumn(2.2f);
                 columns.RelativeColumn(1.2f);
+                columns.RelativeColumn(1.5f);
                 columns.RelativeColumn(1.8f);
                 columns.RelativeColumn(0.9f);
                 columns.RelativeColumn(1.1f);
@@ -198,6 +203,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 header.Cell().Element(HeaderCell).AlignCenter().Text("#").SemiBold();
                 header.Cell().Element(HeaderCell).Text("Student Name").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Status").SemiBold();
+                header.Cell().Element(HeaderCell).Text("School").SemiBold();
                 header.Cell().Element(HeaderCell).Text("Office").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Internship hours").SemiBold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Start Date").SemiBold();
@@ -213,6 +219,7 @@ public class OjtListHandler(AppDbContext context) : IOjtListService
                 table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                 table.Cell().Element(DataCell).Text(fullname).FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Application?.Status.ToString() ?? "-").FontSize(9);
+                table.Cell().Element(DataCell).Text(ojt.SchoolName ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).Text(ojt.Placement?.Office?.OfficeName ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.TotalInternshipHours.ToString() ?? "-").FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(ojt.Placement?.StartDate.ToString("MM/dd/yyyy") ?? "-").FontSize(9);
@@ -258,11 +265,12 @@ public async Task<byte[]> OjtListCsvFiltered(CommonFilterOptions filters, Cancel
     var records = ojts.Select(t => new OjtListDto
     {
         Name = t.FullName,
+        School = t.SchoolName,
         Office = t.Placement?.Office?.OfficeName ?? "N/A",
-        StartDate = t.Placement!.StartDate,
-        Status = t.Application.Status.ToString(),
+        StartDate = t.Placement?.StartDate,
+        Status = t.Application?.Status.ToString() ?? "N/A",
         TotalHours = t.TotalInternshipHours,
-        AccumulatedHours = t.Placement!.AccumulatedHours
+        AccumulatedHours = t.Placement?.AccumulatedHours
     }).ToList();
 
     using var memoryStream = new MemoryStream();

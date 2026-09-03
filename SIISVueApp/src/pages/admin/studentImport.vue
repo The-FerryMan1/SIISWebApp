@@ -61,7 +61,7 @@ const back = () => router.back()
         <h1 class="text-3xl font-black text-primary">Student Import</h1>
         <p class="text-muted text-sm max-w-2xl">
           Upload an Excel file containing student internship information. Valid columns include Email, LastName,
-          FirstName, MiddleName, ContactNumber, Address, DateOfBirth (optional), Gender, GradeLevel, SchoolName, SchoolAddress,
+          FirstName, MiddleName, ContactNumber, Address, GradeLevel, SchoolName, SchoolAddress,
           SchoolContactPerson, SchoolContactPersonEmail, SchoolContactPersonPhone, InternshipNature, Strand, Degree,
           TotalInternshipHours, Office deployment, Internship Start Date, and Estimated Internship End Date.
           Imported students will be automatically approved. If office deployment is provided, a placement record will be created.

@@ -25,10 +25,8 @@ export const StudentUpdateDtoSchema = z.object({
     .min(1)
     .max(20)
     .regex(/^[\d\s\+\-\(\)]+$/, 'Contact number contains invalid characters'),
-  Address: z.string().min(1).max(200),
-  DateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
-  Gender: z.number().int().min(0).max(2),
-  GradeLevel: z.union([z.literal(0), z.literal(1)]),
+   Address: z.string().min(1).max(200),
+  EducationalLevel: z.union([z.literal(0), z.literal(1)]),
   SchoolName: z.string().min(1).max(100),
   SchoolAddress: z.string().min(1).max(200),
   SchoolContactPerson: z.string().min(1).max(100),

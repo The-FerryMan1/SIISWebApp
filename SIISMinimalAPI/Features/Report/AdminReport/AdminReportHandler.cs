@@ -252,6 +252,7 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
             {
                 columns.ConstantColumn(35);
                 columns.RelativeColumn(2.5f);
+                columns.RelativeColumn(2.5f);
                 columns.RelativeColumn(1.5f);
                 columns.RelativeColumn(2f);
             });
@@ -260,6 +261,7 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
             {
                 header.Cell().Element(HeaderCell).AlignCenter().Text("No").Bold();
                 header.Cell().Element(HeaderCell).Text("Name").Bold();
+                header.Cell().Element(HeaderCell).Text("School").Bold();
                 header.Cell().Element(HeaderCell).AlignCenter().Text("Placement Status").Bold();
                 header.Cell().Element(HeaderCell).Text("Office Assigned").Bold();
 
@@ -275,6 +277,7 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
             {
                 table.Cell().Element(DataCell).AlignCenter().Text(index++.ToString()).FontSize(9);
                 table.Cell().Element(DataCell).Text(s.FullName).FontSize(9);
+                table.Cell().Element(DataCell).Text(s.SchoolName).FontSize(9);
                 table.Cell().Element(DataCell).AlignCenter().Text(s.Placement?.PlacementStatus.ToString().Humanize(LetterCasing.Title) ?? "N/A").FontSize(9);
                 table.Cell().Element(DataCell).Text(s.Placement?.Office?.OfficeName ?? "N/A").FontSize(9);
             }
@@ -311,6 +314,7 @@ public class AdminReportHandler(AppDbContext context) : IAdminReportService
         var records = students.Select(t => new AdminReportMasterlistDto
         {
             Name = t.FullName,
+            School = t.SchoolName,
             PlacementStatus = t.Placement?.PlacementStatus.ToString().Humanize(LetterCasing.Title),
             OfficeAssigned = t.Placement?.Office?.OfficeName
         }).ToList();

@@ -12,10 +12,11 @@ import PageExpired from '../../components/pageExpired.vue'
 const toast = useToast()
 const onaboard = useOnBoardStore()
 const { state, errorMessage } = storeToRefs(onaboard)
-const isOpen = ref<boolean>(false)
-const moaFile = ref<File | null>(null)
-const resumeFile = ref<File | null>(null)
-const isSubmitting = ref(false)
+  const isOpen = ref<boolean>(false)
+  const moaFile = ref<File | null>(null)
+  const developmentLetterFile = ref<File | null>(null)
+  const resumeFile = ref<File | null>(null)
+  const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const form = useTemplateRef('form')
 const route = useRoute()
@@ -44,89 +45,84 @@ watch(()=>route.params.token, async(value)=>{
     }
 }, {immediate: true})
 
-const genderItems = [
-  { value: 0, label: 'Male' },
-  { value: 1, label: 'Female' },
-  { value: 2, label: 'Others' },
-]
-
-const gradeLevelItems = [
-  { value: 0, label: 'Senior High School' },
-  { value: 1, label: 'College' },
-]
-
-const internshipNatureItems = [
-  { value: 0, label: 'On-the-Job-Training' },
-  { value: 1, label: 'Work Immersion' },
-]
-
-const strandItems = [
-  { value: 0, label: 'STEM' },
-  { value: 1, label: 'ABM' },
-  { value: 2, label: 'HUMSS' },
-  { value: 3, label: 'GAS' },
-  { value: 4, label: 'ICT' },
-]
-
-const degreeItems = [
-  { value: 0, label: 'BSIT' },
-  { value: 1, label: 'BSCS' },
-  { value: 2, label: 'BSN' },
-  { value: 3, label: 'BSA' },
-  { value: 4, label: 'BSBA' },
-  { value: 5, label: 'BSEd' },
-  { value: 6, label: 'BSCE' },
-  { value: 7, label: 'BSEE' },
-  { value: 8, label: 'BSME' },
-  { value: 9, label: 'BSArch' },
-  { value: 10, label: 'BSPharma' },
-  { value: 11, label: 'BSPsych' },
-]
-
-watch([moaFile, resumeFile], () => {
-  state.value.moaFile = moaFile.value
-  state.value.resumeFile = resumeFile.value
-  state.value.requirements = [
-    ...(moaFile.value ? [moaFile.value] : []),
-    ...(resumeFile.value ? [resumeFile.value] : []),
+  const internshipNatureItems = [
+    { value: 0, label: 'On-the-Job-Training' },
+    { value: 1, label: 'Work Immersion' },
   ]
-})
 
-const maxDate = computed(() => {
-  const date = new Date()
-  date.setFullYear(date.getFullYear() - 15)
-  return date.toISOString().split('T')[0]
-})
-const minStartDate = computed(() => {
+  const strandItems = [
+    { value: 0, label: 'STEM' },
+    { value: 1, label: 'ABM' },
+    { value: 2, label: 'HUMSS' },
+    { value: 3, label: 'GAS' },
+    { value: 4, label: 'ICT' },
+  ]
+
+  const degreeItems = [
+    { value: 0, label: 'BSIT' },
+    { value: 1, label: 'BSCS' },
+    { value: 2, label: 'BSN' },
+    { value: 3, label: 'BSA' },
+    { value: 4, label: 'BSBA' },
+    { value: 5, label: 'BSEd' },
+    { value: 6, label: 'BSCE' },
+    { value: 7, label: 'BSEE' },
+    { value: 8, label: 'BSME' },
+    { value: 9, label: 'BSArch' },
+    { value: 10, label: 'BSPharma' },
+    { value: 11, label: 'BSPsych' },
+  ]
+
+  const educationalLevelItems = [
+    { value: 0, label: 'Senior High School' },
+    { value: 1, label: 'College' },
+  ]
+
+  watch([moaFile, developmentLetterFile, resumeFile], () => {
+  state.value.moaFile = moaFile.value
+  state.value.developmentLetterFile = developmentLetterFile.value
+  state.value.resumeFile = resumeFile.value
+    state.value.developmentLetterFile = developmentLetterFile.value
+    state.value.resumeFile = resumeFile.value
+    state.value.requirements = [
+      ...(moaFile.value ? [moaFile.value] : []),
+      ...(developmentLetterFile.value ? [developmentLetterFile.value] : []),
+      ...(resumeFile.value ? [resumeFile.value] : []),
+    ]
+  })
+
+  const minStartDate = computed(() => {
   const date = new Date()
   date.setDate(date.getDate() + 7)
   return date
 })
 
 // Step 1: Form passes validation → validate files and store payload
-const onReview = (payload: FormSubmitEvent<OnBoardUpdateDto>) => {
-  if (!moaFile.value) {
-    toast.add({ title: 'MOA document is required', color: 'error' })
-    return
-  }
-  if (!resumeFile.value) {
-    toast.add({ title: 'Resume / CV is required', color: 'error' })
-    return
-  }
+  const onReview = (payload: FormSubmitEvent<OnBoardUpdateDto>) => {
+    if (!moaFile.value) {
+      toast.add({ title: 'Notarized MOA document is required', color: 'error' })
+      return
+    }
+    if (!developmentLetterFile.value) {
+      toast.add({ title: 'Development letter is required', color: 'error' })
+      return
+    }
+    if (!resumeFile.value) {
+      toast.add({ title: 'Resume is required', color: 'error' })
+      return
+    }
 
-  reviewPayload.value = payload
-  isOpen.value = true
-}
+    reviewPayload.value = payload
+    isOpen.value = true
+  }
 
 // Step 2: User confirms in modal → actually submit
 const onConfirm = async () => {
   if (!reviewPayload.value) return
 
   console.log('MOA file before sync:', moaFile.value)
-  console.log('Resume file before sync:', resumeFile.value)
 
   state.value.moaFile = moaFile.value
-  state.value.resumeFile = resumeFile.value
 
   try {
     isSubmitting.value = true
@@ -136,6 +132,7 @@ const onConfirm = async () => {
 
     onaboard.stateReset()
     moaFile.value = null
+    developmentLetterFile.value = null
     resumeFile.value = null
     reviewPayload.value = null
   } catch (e) {
@@ -154,8 +151,7 @@ const onConfirm = async () => {
   }
 }
 
-const genderFinder = (index: number) => genderItems.find((t) => t.value === index)?.label
-const gradeLevelFinder = (index: number) => gradeLevelItems.find((t) => t.value === index)?.label
+  const educationalLevelFinder = (index: number) => educationalLevelItems.find((t) => t.value === index)?.label
 const internshipNatureFinder = (index: number) =>
   internshipNatureItems.find((t) => t.value === index)?.label
 const degreeFinder = (index: number) => degreeItems.find((t) => t.value === index)?.label
@@ -243,28 +239,11 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="student.dateOfBirth" label="Date of Birth" required>
-                <UInput
-                  :max="maxDate"
-                  v-model="state.student.dateOfBirth"
-                  type="date"
-                  class="w-full"
-                />
-              </UFormField>
-              <UFormField name="student.gender" label="Gender" required>
-                <USelectMenu
-                  v-model="state.student.gender"
-                  placeholder="Select gender"
-                  :items="genderItems"
-                  class="w-full"
-                  value-key="value"
-                />
-              </UFormField>
-              <UFormField name="student.gradeLevel" label="Grade Level" required>
+              <UFormField name="student.gradeLevel" label="Educational Level" required>
                 <USelectMenu
                   v-model="state.student.gradeLevel"
-                  placeholder="Select grade level"
-                  :items="gradeLevelItems"
+                  placeholder="Select educational level"
+                  :items="educationalLevelItems"
                   class="w-full"
                   value-key="value"
                 />
@@ -399,20 +378,29 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
           <!-- Requirements -->
           <UPageCard title="Requirements" icon="i-lucide-folder" variant="outline">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField name="moaFile" label="MOA Document" required>
+              <UFormField name="moaFile" label="Notarized MOA Document" required>
                 <UFileUpload
                   v-model="moaFile"
                   file-icon="i-lucide-file-text"
-                  description="Upload your Memorandum of Agreement (PDF only)"
+                  description="Upload your Notarized Memorandum of Agreement (PDF only)"
                   accept=".pdf"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="resumeFile" label="Resume / CV" required>
+              <UFormField name="developmentLetterFile" label="Development Letter" required>
+                <UFileUpload
+                  v-model="developmentLetterFile"
+                  file-icon="i-lucide-file-text"
+                  description="Upload your Development Letter (PDF, DOC, DOCX)"
+                  accept=".pdf,.doc,.docx"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField name="resumeFile" label="Resume" required>
                 <UFileUpload
                   v-model="resumeFile"
                   file-icon="i-lucide-file-user"
-                  description="Upload your Resume or CV (PDF, DOC, DOCX)"
+                  description="Upload your Resume (PDF, DOC, DOCX)"
                   accept=".pdf,.doc,.docx"
                   class="w-full"
                 />
@@ -442,11 +430,8 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                 >
                   <span class="text-muted capitalize">{{ key }}:</span>
                   <span class="font-bold">
-                    <template v-if="key === 'gender' && typeof value === 'number'">{{
-                      genderFinder(value)
-                    }}</template>
-                    <template v-else-if="key === 'gradeLevel' && typeof value === 'number'">{{
-                      gradeLevelFinder(value)
+                    <template v-if="key === 'gradeLevel' && typeof value === 'number'">{{
+                      educationalLevelFinder(value)
                     }}</template>
                     <template v-else-if="key === 'internshipNature' && typeof value === 'number'">{{
                       internshipNatureFinder(value)
@@ -466,11 +451,15 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
             <UPageCard title="Uploaded Requirements" icon="i-lucide-folder">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p class="text-sm text-muted mb-1">MOA Document:</p>
+                  <p class="text-sm text-muted mb-1">Notarized MOA Document:</p>
                   <p class="font-bold">{{ moaFile?.name || 'No file uploaded' }}</p>
                 </div>
                 <div>
-                  <p class="text-sm text-muted mb-1">Resume / CV:</p>
+                  <p class="text-sm text-muted mb-1">Development Letter:</p>
+                  <p class="font-bold">{{ developmentLetterFile?.name || 'No file uploaded' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-muted mb-1">Resume:</p>
                   <p class="font-bold">{{ resumeFile?.name || 'No file uploaded' }}</p>
                 </div>
               </div>

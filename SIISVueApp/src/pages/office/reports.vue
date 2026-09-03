@@ -13,6 +13,7 @@ const toast = useToast()
 
 const reportType = ref<'masterlist' | 'ongoing' | 'finished'>('masterlist')
 const loading = ref(false)
+const reportFormat = ref<'pdf' | 'csv'>('pdf')
 
 interface OfficeReportFilters {
   school: string
@@ -32,6 +33,10 @@ const dateFrom = ref(officeFilterStore[reportType.value].dateFrom)
 const dateTo = ref(officeFilterStore[reportType.value].dateTo)
 const placementStatus = ref(officeFilterStore[reportType.value].placementStatus)
 const schools = ref<string[]>([])
+
+const schoolSelectItems = computed(() => {
+    return [{ label: 'All Schools', value: '' }, ...schools.value.map((s) => ({ label: s, value: s }))]
+})
 
 const placementStatusOptions: SelectItem[] = [
   { label: 'All Status', value: '' },
@@ -106,26 +111,48 @@ async function generateReport() {
     let blob: Blob | undefined
     let filename = 'report'
 
+    const isPdf = reportFormat.value === 'pdf'
+
     switch (reportType.value) {
       case 'masterlist':
-        blob = await report.officeMasterlistPdf(filters)
+        blob = isPdf
+          ? await report.officeMasterlistPdf(filters)
+          : await report.officeMasterlistCsv(filters)
         filename = 'masterlist'
         break
       case 'ongoing':
-        blob = await report.officeOngoingPdf(filters)
+        blob = isPdf
+          ? await report.officeOngoingPdf(filters)
+          : await report.officeOngoingCsv(filters)
         filename = 'ongoing'
         break
       case 'finished':
-        blob = await report.officeFinishedPdf(filters)
+        blob = isPdf
+          ? await report.officeFinishedPdf(filters)
+          : await report.officeFinishedCsv(filters)
         filename = 'finished'
         break
     }
 
     if (blob) {
-      const url = URL.createObjectURL(blob)
-      const win = window.open(url, '_blank')
-      win?.print()
-      URL.revokeObjectURL(url)
+      if (isPdf) {
+        const url = URL.createObjectURL(blob)
+        const win = window.open(url, '_blank')
+        win?.print()
+        URL.revokeObjectURL(url)
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${filename}.csv`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        toast.add({ title: 'CSV downloaded successfully', color: 'success' })
+      }
+    } else {
+      toast.add({ title: 'No report data generated. Please check your filters.', color: 'warning' })
     }
   } catch {
     toast.add({ title: 'Failed to generate report', color: 'error' })
@@ -166,9 +193,10 @@ function logout() {
         <UFormField label="School">
           <USelectMenu
             v-model="school"
-            :items="schools"
+            :items="schoolSelectItems"
             placeholder="Filter by school"
             class="w-full md:w-64"
+            value-key="value"
           />
         </UFormField>
 
@@ -197,6 +225,19 @@ function logout() {
             class="w-full md:w-64"
           />
         </UFormField>
+
+      <UFormField label="Report Format">
+        <USelectMenu
+          v-model="reportFormat"
+          :items="[
+            { label: 'PDF', value: 'pdf' },
+            { label: 'CSV', value: 'csv' },
+          ]"
+          placeholder="Select format"
+          class="w-full md:w-48"
+          value-key="value"
+        />
+      </UFormField>
 
       <UButton
         icon="i-lucide-file-text"

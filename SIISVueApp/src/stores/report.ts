@@ -5,11 +5,12 @@ import type { AxiosError } from "axios";
 
 export const useReportStore = defineStore('report', () => {
 
-    const pdfReport = async (endpoint: string, param?: number) => {
+     const pdfReport = async (endpoint: string, param?: number, school?: string) => {
         try {
             const { data } = await useAxios.get(endpoint, {
                 params: {
-                    status: param
+                    status: param,
+                    school: school,
                 },
                 responseType: 'blob',
                 headers: {
@@ -23,11 +24,12 @@ export const useReportStore = defineStore('report', () => {
         }
     }
 
-    const csvExport = async(endpoint: string, param?: number) => {
-         try {
+    const csvExport = async(endpoint: string, param?: number, school?: string) => {
+        try {
             const { data } = await useAxios.get(endpoint, {
                 params: {
-                    status: param
+                    status: param,
+                    school: school,
                 },
                 responseType: 'blob',
                 headers: {
@@ -42,12 +44,13 @@ export const useReportStore = defineStore('report', () => {
     }
 
 
-    const pdfReportPerOffice = async(endpoint: string, param?: number)=>{
+     const pdfReportPerOffice = async(endpoint: string, param?: number, school?: string)=>{
          try {
-            const { data } = await useAxios.get(endpoint, {
-                params: {
-                    office: param
-                },
+             const { data } = await useAxios.get(endpoint, {
+                 params: {
+                     office: param,
+                     school: school,
+                 },
                 responseType: 'blob',
                 headers: {
                     'Content-Type': 'application/pdf'
@@ -62,11 +65,12 @@ export const useReportStore = defineStore('report', () => {
 
 
     
-const csvExportPerOffice = async(endpoint: string, param?: number) => {
+     const csvExportPerOffice = async(endpoint: string, param?: number, school?: string) => {
           try {
              const { data } = await useAxios.get(endpoint, {
                  params: {
-                     status: param
+                     status: param,
+                     school: school,
                  },
                  responseType: 'blob',
                  headers: {
@@ -80,7 +84,7 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const pdfReportFiltered = async (endpoint: string, filters: { status?: number; office?: string; dateFrom?: string; dateTo?: string }) => {
+     const pdfReportFiltered = async (endpoint: string, filters: { status?: number; office?: string; school?: string; dateFrom?: string; dateTo?: string }) => {
           try {
               const { data } = await useAxios.get(endpoint, {
                   params: filters,
@@ -94,7 +98,7 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
       }
 
-     const csvReportFiltered = async (endpoint: string, filters: { office?: string; dateFrom?: string; dateTo?: string }) => {
+     const csvReportFiltered = async (endpoint: string, filters: { office?: string; school?: string; dateFrom?: string; dateTo?: string }) => {
           try {
               const { data } = await useAxios.get(endpoint, {
                   params: filters,
@@ -108,7 +112,7 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
       }
 
-     const pdfReportPerOfficeFiltered = async (endpoint: string, filters: { office?: number; status?: number; dateFrom?: string; dateTo?: string }) => {
+     const pdfReportPerOfficeFiltered = async (endpoint: string, filters: { office?: number; status?: number; school?: string; dateFrom?: string; dateTo?: string }) => {
           try {
               const { data } = await useAxios.get(endpoint, {
                   params: filters,
@@ -149,6 +153,19 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
       }
 
+      const officeMasterlistCsv = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/office/masterlist/csv', {
+                  params: filters,
+                  responseType: 'blob',
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
       const officeOngoingPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
           try {
               const { data } = await useAxios.get('/report/office/ongoing', {
@@ -162,9 +179,35 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
           }
       }
 
+      const officeOngoingCsv = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/office/ongoing/csv', {
+                  params: filters,
+                  responseType: 'blob',
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
       const officeFinishedPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
           try {
               const { data } = await useAxios.get('/report/office/finished', {
+                  params: filters,
+                  responseType: 'blob',
+              });
+              return data
+          } catch (error) {
+              const err = error as AxiosError
+              console.log(err)
+          }
+      }
+
+      const officeFinishedCsv = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
+          try {
+              const { data } = await useAxios.get('/report/office/finished/csv', {
                   params: filters,
                   responseType: 'blob',
               });
@@ -374,10 +417,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const studentMasterlistPdf = async (officeName: string) => {
-         try {
-             const { data } = await useAxios.get('/report/student-masterlist/pdf', {
-                 params: { officeName },
+     const studentMasterlistPdf = async (officeName: string, school?: string) => {
+          try {
+              const { data } = await useAxios.get('/report/student-masterlist/pdf', {
+                  params: { officeName, school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -388,10 +431,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const studentMasterlistCsv = async (officeName: string) => {
-         try {
-             const { data } = await useAxios.get('/report/student-masterlist/csv', {
-                 params: { officeName },
+     const studentMasterlistCsv = async (officeName: string, school?: string) => {
+          try {
+              const { data } = await useAxios.get('/report/student-masterlist/csv', {
+                  params: { officeName, school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -402,9 +445,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const pendingApplicationsPdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/pending-applications/pdf', {
+    const pendingApplicationsPdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/pending-applications/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -415,9 +459,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const pendingApplicationsCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/pending-applications/csv', {
+    const pendingApplicationsCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/pending-applications/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -428,9 +473,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const schoolSummaryPdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/school-summary/pdf', {
+    const schoolSummaryPdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/school-summary/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -441,9 +487,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const schoolSummaryCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/school-summary/csv', {
+    const schoolSummaryCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/school-summary/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -454,9 +501,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const placementUtilizationPdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/placement-utilization/pdf', {
+    const placementUtilizationPdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/placement-utilization/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -467,9 +515,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const placementUtilizationCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/placement-utilization/csv', {
+    const placementUtilizationCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/placement-utilization/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -480,9 +529,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const requirementsCompliancePdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/requirements-compliance/pdf', {
+    const requirementsCompliancePdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/requirements-compliance/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -493,9 +543,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const requirementsComplianceCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/requirements-compliance/csv', {
+    const requirementsComplianceCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/requirements-compliance/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -506,9 +557,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const hoursProgressPdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/hours-progress/pdf', {
+    const hoursProgressPdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/hours-progress/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -519,9 +571,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const hoursProgressCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/hours-progress/csv', {
+    const hoursProgressCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/hours-progress/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -532,9 +585,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const completionSummaryPdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/completion-summary/pdf', {
+    const completionSummaryPdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/completion-summary/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -545,9 +599,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const completionSummaryCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/completion-summary/csv', {
+    const completionSummaryCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/completion-summary/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -558,9 +613,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const rejectedApplicationsPdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/rejected-applications/pdf', {
+    const rejectedApplicationsPdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/rejected-applications/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -571,9 +627,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const rejectedApplicationsCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/rejected-applications/csv', {
+    const rejectedApplicationsCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/rejected-applications/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -584,9 +641,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const importAuditCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/import-audit/csv', {
+    const importAuditCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/import-audit/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -597,9 +655,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const officePerformancePdf = async () => {
-         try {
-             const { data } = await useAxios.get('/report/office-performance/pdf', {
+    const officePerformancePdf = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/office-performance/pdf', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/pdf' },
              });
@@ -610,9 +669,10 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
          }
      }
 
-     const officePerformanceCsv = async () => {
-         try {
-             const { data } = await useAxios.get('/report/office-performance/csv', {
+    const officePerformanceCsv = async (school?: string) => {
+        try {
+            const { data } = await useAxios.get('/report/office-performance/csv', {
+                params: { school },
                  responseType: 'blob',
                  headers: { 'Content-Type': 'application/csv' },
              });
@@ -654,9 +714,12 @@ const csvExportPerOffice = async(endpoint: string, param?: number) => {
            csvReportFiltered,
            pdfReportPerOfficeFiltered,
            previewPdf,
-           officeMasterlistPdf,
-           officeOngoingPdf,
-           officeFinishedPdf,
+            officeMasterlistPdf,
+            officeMasterlistCsv,
+            officeOngoingPdf,
+            officeOngoingCsv,
+            officeFinishedPdf,
+            officeFinishedCsv,
            adminExpiringPdf,
            adminMasterlistPdf,
            adminMasterlistCsv,
