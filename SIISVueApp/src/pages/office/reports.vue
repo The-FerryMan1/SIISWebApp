@@ -222,6 +222,7 @@ function logout() {
             :items="placementStatusOptions"
             placeholder="Filter by status"
             :allow-clear="false"
+            value-key="value"
             class="w-full md:w-64"
           />
         </UFormField>

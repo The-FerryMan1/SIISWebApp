@@ -11,6 +11,7 @@
     <PackageReference Include="ClosedXML" Version="0.104.0" />
     <PackageReference Include="FluentValidation" Version="8.3.0" />
     <PackageReference Include="Humanizer" Version="3.0.10" />
+    <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
@@ -33,6 +34,7 @@
     <Folder Include="Features\Auth\" />
     <Folder Include="Features\Auth\Logout\" />
     <Folder Include="Features\Auth\User\" />
+    <Folder Include="Features\Email\" />
     <Folder Include="Features\Endorsement\" />
     <Folder Include="Features\Endorsement\Bulk\" />
     <Folder Include="Features\Endorsement\Create\" />

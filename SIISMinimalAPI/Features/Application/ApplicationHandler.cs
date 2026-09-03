@@ -8,13 +8,16 @@ using SIISMinimalAPI.Features.Application.AssignAndApprove;
 using SIISMinimalAPI.Features.Application.GetById;
 using SIISMinimalAPI.Features.Shared.Models;
 using Humanizer;
+using SIISMinimalAPI.Features.Email;
 
 namespace SIISMinimalAPI.Features.Application;
 
-public class ApplicationHandler(AppDbContext context, ILogService logService) : IApplicationService
+public class ApplicationHandler(AppDbContext context, ILogService logService, IEmailService emailService, ILogger<ApplicationHandler> logger) : IApplicationService
 {
     private readonly AppDbContext _context = context;
     private readonly ILogService _logService = logService;
+    private readonly IEmailService _emailService = emailService;
+    private readonly ILogger<ApplicationHandler> _logger = logger;
 
     public async Task AssignAndApprove(Guid uuid, RequestDto requestDto, CancellationToken ct)
     {
@@ -58,8 +61,55 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
         exists.Application.Status = Shared.Enums.ApplicationStatusEnum.Approved;
         exists.Application.UpdatedAt = DateTime.Now;
 
-        await _context.SaveChangesAsync(ct);
 
+
+        string subject = "Update on Your Internship Application";
+        string htmlBody = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9; }}
+                        .header {{ background-color: #102e6c; color: white; padding: 10px 20px; border-radius: 6px 6px 0 0; text-align: center; }}
+                        .content {{ padding: 20px; background-color: white; }}
+                        .footer {{ font-size: 12px; color: #777; text-align: center; margin-top: 20px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h2>Application Status Update</h2>
+                        </div>
+                        <div class='content'>
+                            <p>Hi <strong>{exists.FullName}</strong>,</p>
+                         <p>We are excited to inform you that your internship application has been <strong>approved</strong>!</p>
+                        <div class='details'>
+                            <p style='margin: 5px 0;'><strong>Assigned Office:</strong> {office.OfficeName}</p>
+                            <p style='margin: 5px 0;'><strong>Start Date:</strong> {exists.Placement.StartDate:yyyy-MM-dd}</p>
+                            <p style='margin: 5px 0;'><strong>Estimated End Date:</strong> {exists.Placement.EstimatedEndDate:yyyy-MM-dd}</p>
+                        </div>
+
+                        <p>Please log in to your student portal for further instructions regarding your placement guidelines and first-day orientation.</p>
+                        <p>Welcome aboard!</p>
+                        </div>
+                        <div class='footer'>
+                            <p>&copy; {DateTime.Now.Year} SIIS. All rights reserved.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+        await _context.SaveChangesAsync(ct);
+        try
+        {
+            await _emailService.SendEmailAsync(exists.Email, "Internship Application", htmlBody);
+        }
+        catch (Exception ex)
+        {
+            // Log the email error, but let the approval process succeed
+            _logger.LogError(ex, "Failed to send approval email to {Email}", exists.Email);
+        }
         var userId = context.Entry(exists).Property("Id").CurrentValue.ToString() ?? "unknown";
         await _logService.WriteAsync("Approve", "Application", exists.Application.Id, userId, $"Approved application for {exists.FullName}");
     }
@@ -71,6 +121,8 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
         .Include(t => t.Requirements)
         .FirstOrDefaultAsync(t => t.Application.ApplicationUUID == uuid, ct)
         ?? throw new KeyNotFoundException("Application not found");
+
+
 
 
         foreach (var req in application.Requirements)
@@ -251,7 +303,7 @@ public class ApplicationHandler(AppDbContext context, ILogService logService) : 
         ?? throw new KeyNotFoundException("Application not found");
 
 
-        if(application.Application.Status == Shared.Enums.ApplicationStatusEnum.Approved)
+        if (application.Application.Status == Shared.Enums.ApplicationStatusEnum.Approved)
         {
             throw new Exception("Approved application cannot be rejected");
         }

@@ -30,14 +30,6 @@ public class StudentRegDtoValidator : AbstractValidator<StudentRegDto>
             .NotEmpty().WithMessage("Address is required")
             .MaximumLength(200);
 
-        RuleFor(x => x.DateOfBirth)
-            .NotEmpty().WithMessage("Date of birth is required")
-            .Must(BeAtLeast15YearsOld).WithMessage("Student must be at least 15 years old")
-            .Must(BeNotOver60YearsOld).WithMessage("Invalid date of birth");
-
-        RuleFor(x => x.Gender)
-            .IsInEnum().WithMessage("Invalid gender value");
-
         RuleFor(x => x.GradeLevel)
             .IsInEnum().WithMessage("Invalid grade level");
     }

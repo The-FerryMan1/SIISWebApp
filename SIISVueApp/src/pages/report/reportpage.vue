@@ -59,7 +59,10 @@ const needsStatus = computed(() => false)
 const needsPlacementStatus = computed(() => reportType.value === 'masterlist')
 
 const officeSelectItems = computed(() => {
-    return [{ label: 'All Offices', value: '' }, ...OfficeOptions]
+    return [{ label: 'All Offices', value: '' }, ...OfficeOptions.map(o => ({
+        label: (o as { label?: string }).label ?? '',
+        value: (o as { label?: string }).label ?? ''
+    }))]
 })
 
 const schoolSelectItems = computed(() => {
@@ -252,6 +255,7 @@ async function generateCsv() {
                     <USelectMenu
                         v-model="reportType"
                         :items="reportTypeOptions"
+                        value-key="value"
                         class="w-full md:w-96"
                     />
                 </UFormField>
@@ -261,6 +265,7 @@ async function generateCsv() {
                         v-model="selectedOffice"
                         :items="officeSelectItems"
                         placeholder="Select office"
+                        value-key="value"
                         class="w-full md:w-64"
                     />
                 </UFormField>

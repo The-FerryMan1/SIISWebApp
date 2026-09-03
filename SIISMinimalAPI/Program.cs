@@ -33,6 +33,7 @@ using SIISMinimalAPI.Features.Requirements;
 using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.StudentImport;
 using SIISMinimalAPI.Features.PlacementTransfer;
+using SIISMinimalAPI.Features.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,7 +113,8 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 10;             // queue 10 extra requests
     });
 });
-
+builder.Services.Configure<SmtpOptions>(
+    builder.Configuration.GetSection("SmtpSettings"));
 builder.Services.AddScoped<IOnBoadringService, OnBoardingHandler>();
 builder.Services.AddScoped<IApplicationService, ApplicationHandler>();
 builder.Services.AddScoped<IEndorsementService, EndorsementHandler>();
@@ -138,6 +140,7 @@ builder.Services.AddScoped<IImportAuditService, ImportAuditHandler>();
 builder.Services.AddScoped<IOfficePerformanceService, OfficePerformanceHandler>();
 builder.Services.AddScoped<IProgressService, ProgressHandler>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
