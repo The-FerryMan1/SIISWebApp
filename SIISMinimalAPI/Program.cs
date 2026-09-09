@@ -27,6 +27,9 @@ using SIISMinimalAPI.Features.Report.CompletionSummary;
 using SIISMinimalAPI.Features.Report.RejectedApplications;
 using SIISMinimalAPI.Features.Report.ImportAudit;
 using SIISMinimalAPI.Features.Report.OfficePerformance;
+using SIISMinimalAPI.Features.Report.WeeklyReport;
+using SIISMinimalAPI.Features.SystemSettings;
+using SIISMinimalAPI.Features.Inbox;
 using SIISMinimalAPI.Features.OfficeDashboard;
 using SIISMinimalAPI.Features.Progress;
 using SIISMinimalAPI.Features.Requirements;
@@ -34,6 +37,7 @@ using SIISMinimalAPI.Features.Logs;
 using SIISMinimalAPI.Features.StudentImport;
 using SIISMinimalAPI.Features.PlacementTransfer;
 using SIISMinimalAPI.Features.Email;
+using SIISMinimalAPI.Features.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -126,6 +130,8 @@ builder.Services.AddScoped<IOjtListService, OjtListHandler>();
 builder.Services.AddScoped<IOjtPerOfficeService, OjtPerOfficehandler>();
 builder.Services.AddScoped<IOfficeDashboardService, OfficeDashboardHandler>();
 builder.Services.AddScoped<IOfficeReportService, OfficeReportHandler>();
+builder.Services.AddScoped<IWeeklyReportService, WeeklyReportHandler>();
+builder.Services.AddScoped<ISystemSettingsService, SystemSettingsHandler>();
 builder.Services.AddScoped<IAdminReportService, AdminReportHandler>();
 builder.Services.AddScoped<IStudentImportService, StudentImportHandler>();
 builder.Services.AddScoped<IStudentMasterlistService, StudentMasterlistHandler>();
@@ -138,6 +144,8 @@ builder.Services.AddScoped<ICompletionSummaryService, CompletionSummaryHandler>(
 builder.Services.AddScoped<IRejectedApplicationsService, RejectedApplicationsHandler>();
 builder.Services.AddScoped<IImportAuditService, ImportAuditHandler>();
 builder.Services.AddScoped<IOfficePerformanceService, OfficePerformanceHandler>();
+builder.Services.AddScoped<IInboxService, InboxHandler>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IProgressService, ProgressHandler>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
@@ -214,6 +222,8 @@ app.MapToOjtList();
 app.MapToOjtPerOffice();
 app.MapToOfficeDashboard();
 app.MapToOfficeReport();
+app.MapToWeeklyReport();
+app.MapToSystemSettings();
 app.MapToAdminReport();
 app.MapStudentImportEndpoints();
 app.MapToStudentMasterlist();
@@ -226,6 +236,7 @@ app.MapToCompletionSummary();
 app.MapToRejectedApplications();
 app.MapToImportAudit();
 app.MapToOfficePerformance();
+app.MapToInbox();
         app.MapToRequirements();
         app.MapToLogs();
         app.MapToPlacementTransfer();
@@ -235,14 +246,7 @@ app.MapToOfficePerformance();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    try
-    {
-        dbContext.Database.Migrate();
-    }
-    catch (InvalidOperationException ex) when (ex.Message.Contains("PendingModelChangesWarning"))
-    {
-        Console.WriteLine("Skipping migration due to pending model changes: " + ex.Message);
-    }
+    
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
     await SeederStudent.InitStudents(scope.ServiceProvider);
 }
@@ -251,4 +255,3 @@ app.MapFallbackToFile("index.html");
 app.Run();
 
 public record LoginRequest(string Email, string Password);
-public record RegisterRequest(string Email, string Password);

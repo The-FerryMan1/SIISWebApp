@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SIISMinimalAPI.Data;
 
@@ -10,9 +11,11 @@ using SIISMinimalAPI.Data;
 namespace SIISMinimalAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260907075351_AddSystemSettingsTable")]
+    partial class AddSystemSettingsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
@@ -267,53 +270,6 @@ namespace SIISMinimalAPI.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Offices");
-                });
-
-            modelBuilder.Entity("SIISMinimalAPI.Features.Shared.Models.OfficeNotification", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ActionUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("OfficeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Priority")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OfficeId", "CreatedAt");
-
-                    b.ToTable("OfficeNotifications");
                 });
 
             modelBuilder.Entity("SIISMinimalAPI.Features.Shared.Models.Placement", b =>
@@ -747,17 +703,6 @@ namespace SIISMinimalAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SIISMinimalAPI.Features.Shared.Models.OfficeNotification", b =>
-                {
-                    b.HasOne("SIISMinimalAPI.Features.Shared.Models.Office", "Office")
-                        .WithMany()
-                        .HasForeignKey("OfficeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Office");
                 });
 
             modelBuilder.Entity("SIISMinimalAPI.Features.Shared.Models.Placement", b =>

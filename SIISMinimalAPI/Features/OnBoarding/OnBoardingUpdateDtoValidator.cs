@@ -20,6 +20,7 @@ public class OnBoardUpdateDtoValidator : AbstractValidator<OnBoardUpdateDto>
             .SetValidator(new InternshipUpdateDtoValidator());
 
         RuleForEach(x => x.Requirements)
+            .NotNull()
             .SetValidator(new RequirementsUpdateDtoValidator());
 
         RuleFor(x => x.Office)
@@ -219,7 +220,7 @@ public class RequirementsUpdateDtoValidator : AbstractValidator<RequirementsUpda
     {
         if (string.IsNullOrEmpty(fileType)) return false;
         var lower = fileType.ToLower();
-        var allowed = new[] { "application/pdf", "applicaton/doc", "applicaton/docx", "applicaton/jpg", "applicaton/jpeg", "applicaton/png" };
+        var allowed = new[] { "application/pdf", "application/doc", "application/docx", "application/jpg", "application/jpeg", "application/png" };
         return allowed.Contains(lower) || lower.StartsWith("image/") || lower.StartsWith("application/");
     }
 }

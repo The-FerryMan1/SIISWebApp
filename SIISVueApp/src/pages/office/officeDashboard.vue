@@ -6,10 +6,12 @@ import { useAxios } from '../../fetch/axios'
 import { useRouter } from 'vue-router'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import { validateDateRange, validateAccumulatedHours, isNonEmpty, abbreviateEmail } from '../../utils/validators'
+import { useInboxStore } from '../../stores/inbox'
 
 const officeAuth = useOfficeAccountStore()
 const router = useRouter()
 const toast = useToast()
+const inbox = useInboxStore()
 
 
 const UButton = resolveComponent('UButton')
@@ -124,6 +126,7 @@ async function loadDashboard() {
     const { data: myOffice } = await useAxios.get('office/my-office')
     const { data } = await useAxios.get(`/office-dashboard/${myOffice.id}`)
     dashboard.value = data
+    await inbox.fetchUnreadCount()
   } catch {
     toast.add({ title: 'Failed to load dashboard', color: 'error' })
   } finally {

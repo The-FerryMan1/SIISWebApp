@@ -132,6 +132,48 @@ export const ApplicationGetByIdResponseSchema = z.object({
   office: OfficeInfoSchema.nullable(),
 })
 
+// ==================== ONBOARDING SCHEMA ====================
+export const StudentRegSchema = z.object({
+  lastName: z.string().min(1, 'Last name is required').max(50),
+  firstName: z.string().min(1, 'First name is required').max(50),
+  middleName: z.string().max(50).default(''),
+  email: z.string().email('Invalid email').max(100),
+  contactNumber: z.string().regex(/^(\+63|0)\d{10}$/, 'Invalid PH mobile format. Use +63XXXXXXXXXX or 0XXXXXXXXXX'),
+  address: z.string().min(1, 'Address is required').max(200),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  gender: z.coerce.number().int().min(0).max(2),
+  gradeLevel: z.coerce.number().int().min(0).max(1),
+})
+
+export const SchoolRegSchema = z.object({
+  name: z.string().min(1, 'School name is required').max(100),
+  address: z.string().min(1, 'School address is required').max(200),
+  contactPerson: z.string().min(1, 'Contact person is required').max(100),
+  email: z.string().email("Contact person's email is required").max(100),
+  contactNumber: z.string().regex(/^(\+63|0)\d{10}$/, 'Invalid PH mobile format'),
+})
+
+export const InternshipRegSchema = z.object({
+  internshipNature: z.coerce.number().int().min(0).max(1),
+  strand: z.coerce.number().int().min(0).max(4).nullable(),
+  degree: z.coerce.number().int().min(0).max(11).nullable(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  estimatedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  internshipTotalHours: z.coerce.number().int().min(80).max(600),
+  accumulatedHours: z.coerce.number().int().min(0).max(600),
+})
+
+export const OnBoardingSchema = z.object({
+  student: StudentRegSchema,
+  school: SchoolRegSchema,
+  internship: InternshipRegSchema,
+})
+
+export type OnBoardingDto = z.infer<typeof OnBoardingSchema>
+export type StudentRegDto = z.infer<typeof StudentRegSchema>
+export type SchoolRegDto = z.infer<typeof SchoolRegSchema>
+export type InternshipRegDto = z.infer<typeof InternshipRegSchema>
+
 // ==================== UPDATE SCHEMAS ====================
 export const StudentUpdateDtoSchema = z.object({
   email: z.email('Invalid email').max(100),

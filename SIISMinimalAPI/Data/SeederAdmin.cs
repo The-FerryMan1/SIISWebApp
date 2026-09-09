@@ -13,8 +13,6 @@ namespace SIISMinimalAPI.Data
             var roleManager = service.GetRequiredService<RoleManager<IdentityRole>>();
             var dbContext = service.GetRequiredService<AppDbContext>();
 
-            dbContext.Database.EnsureCreated();
-
             // Create roles
             string[] roles = { "Admin", "OPG", "Officer" };
             foreach (var role in roles)

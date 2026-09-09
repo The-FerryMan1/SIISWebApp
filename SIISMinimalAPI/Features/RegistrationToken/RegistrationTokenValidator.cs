@@ -8,9 +8,9 @@ public class RegistrationTokenValidator : AbstractValidator<GenerateRegistration
     public RegistrationTokenValidator()
     {
         RuleFor(x => x.ExpDate)
-        .NotEmpty()
-        .Must(DateRangeAllowed)
-        .WithMessage("Expiration date is required");
+            .NotEmpty().WithMessage("Expiration date is required")
+            .Must(DateRangeAllowed)
+            .WithMessage("Expiration date must be in the future");
 
     }
 

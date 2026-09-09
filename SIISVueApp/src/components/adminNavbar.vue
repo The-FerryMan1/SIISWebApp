@@ -3,6 +3,7 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { UseAuthStore } from '../stores/auth'
+import { useInboxStore } from '../stores/inbox'
 
 const prop = defineProps<{
   collapsed: boolean
@@ -10,6 +11,7 @@ const prop = defineProps<{
 
 const route = useRoute()
 const auth = UseAuthStore()
+const inbox = useInboxStore()
 
 const items = computed<NavigationMenuItem[]>(() => {
   const baseItems: NavigationMenuItem[] = [
@@ -18,6 +20,13 @@ const items = computed<NavigationMenuItem[]>(() => {
       icon: 'i-lucide-layout-dashboard',
       active: route.name == 'dashboard',
       to: { name: 'dashboard' },
+    },
+    {
+      label: 'Inbox',
+      icon: 'i-lucide-bell',
+      active: route.name == 'admin-inbox',
+      to: { name: 'admin-inbox' },
+      badge: inbox.unreadCount || undefined,
     },
     {
       label: 'Applications',
@@ -83,6 +92,12 @@ const items = computed<NavigationMenuItem[]>(() => {
         icon: 'i-lucide-settings',
         active: route.name == 'endorsement-settings',
         to: { name: 'endorsement-settings' },
+      },
+      {
+        label: 'System Settings',
+        icon: 'i-lucide-settings-2',
+        active: route.name == 'system-settings',
+        to: { name: 'system-settings' },
       },
       {
         label: 'Analytics',

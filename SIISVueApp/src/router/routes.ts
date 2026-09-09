@@ -70,6 +70,18 @@ export const routes: RouteRecordRaw[] = [
         name: 'office-progress',
         meta: { isRequiresOfficeAuth: true, title: 'Progress' },
       },
+      {
+        path: 'inbox',
+        component: () => import('../pages/office/inbox.vue'),
+        name: 'office-inbox',
+        meta: { isRequiresOfficeAuth: true, title: 'Inbox' },
+      },
+      {
+        path: 'weekly-history',
+        component: () => import('../pages/office/weeklyHistory.vue'),
+        name: 'office-weekly-history',
+        meta: { isRequiresOfficeAuth: true, title: 'Weekly History' },
+      },
     ],
   },
   {
@@ -149,6 +161,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { isRequiresAuth: true, title: 'Endorsement Settings' },
       },
       {
+        path: 'system-settings',
+        component: () => import('../pages/admin/systemSettings.vue'),
+        name: 'system-settings',
+        meta: { isRequiresAuth: true, title: 'System Settings' },
+      },
+      {
         path: 'profile',
         component: () => import('../pages/user/profile.vue'),
         name: 'profile',
@@ -189,7 +207,13 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/progress.vue'),
         name: 'progress',
         meta: { isRequiresAuth: true, title: 'Progress' },
-      }
+      },
+      {
+        path: 'inbox',
+        component: () => import('../pages/admin/inbox.vue'),
+        name: 'admin-inbox',
+        meta: { isRequiresAuth: true, title: 'Inbox' },
+      },
     ],
   },
   {

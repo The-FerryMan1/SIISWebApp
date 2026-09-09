@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, useTemplateRef } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { OnBoardUpdateDtoSchema, type OnBoardUpdateDto } from './validator/onboardingValidator'
+import { OnBoardingSchema, type OnBoardingDto } from './validator/onboardingValidator'
 import { useOnBoardStore } from '../../stores/onaboard'
 import { storeToRefs } from 'pinia'
 import { useDebounceFn } from '@vueuse/core'
@@ -12,25 +12,24 @@ import PageExpired from '../../components/pageExpired.vue'
 const toast = useToast()
 const onaboard = useOnBoardStore()
 const { state, errorMessage } = storeToRefs(onaboard)
-  const isOpen = ref<boolean>(false)
-  const moaFile = ref<File | null>(null)
-  const developmentLetterFile = ref<File | null>(null)
-  const resumeFile = ref<File | null>(null)
-  const isSubmitting = ref(false)
+const isOpen = ref<boolean>(false)
+const moaFile = ref<File | null>(null)
+const resumeFile = ref<File | null>(null)
+const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const form = useTemplateRef('form')
 const route = useRoute()
 const isTokenValid = ref<boolean>(false)
 
-const reviewPayload = ref<FormSubmitEvent<OnBoardUpdateDto> | null>(null)
+const reviewPayload = ref<FormSubmitEvent<OnBoardingDto> | null>(null)
 
 const isSeniorHigh = computed(() => state.value.student.gradeLevel === 0)
 const isCollege = computed(() => state.value.student.gradeLevel === 1)
 
 const estimatedEndDate = computed(() => {
-  if (!state.value.student.internshipStartDate || !state.value.student.totalInternshipHours) return ''
-  const start = new Date(state.value.student.internshipStartDate)
-  const totalDays = Math.ceil(state.value.student.totalInternshipHours / 8)
+  if (!state.value.internship.startDate || !state.value.internship.internshipTotalHours) return ''
+  const start = new Date(state.value.internship.startDate)
+  const totalDays = Math.ceil(state.value.internship.internshipTotalHours / 8)
   const end = new Date(start)
   end.setDate(start.getDate() + totalDays)
   return end.toISOString().split('T')[0]
@@ -78,17 +77,15 @@ watch(()=>route.params.token, async(value)=>{
     { value: 1, label: 'College' },
   ]
 
-  watch([moaFile, developmentLetterFile, resumeFile], () => {
+  const genderItems = [
+    { value: 0, label: 'Male' },
+    { value: 1, label: 'Female' },
+    { value: 2, label: 'Other' },
+  ]
+
+  watch([moaFile, resumeFile], () => {
   state.value.moaFile = moaFile.value
-  state.value.developmentLetterFile = developmentLetterFile.value
   state.value.resumeFile = resumeFile.value
-    state.value.developmentLetterFile = developmentLetterFile.value
-    state.value.resumeFile = resumeFile.value
-    state.value.requirements = [
-      ...(moaFile.value ? [moaFile.value] : []),
-      ...(developmentLetterFile.value ? [developmentLetterFile.value] : []),
-      ...(resumeFile.value ? [resumeFile.value] : []),
-    ]
   })
 
   const minStartDate = computed(() => {
@@ -98,13 +95,9 @@ watch(()=>route.params.token, async(value)=>{
 })
 
 // Step 1: Form passes validation → validate files and store payload
-  const onReview = (payload: FormSubmitEvent<OnBoardUpdateDto>) => {
+  const onReview = (payload: FormSubmitEvent<OnBoardingDto>) => {
     if (!moaFile.value) {
       toast.add({ title: 'Notarized MOA document is required', color: 'error' })
-      return
-    }
-    if (!developmentLetterFile.value) {
-      toast.add({ title: 'Development letter is required', color: 'error' })
       return
     }
     if (!resumeFile.value) {
@@ -132,7 +125,6 @@ const onConfirm = async () => {
 
     onaboard.stateReset()
     moaFile.value = null
-    developmentLetterFile.value = null
     resumeFile.value = null
     reviewPayload.value = null
   } catch (e) {
@@ -202,7 +194,7 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
         <UForm
           ref="form"
           @submit="onReview"
-          :schema="OnBoardUpdateDtoSchema"
+          :schema="OnBoardingSchema"
           :state="state"
           class="space-y-6 w-full"
           @error="(e: any) => console.log(e)"
@@ -255,6 +247,23 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                   class="w-full"
                 />
               </UFormField>
+              <UFormField name="student.dateOfBirth" label="Date of Birth" required>
+                <UInput
+                  v-model="state.student.dateOfBirth"
+                  type="date"
+                  :max="new Date().toISOString().split('T')[0]"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField name="student.gender" label="Gender" required>
+                <USelectMenu
+                  v-model.number="state.student.gender"
+                  placeholder="Select gender"
+                  :items="genderItems"
+                  class="w-full"
+                  value-key="value"
+                />
+              </UFormField>
             </div>
             <UFormField name="student.address" label="Address" required class="mt-4">
               <UTextarea
@@ -269,39 +278,39 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
           <!-- School Details -->
           <UPageCard title="School Details" icon="i-lucide-building" variant="outline">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField name="student.schoolName" label="Name of School" required>
+              <UFormField name="school.name" label="Name of School" required>
                 <UInput
-                  v-model="state.student.schoolName"
+                  v-model="state.school.name"
                   placeholder="Enter your school name"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="student.schoolContactPerson" label="Contact Person" required>
+              <UFormField name="school.contactPerson" label="Contact Person" required>
                 <UInput
-                  v-model="state.student.schoolContactPerson"
+                  v-model="state.school.contactPerson"
                   placeholder="Enter the contact person's name"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="student.schoolContactPersonEmail" label="Contact Person's Email" required>
+              <UFormField name="school.email" label="Contact Person's Email" required>
                 <UInput
-                  v-model="state.student.schoolContactPersonEmail"
+                  v-model="state.school.email"
                   type="email"
                   placeholder="Enter the contact person's email"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField name="student.schoolContactPersonPhone" label="Contact Person's Number" required>
+              <UFormField name="school.contactNumber" label="Contact Person's Number" required>
                 <UInput
-                  v-model="state.student.schoolContactPersonPhone"
+                  v-model="state.school.contactNumber"
                   placeholder="Enter the contact person's phone number"
                   class="w-full"
                 />
               </UFormField>
             </div>
-            <UFormField name="student.schoolAddress" label="School Address" required class="mt-4">
+            <UFormField name="school.address" label="School Address" required class="mt-4">
               <UTextarea
-                v-model="state.student.schoolAddress"
+                v-model="state.school.address"
                   placeholder="Enter your school address"
                 :rows="3"
                 class="w-full"
@@ -312,48 +321,48 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
           <!-- Internship Details -->
           <UPageCard title="Internship Details" icon="i-lucide-file" variant="outline">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormField name="student.internshipNature" label="Nature of Internship" required>
+              <UFormField name="internship.internshipNature" label="Nature of Internship" required>
                 <USelectMenu
-                  v-model.number="state.student.internshipNature"
+                  v-model.number="state.internship.internshipNature"
                   placeholder="Select internship nature"
                   :items="internshipNatureItems"
                   class="w-full"
                   value-key="value"
                 />
               </UFormField>
-              <UFormField name="student.strand" v-if="isSeniorHigh" label="Strand" required>
+              <UFormField name="internship.strand" v-if="isSeniorHigh" label="Strand" required>
                 <USelectMenu
-                  v-model.number="state.student.strand"
+                  v-model.number="state.internship.strand"
                   placeholder="Select strand"
                   :items="strandItems"
                   class="w-full"
                   value-key="value"
                 />
               </UFormField>
-              <UFormField v-if="isCollege" name="student.degree" label="Degree" required>
+              <UFormField v-if="isCollege" name="internship.degree" label="Degree" required>
                 <USelectMenu
-                  v-model.number="state.student.degree"
+                  v-model.number="state.internship.degree"
                   placeholder="Select degree"
                   :items="degreeItems"
                   class="w-full"
                   value-key="value"
                 />
               </UFormField>
-              <UFormField name="student.internshipStartDate" label="Start Date" required>
+              <UFormField name="internship.startDate" label="Start Date" required>
                 <UInput
                   :min="minStartDate.toISOString().split('T')[0]"
-                  v-model="state.student.internshipStartDate"
+                  v-model="state.internship.startDate"
                   type="date"
                   class="w-full"
                 />
               </UFormField>
               <UFormField
-                name="student.internshipTotalHours"
+                name="internship.internshipTotalHours"
                 label="Total Internship Hours"
                 required
               >
                 <UInput
-                  v-model="state.student.totalInternshipHours"
+                  v-model="state.internship.internshipTotalHours"
                   type="number"
                   placeholder="Enter total internship hours"
                   min="0"
@@ -384,15 +393,6 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                   file-icon="i-lucide-file-text"
                   description="Upload your Notarized Memorandum of Agreement (PDF only)"
                   accept=".pdf"
-                  class="w-full"
-                />
-              </UFormField>
-              <UFormField name="developmentLetterFile" label="Development Letter" required>
-                <UFileUpload
-                  v-model="developmentLetterFile"
-                  file-icon="i-lucide-file-text"
-                  description="Upload your Development Letter (PDF, DOC, DOCX)"
-                  accept=".pdf,.doc,.docx"
                   class="w-full"
                 />
               </UFormField>
@@ -453,10 +453,6 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                 <div>
                   <p class="text-sm text-muted mb-1">Notarized MOA Document:</p>
                   <p class="font-bold">{{ moaFile?.name || 'No file uploaded' }}</p>
-                </div>
-                <div>
-                  <p class="text-sm text-muted mb-1">Development Letter:</p>
-                  <p class="font-bold">{{ developmentLetterFile?.name || 'No file uploaded' }}</p>
                 </div>
                 <div>
                   <p class="text-sm text-muted mb-1">Resume:</p>

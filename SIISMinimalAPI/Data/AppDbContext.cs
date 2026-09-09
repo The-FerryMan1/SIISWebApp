@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
+using SIISMinimalAPI.Features.SystemSettings;
 
 namespace SIISMinimalAPI.Data
 {
@@ -14,7 +15,9 @@ namespace SIISMinimalAPI.Data
         public DbSet<Office> Offices { get; set; }
         public DbSet<Registration> Registrations { get; set; }
         public DbSet<LogsModel> Logs { get; set; }
+        public DbSet<OfficeNotification> OfficeNotifications { get; set; }
         public DbSet<Progress> Progresses {get; set;    }
+        public DbSet<SystemSettings> SystemSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -93,6 +96,15 @@ namespace SIISMinimalAPI.Data
             builder.Entity<LogsModel>(log =>
             {
                 log.HasQueryFilter(l => !l.IsDeleted);
+            });
+
+            builder.Entity<OfficeNotification>(notification =>
+            {
+                notification.HasIndex(n => new { n.OfficeId, n.CreatedAt });
+                notification.HasOne(n => n.Office)
+                    .WithMany()
+                    .HasForeignKey(n => n.OfficeId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
         }

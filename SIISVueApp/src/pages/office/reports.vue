@@ -11,7 +11,7 @@ const report = useReportStore()
 const router = useRouter()
 const toast = useToast()
 
-const reportType = ref<'masterlist' | 'ongoing' | 'finished'>('masterlist')
+const reportType = ref<'masterlist' | 'ongoing' | 'finished' | 'weekly'>('masterlist')
 const loading = ref(false)
 const reportFormat = ref<'pdf' | 'csv'>('pdf')
 
@@ -22,10 +22,11 @@ interface OfficeReportFilters {
   placementStatus: string
 }
 
-const officeFilterStore: Record<'masterlist' | 'ongoing' | 'finished', OfficeReportFilters> = {
+const officeFilterStore: Record<'masterlist' | 'ongoing' | 'finished' | 'weekly', OfficeReportFilters> = {
   masterlist: { school: '', dateFrom: '', dateTo: '', placementStatus: '' },
   ongoing: { school: '', dateFrom: '', dateTo: '', placementStatus: '' },
   finished: { school: '', dateFrom: '', dateTo: '', placementStatus: '' },
+  weekly: { school: '', dateFrom: '', dateTo: '', placementStatus: '' },
 }
 
 const school = ref(officeFilterStore[reportType.value].school)
@@ -48,6 +49,7 @@ const reportTypeOptions: SelectItem[] = [
   { label: 'Masterlist', value: 'masterlist' },
   { label: 'Ongoing', value: 'ongoing' },
   { label: 'Finished', value: 'finished' },
+  { label: 'Weekly Report', value: 'weekly' },
 ]
 
 const myOfficeId = ref<number | null>(null)
@@ -131,6 +133,12 @@ async function generateReport() {
           ? await report.officeFinishedPdf(filters)
           : await report.officeFinishedCsv(filters)
         filename = 'finished'
+        break
+      case 'weekly':
+        blob = isPdf
+          ? await report.officeWeeklyPdf(filters)
+          : await report.officeWeeklyCsv(filters)
+        filename = 'weekly_report'
         break
     }
 
@@ -256,6 +264,15 @@ function logout() {
         variant="outline"
         :loading="loading"
         @click="clearFilters"
+      />
+
+      <UButton
+        icon="i-lucide-calendar-clock"
+        label="Weekly History"
+        color="secondary"
+        variant="outline"
+        :loading="loading"
+        @click="router.push({ name: 'office-weekly-history' })"
       />
     </div>
   </UCard>

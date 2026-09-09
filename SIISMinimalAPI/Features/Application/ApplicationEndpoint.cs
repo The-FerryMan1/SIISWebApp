@@ -112,7 +112,7 @@ public static class  ApplicationEndpoint
             }
         }).RequireAuthorization("Admin");
 
-        group.MapDelete("/delete/{uuid}",  async Task<IResult> (Guid uuid, IApplicationService service, CancellationToken ct) =>
+        group.MapDelete("/delete/{uuid}", [Authorize(Roles = "Admin")] async Task<IResult> (Guid uuid, IApplicationService service, CancellationToken ct) =>
         {
             try
             {
@@ -128,7 +128,7 @@ public static class  ApplicationEndpoint
             {
                  return TypedResults.InternalServerError(ex.Message);
             }
-        });
+        }).RequireAuthorization("Admin");
 
         group.MapGet("/requirements/download/{id:long}", [Authorize(Roles = "Admin")] async Task<IResult> (long id, AppDbContext context) =>
         {

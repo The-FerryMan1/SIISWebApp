@@ -52,7 +52,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 </script>
 
 <template>
-  <UMain class="bg-[url('/cover-bg.png')] bg-cover bg-center min-h-screen flex flex-col items-center justify-center">
+  <UMain class="bg-[url('/images/cover-bg.png')] bg-cover bg-center min-h-screen flex flex-col items-center justify-center">
     <UPageCard orientation="vertical" :reverse="true" variant="outline" class="w-full max-w-md p-2">
       <UAuthForm
         :schema

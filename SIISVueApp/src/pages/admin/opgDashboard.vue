@@ -10,6 +10,7 @@ import { UseAuthStore } from '../../stores/auth'
 import { useOfficeStore } from '../../stores/office'
 import { useOJtStore } from '../../stores/ojt'
 import { useApplicationStore } from '../../stores/application'
+import { useInboxStore } from '../../stores/inbox'
 
 use([CanvasRenderer, BarChart, LineChart, PieChart, GridComponent, TooltipComponent, LegendComponent])
 
@@ -17,6 +18,7 @@ const auth = UseAuthStore()
 const officeStore = useOfficeStore()
 const ojtStore = useOJtStore()
 const applicationStore = useApplicationStore()
+const inbox = useInboxStore()
 
 const loading = ref(true)
 
@@ -120,6 +122,7 @@ onMounted(async () => {
       officeStore.officeInit(),
       ojtStore.ojtInit(),
       applicationStore.applicationInit(),
+      inbox.fetchUnreadCount(),
     ])
   } finally {
     loading.value = false

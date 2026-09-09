@@ -4,6 +4,14 @@ import AdminNavbar from '../components/adminNavbar.vue'
 import { UseAuthStore } from '../stores/auth.ts'
 import Logo from '../components/logo.vue'
 import Breadcrumbs from '../components/Breadcrumbs.vue'
+import { useSystemSettingsStore } from '../stores/systemSettings'
+import { onMounted } from 'vue'
+
+const settingsStore = useSystemSettingsStore()
+
+onMounted(async () => {
+  await settingsStore.fetchSettings()
+})
 </script>
 
 <template>
@@ -19,7 +27,7 @@ import Breadcrumbs from '../components/Breadcrumbs.vue'
 
     <UDashboardPanel>
       <template #header>
-        <UDashboardNavbar class="bg-primary">
+        <UDashboardNavbar :style="{ backgroundColor: settingsStore.settings.themeColor || '#2f5cba' }">
           <template #leading>
             <UDashboardSidebarCollapse variant="subtle" />
           </template>

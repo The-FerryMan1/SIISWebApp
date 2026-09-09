@@ -20,7 +20,15 @@ public class StudentRegDtoValidator : AbstractValidator<StudentRegDto>
 
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("First name is required")
-            .MaximumLength(50);
+            .MaximumLength(50)
+            .Matches(@"^[a-zA-Z\s\-]+$").WithMessage("First name contains invalid characters");
+
+        RuleFor(x => x.DateOfBirth)
+            .NotEmpty().WithMessage("Date of birth is required")
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))
+            .WithMessage("Date of birth cannot be in the future")
+            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today.AddYears(-60)))
+            .WithMessage("Date of birth cannot be more than 60 years ago");
 
         RuleFor(x => x.ContactNumber)
             .NotEmpty().WithMessage("Contact number is required")
@@ -97,6 +105,10 @@ public class InternshipRegDtoValidator : AbstractValidator<InternshipRegDto>
         RuleFor(x => x.InternshipTotalHours)
             .InclusiveBetween(80, 600)
             .WithMessage("Total hours must be between 80 and 600");
+
+        RuleFor(x => x.AccumulatedHours)
+            .InclusiveBetween(0, 600)
+            .WithMessage("Accumulated hours must be between 0 and 600");
     }
 }
 

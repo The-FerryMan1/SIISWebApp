@@ -4,22 +4,28 @@ import OfficeNavbar from '../components/officeNavbar.vue'
 import Logo from '../components/logo.vue'
 import { useOfficeAccountStore } from '../stores/officeAuth.ts'
 import Breadcrumbs from '../components/Breadcrumbs.vue'
+import { useSystemSettingsStore } from '../stores/systemSettings'
+import { onMounted } from 'vue'
 
 const officeAuth = useOfficeAccountStore()
 const router = useRouter()
+const settingsStore = useSystemSettingsStore()
 
 function logout() {
   officeAuth.logout()
   router.push({ name: 'office-login' })
 }
 
+onMounted(async () => {
+  await settingsStore.fetchSettings()
+})
 </script>
 
 <template>
   <UDashboardGroup>
     <UDashboardSidebar resizable collapsible>
       <template #header="{ collapsed }">
-        <Logo :collapsed="collapsed" />
+        <Logo :collapsed="collapsed" to="/office" />
       </template>
       <template #default="{ collapsed }">
         <OfficeNavbar :collapsed="collapsed" />
@@ -28,7 +34,7 @@ function logout() {
 
     <UDashboardPanel>
       <template #header>
-        <UDashboardNavbar class="bg-primary">
+        <UDashboardNavbar :style="{ backgroundColor: settingsStore.settings.themeColor || '#2f5cba' }">
           <template #leading>
             <UDashboardSidebarCollapse variant="subtle" />
           </template>

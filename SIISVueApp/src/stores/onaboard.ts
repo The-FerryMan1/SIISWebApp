@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAxios } from '../fetch/axios'
-import type { OnBoardUpdateDto } from '../pages/onBoarding/validator/onboardingValidator'
+import type { OnBoardingDto } from '../pages/onBoarding/validator/onboardingValidator'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { AxiosError } from 'axios'
 
@@ -13,8 +13,10 @@ export const useOnBoardStore = defineStore('onboard', () => {
       firstName: '',
       middleName: '',
       address: '',
-       contactNumber: '',
+      contactNumber: '',
       email: '',
+      dateOfBirth: '',
+      gender: 0,
       gradeLevel: 1,
       schoolName: '',
       schoolAddress: '',
@@ -27,62 +29,78 @@ export const useOnBoardStore = defineStore('onboard', () => {
       internshipStartDate: '',
       totalInternshipHours: 0,
     },
-    requirements: [] as any[],
-     moaFile: null as File | null,
-     developmentLetterFile: null as File | null,
-     resumeFile: null as File | null,
+    school: {
+      name: '',
+      address: '',
+      contactPerson: '',
+      email: '',
+      contactNumber: '',
+    },
+    internship: {
+      internshipNature: 0,
+      strand: 0,
+      degree: 0,
+      startDate: '',
+      estimatedEndDate: '',
+      internshipTotalHours: 0,
+      accumulatedHours: 0,
+    },
+    moaFile: null as File | null,
+    resumeFile: null as File | null,
   })
 
   const toDataForm = (): FormData => {
     const formData = new FormData()
 
     const s = state.value.student
+    const school = state.value.school
+    const internship = state.value.internship
 
-    formData.append('student.lastName', String(s.lastName))
-    formData.append('student.firstName', String(s.firstName))
-    formData.append('student.middleName', String(s.middleName))
-    formData.append('student.address', String(s.address))
-     formData.append('student.contactNumber', String(s.contactNumber))
-    formData.append('student.email', String(s.email))
-    formData.append('student.gradeLevel', String(s.gradeLevel))
+    formData.append('Student.LastName', String(s.lastName))
+    formData.append('Student.FirstName', String(s.firstName))
+    formData.append('Student.MiddleName', String(s.middleName))
+    formData.append('Student.Address', String(s.address))
+    formData.append('Student.ContactNumber', String(s.contactNumber))
+    formData.append('Student.Email', String(s.email))
+    formData.append('Student.DateOfBirth', String(s.dateOfBirth))
+    formData.append('Student.Gender', String(s.gender))
+    formData.append('Student.GradeLevel', String(s.gradeLevel))
 
-    formData.append('school.name', String(s.schoolName))
-    formData.append('school.address', String(s.schoolAddress))
-    formData.append('school.contactPerson', String(s.schoolContactPerson))
-    formData.append('school.email', String(s.schoolContactPersonEmail))
-    formData.append('school.contactNumber', String(s.schoolContactPersonPhone))
+    formData.append('School.Name', String(school.name))
+    formData.append('School.Address', String(school.address))
+    formData.append('School.ContactPerson', String(school.contactPerson))
+    formData.append('School.Email', String(school.email))
+    formData.append('School.ContactNumber', String(school.contactNumber))
 
-    formData.append('internship.internshipNature', String(s.internshipNature))
-    formData.append('internship.strand', String(s.strand))
-    formData.append('internship.degree', String(s.degree))
-    formData.append('internship.startDate', String(s.internshipStartDate))
+    formData.append('Internship.InternshipNature', String(internship.internshipNature))
+    formData.append('Internship.Strand', String(internship.strand))
+    formData.append('Internship.Degree', String(internship.degree))
+    formData.append('Internship.StartDate', String(internship.startDate))
 
-    if (s.internshipStartDate && s.totalInternshipHours) {
-      const start = new Date(s.internshipStartDate)
-      const totalDays = Math.ceil(s.totalInternshipHours / 8)
+    if (internship.startDate && internship.internshipTotalHours) {
+      const start = new Date(internship.startDate)
+      const totalDays = Math.ceil(internship.internshipTotalHours / 8)
       const end = new Date(start)
       end.setDate(start.getDate() + totalDays)
       const estimatedEndDate = end.toISOString().split('T')[0]!
-      formData.append('internship.estimatedEndDate', estimatedEndDate)
+      formData.append('Internship.EstimatedEndDate', estimatedEndDate)
+      internship.estimatedEndDate = estimatedEndDate
+    } else {
+      formData.append('Internship.EstimatedEndDate', String(internship.estimatedEndDate))
     }
 
-    formData.append('internship.internshipTotalHours', String(s.totalInternshipHours))
-    formData.append('internship.accumulatedHours', '0')
+    formData.append('Internship.InternshipTotalHours', String(internship.internshipTotalHours))
+    formData.append('Internship.AccumulatedHours', String(internship.accumulatedHours))
 
-     const moa = normalizeFile(state.value.moaFile)
-     if (moa) {
-       formData.append('moaFile', moa, moa.name)
-     }
+    const moa = normalizeFile(state.value.moaFile)
+    if (moa) {
+      formData.append('MoaFile', moa, moa.name)
+    }
 
-      const developmentLetter = normalizeFile(state.value.developmentLetterFile)
-      if (developmentLetter) {
-        formData.append('developmentLetterFile', developmentLetter, developmentLetter.name)
-      }
-
-      const resume = normalizeFile(state.value.resumeFile)
-      if (resume) {
-        formData.append('resumeFile', resume, resume.name)
-      }
+    const resume = normalizeFile(state.value.resumeFile)
+    if (resume) {
+      formData.append('ResumeFile', resume, resume.name)
+    }
 
      return formData
   }
@@ -93,7 +111,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
     return null
   }
 
-  const onSubmit = async (event: FormSubmitEvent<OnBoardUpdateDto>, token: string) => {
+  const onSubmit = async (event: FormSubmitEvent<OnBoardingDto>, token: string) => {
     try {
       const formData = toDataForm()
       console.log('Submitting onboarding form...')
@@ -130,6 +148,8 @@ export const useOnBoardStore = defineStore('onboard', () => {
         address: '',
         contactNumber: '',
         email: '',
+        dateOfBirth: '',
+        gender: 0,
         gradeLevel: 1,
         schoolName: '',
         schoolAddress: '',
@@ -142,9 +162,23 @@ export const useOnBoardStore = defineStore('onboard', () => {
         internshipStartDate: '',
         totalInternshipHours: 0,
       },
-      requirements: [] as any[],
+      school: {
+        name: '',
+        address: '',
+        contactPerson: '',
+        email: '',
+        contactNumber: '',
+      },
+      internship: {
+        internshipNature: 0,
+        strand: 0,
+        degree: 0,
+        startDate: '',
+        estimatedEndDate: '',
+        internshipTotalHours: 0,
+        accumulatedHours: 0,
+      },
       moaFile: null,
-      developmentLetterFile: null,
       resumeFile: null,
     }
 

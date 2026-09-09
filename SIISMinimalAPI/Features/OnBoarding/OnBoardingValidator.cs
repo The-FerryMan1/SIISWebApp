@@ -25,13 +25,6 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
             .NotNull().WithMessage("Internship details are required")
             .SetValidator(internshipValidator);
 
-        RuleFor(x => x.Student.GradeLevel)
-            .NotNull().WithMessage("Grade level is required");
-
-        RuleFor(x => x.Internship)
-            .NotNull().WithMessage("Internship details are required")
-            .SetValidator(internshipValidator);
-
         RuleFor(x => x.MoaFile)
             .NotNull().WithMessage("MOA file is required")
             .Must(file => file is not null && HaveValidExtension(file.FileName, ".pdf"))
@@ -41,9 +34,6 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
             .NotNull().WithMessage("Resume file is required")
             .Must(file => file is not null && HaveValidExtension(file.FileName, ".pdf", ".doc", ".docx"))
             .WithMessage("Resume must be a PDF, DOC, or DOCX file");
-
-        RuleFor(x => x)
-            .Must(BeWithinSchoolCapacity).WithMessage("Request exceeds school's current capacity");
     }
 
     private static bool HaveValidExtension(string fileName, params string[] allowedExtensions)
@@ -52,7 +42,4 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
         return allowedExtensions.Contains(ext);
     }
-
-    private static bool BeWithinSchoolCapacity(OnBoardingDto dto) => 
-        true; 
 }

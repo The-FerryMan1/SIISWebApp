@@ -144,10 +144,6 @@ const save = () => {
 const getRequirementName = (req: any): string => {
   return req.fileName || req.name || ''
 }
-
-watch(fileUploaded, (value)=>{
-  bstate.value.requirements.push(...value)
-})
 </script>
 
 <template>

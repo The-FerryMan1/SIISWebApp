@@ -205,18 +205,55 @@ export const useReportStore = defineStore('report', () => {
           }
       }
 
-      const officeFinishedCsv = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
-          try {
-              const { data } = await useAxios.get('/report/office/finished/csv', {
-                  params: filters,
-                  responseType: 'blob',
-              });
-              return data
-          } catch (error) {
-              const err = error as AxiosError
-              console.log(err)
-          }
-      }
+       const officeFinishedCsv = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
+           try {
+               const { data } = await useAxios.get('/report/office/finished/csv', {
+                   params: filters,
+                   responseType: 'blob',
+               });
+               return data
+           } catch (error) {
+               const err = error as AxiosError
+               console.log(err)
+           }
+       }
+
+       const officeWeeklyPdf = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
+           try {
+               const { data } = await useAxios.get('/report/weekly/pdf', {
+                   params: filters,
+                   responseType: 'blob',
+               });
+               return data
+           } catch (error) {
+               const err = error as AxiosError
+               console.log(err)
+           }
+       }
+
+       const officeWeeklyCsv = async (filters: { school?: string; dateFrom?: string; dateTo?: string; placementStatus?: string } = {}) => {
+           try {
+               const { data } = await useAxios.get('/report/weekly/csv', {
+                   params: filters,
+                   responseType: 'blob',
+               });
+               return data
+           } catch (error) {
+               const err = error as AxiosError
+               console.log(err)
+           }
+       }
+
+       const getWeeklyHistory = async () => {
+           try {
+               const { data } = await useAxios.get('/report/weekly/history')
+               return data
+           } catch (error) {
+               const err = error as AxiosError
+               console.log(err)
+               return []
+           }
+       }
 
       const adminExpiringPdf = async (officeId?: number, days: number = 30, school?: string, dateFrom?: string, dateTo?: string) => {
            try {
@@ -720,6 +757,9 @@ export const useReportStore = defineStore('report', () => {
             officeOngoingCsv,
             officeFinishedPdf,
             officeFinishedCsv,
+            officeWeeklyPdf,
+            officeWeeklyCsv,
+            getWeeklyHistory,
            adminExpiringPdf,
            adminMasterlistPdf,
            adminMasterlistCsv,
