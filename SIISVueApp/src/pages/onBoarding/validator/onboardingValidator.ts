@@ -167,6 +167,13 @@ export const OnBoardingSchema = z.object({
   student: StudentRegSchema,
   school: SchoolRegSchema,
   internship: InternshipRegSchema,
+}).superRefine(({ student, internship }, context) => {
+  if (student.gradeLevel === 0 && internship.strand === null) {
+    context.addIssue({ code: 'custom', path: ['internship', 'strand'], message: 'Strand is required for Senior High School students' })
+  }
+  if (student.gradeLevel === 1 && internship.degree === null) {
+    context.addIssue({ code: 'custom', path: ['internship', 'degree'], message: 'Degree is required for College students' })
+  }
 })
 
 export type OnBoardingDto = z.infer<typeof OnBoardingSchema>

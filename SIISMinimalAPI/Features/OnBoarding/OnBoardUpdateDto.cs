@@ -13,6 +13,7 @@ public class OnBoardUpdateDto
      public IFormFileCollection? Files { get; set; }
     public IFormFile? MoaFile { get; set; }
     public IFormFile? ResumeFile { get; set; }
+    public IFormFile? DevelopmentLetterFile { get; set; }
 }
 
 

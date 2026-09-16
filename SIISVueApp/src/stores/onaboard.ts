@@ -47,6 +47,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
     },
     moaFile: null as File | null,
     resumeFile: null as File | null,
+    developmentLetterFile: null as File | null,
   })
 
   const toDataForm = (): FormData => {
@@ -100,6 +101,11 @@ export const useOnBoardStore = defineStore('onboard', () => {
     const resume = normalizeFile(state.value.resumeFile)
     if (resume) {
       formData.append('ResumeFile', resume, resume.name)
+    }
+
+    const developmentLetter = normalizeFile(state.value.developmentLetterFile)
+    if (developmentLetter) {
+      formData.append('DevelopmentLetterFile', developmentLetter, developmentLetter.name)
     }
 
      return formData
@@ -180,6 +186,7 @@ export const useOnBoardStore = defineStore('onboard', () => {
       },
       moaFile: null,
       resumeFile: null,
+      developmentLetterFile: null,
     }
 
     errorMessage.value = null

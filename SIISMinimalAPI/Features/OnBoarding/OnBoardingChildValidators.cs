@@ -82,16 +82,11 @@ public class InternshipRegDtoValidator : AbstractValidator<InternshipRegDto>
         RuleFor(x => x.InternshipNature)
             .IsInEnum().WithMessage("Invalid internship nature");
 
-        // Conditional: Strand required for SHS, Degree for College
-        When(x => x.InternshipNature == InternshipNatureEnum.WorkImmersion, () =>
-        {
-            RuleFor(x => x.Strand)
-                .NotNull().WithMessage("Strand is required for Senior High School internships")
-                .IsInEnum().WithMessage("Invalid strand value");
+        RuleFor(x => x.Strand)
+            .IsInEnum().When(x => x.Strand is not null).WithMessage("Invalid strand value");
 
-            RuleFor(x => x.Degree)
-                .Null().WithMessage("Degree should not be set for Senior High School");
-        });
+        RuleFor(x => x.Degree)
+            .IsInEnum().When(x => x.Degree is not null).WithMessage("Invalid degree value");
         RuleFor(x => x.StartDate)
             .NotEmpty().WithMessage("Start date is required")
             .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today.AddDays(7)))

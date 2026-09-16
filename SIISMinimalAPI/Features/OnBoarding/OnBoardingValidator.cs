@@ -25,6 +25,16 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
             .NotNull().WithMessage("Internship details are required")
             .SetValidator(internshipValidator);
 
+        RuleFor(x => x.Internship!.Strand)
+            .NotNull()
+            .When(x => x.Student?.GradeLevel == GradeLevelEnum.SeniorHighSchool)
+            .WithMessage("Strand is required for Senior High School students");
+
+        RuleFor(x => x.Internship!.Degree)
+            .NotNull()
+            .When(x => x.Student?.GradeLevel == GradeLevelEnum.College)
+            .WithMessage("Degree is required for College students");
+
         RuleFor(x => x.MoaFile)
             .NotNull().WithMessage("MOA file is required")
             .Must(file => file is not null && HaveValidExtension(file.FileName, ".pdf"))
@@ -34,6 +44,11 @@ public class OnBoardingDtoValidator : AbstractValidator<OnBoardingDto>
             .NotNull().WithMessage("Resume file is required")
             .Must(file => file is not null && HaveValidExtension(file.FileName, ".pdf", ".doc", ".docx"))
             .WithMessage("Resume must be a PDF, DOC, or DOCX file");
+
+        RuleFor(x => x.DevelopmentLetterFile)
+            .NotNull().WithMessage("Development letter is required")
+            .Must(file => file is not null && HaveValidExtension(file.FileName, ".pdf"))
+            .WithMessage("Development letter must be a PDF file");
     }
 
     private static bool HaveValidExtension(string fileName, params string[] allowedExtensions)

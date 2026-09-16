@@ -4,6 +4,7 @@ namespace SIISMinimalAPI.Features.Shared.Enums
     {
         Moa,
         Resume,
-        Other
+        Other,
+        DevelopmentLetter
     }
 }

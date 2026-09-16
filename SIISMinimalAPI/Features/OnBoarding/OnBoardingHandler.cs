@@ -71,6 +71,21 @@ namespace SIISMinimalAPI.Features.OnBoarding
                     });
                 }
 
+                if (onBoardingDto.DevelopmentLetterFile is not null)
+                {
+                    var safeFileName = Path.GetFileNameWithoutExtension(onBoardingDto.DevelopmentLetterFile.FileName) + Path.GetExtension(onBoardingDto.DevelopmentLetterFile.FileName);
+                    var filePath = Path.Combine(uploadsPath, safeFileName);
+                    await using var stream = File.Create(filePath);
+                    await onBoardingDto.DevelopmentLetterFile.CopyToAsync(stream, ct);
+                    req.Add(new RequirementsRegDto
+                    {
+                        FileName = safeFileName,
+                        FilePath = filePath,
+                        FileType = onBoardingDto.DevelopmentLetterFile.ContentType,
+                        RequirementTypeEnum = RequirementTypeEnum.DevelopmentLetter,
+                    });
+                }
+
                 if (onBoardingDto.Files is not null)
                 {
                     foreach (var file in onBoardingDto.Files)
@@ -276,6 +291,35 @@ namespace SIISMinimalAPI.Features.OnBoarding
                         FilePath = filePath,
                         FileType = dto.ResumeFile.ContentType,
                         RequirementType = RequirementTypeEnum.Resume,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+            }
+
+            if (dto.DevelopmentLetterFile is not null)
+            {
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", SanitizeFolderName(exists.LastName));
+                Directory.CreateDirectory(uploadsPath);
+                var safeFileName = Path.GetFileNameWithoutExtension(dto.DevelopmentLetterFile.FileName) + Path.GetExtension(dto.DevelopmentLetterFile.FileName);
+                var filePath = Path.Combine(uploadsPath, safeFileName);
+                await using var stream = File.Create(filePath);
+                await dto.DevelopmentLetterFile.CopyToAsync(stream, ct);
+                var existingLetter = exists.Requirements.FirstOrDefault(r => r.RequirementType == RequirementTypeEnum.DevelopmentLetter);
+                if (existingLetter is not null)
+                {
+                    existingLetter.FileName = safeFileName;
+                    existingLetter.FilePath = filePath;
+                    existingLetter.FileType = dto.DevelopmentLetterFile.ContentType;
+                    existingLetter.UpdatedAt = DateTime.Now;
+                }
+                else
+                {
+                    exists.Requirements.Add(new Shared.Models.Requirement
+                    {
+                        FileName = safeFileName,
+                        FilePath = filePath,
+                        FileType = dto.DevelopmentLetterFile.ContentType,
+                        RequirementType = RequirementTypeEnum.DevelopmentLetter,
                         CreatedAt = DateTime.Now
                     });
                 }

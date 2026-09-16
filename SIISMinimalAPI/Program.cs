@@ -13,6 +13,7 @@ using SIISMinimalAPI.Features.Offices;
 using SIISMinimalAPI.Features.Ojt;
 using SIISMinimalAPI.Features.OnBoarding;
 using SIISMinimalAPI.Features.RegistrationToken;
+using SIISMinimalAPI.Features.Otp;
 using SIISMinimalAPI.Features.Report.OjtList;
 using SIISMinimalAPI.Features.Report.OjtPerOffice;
 using SIISMinimalAPI.Features.Report.OfficeReport;
@@ -92,7 +93,7 @@ builder.Services.AddControllers();
 
 builder.Services.Configure<EndorsementSettings>(builder.Configuration.GetSection("EndorsementSettings"));
 
-    
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -126,6 +127,7 @@ builder.Services.AddScoped<IOfficeService, OfficeHandler>();
 builder.Services.AddScoped<IOjtService, OjtHandler>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRegistrationTokenService, RegistrationTokenHandler>();
+builder.Services.AddScoped<IOtpService, OtpHandler>();
 builder.Services.AddScoped<IOjtListService, OjtListHandler>();
 builder.Services.AddScoped<IOjtPerOfficeService, OjtPerOfficehandler>();
 builder.Services.AddScoped<IOfficeDashboardService, OfficeDashboardHandler>();
@@ -210,6 +212,7 @@ app.MapPost("/register", async (UserManager<User> userManager, RegisterRequest r
 
 app.UseRateLimiter();
 app.MapOnBoardingEnpoints();
+app.MapOtp();
 app.MapToApplication();
 app.MapToEndorsement();
 app.MapToEndorsementSettings();
@@ -237,16 +240,16 @@ app.MapToRejectedApplications();
 app.MapToImportAudit();
 app.MapToOfficePerformance();
 app.MapToInbox();
-        app.MapToRequirements();
-        app.MapToLogs();
-        app.MapToPlacementTransfer();
-        app.MapToProgress();
+app.MapToRequirements();
+app.MapToLogs();
+app.MapToPlacementTransfer();
+app.MapToProgress();
 
 //seed
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    
+
     await SeederAdmin.InitAdmin(scope.ServiceProvider);
     await SeederStudent.InitStudents(scope.ServiceProvider);
 }

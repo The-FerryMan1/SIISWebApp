@@ -13,8 +13,14 @@ const toast = useToast()
 const onaboard = useOnBoardStore()
 const { state, errorMessage } = storeToRefs(onaboard)
 const isOpen = ref<boolean>(false)
+const isOtpOpen = ref(false)
+const otpCode = ref('')
+const otpEmail = ref('')
+const isOtpSending = ref(false)
+const isOtpVerifying = ref(false)
 const moaFile = ref<File | null>(null)
 const resumeFile = ref<File | null>(null)
+const developmentLetterFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const form = useTemplateRef('form')
@@ -83,9 +89,10 @@ watch(()=>route.params.token, async(value)=>{
     { value: 2, label: 'Other' },
   ]
 
-  watch([moaFile, resumeFile], () => {
+  watch([moaFile, resumeFile, developmentLetterFile], () => {
   state.value.moaFile = moaFile.value
   state.value.resumeFile = resumeFile.value
+  state.value.developmentLetterFile = developmentLetterFile.value
   })
 
   const minStartDate = computed(() => {
@@ -104,6 +111,10 @@ watch(()=>route.params.token, async(value)=>{
       toast.add({ title: 'Resume is required', color: 'error' })
       return
     }
+    if (!developmentLetterFile.value) {
+      toast.add({ title: 'Development letter is required', color: 'error' })
+      return
+    }
 
     reviewPayload.value = payload
     isOpen.value = true
@@ -111,6 +122,32 @@ watch(()=>route.params.token, async(value)=>{
 
 // Step 2: User confirms in modal → actually submit
 const onConfirm = async () => {
+  if (!reviewPayload.value) return
+
+  if (otpEmail.value !== state.value.student.email.trim().toLowerCase()) {
+    try {
+      isOtpSending.value = true
+      otpEmail.value = state.value.student.email.trim().toLowerCase()
+      await useAxios.post('/otp/send', {
+        email: otpEmail.value,
+        registrationToken: route.params.token,
+      })
+      isOpen.value = false
+      isOtpOpen.value = true
+      toast.add({ title: 'Verification code sent', color: 'success' })
+    } catch (e) {
+      otpEmail.value = ''
+      toast.add({ title: 'Could not send verification code', color: 'error' })
+    } finally {
+      isOtpSending.value = false
+    }
+    return
+  }
+
+  await submitApplication()
+}
+
+const submitApplication = async () => {
   if (!reviewPayload.value) return
 
   console.log('MOA file before sync:', moaFile.value)
@@ -126,6 +163,7 @@ const onConfirm = async () => {
     onaboard.stateReset()
     moaFile.value = null
     resumeFile.value = null
+    developmentLetterFile.value = null
     reviewPayload.value = null
   } catch (e) {
     toast.add({ title: 'Submission failed', color: 'error' })
@@ -140,6 +178,29 @@ const onConfirm = async () => {
     isOpen.value = false
   } finally {
     isSubmitting.value = false
+  }
+}
+
+const verifyOtpAndSubmit = async () => {
+  if (otpCode.value.trim().length !== 6) {
+    toast.add({ title: 'Enter the 6-digit verification code', color: 'error' })
+    return
+  }
+
+  try {
+    isOtpVerifying.value = true
+    await useAxios.post('/otp/verify', {
+      email: otpEmail.value,
+      registrationToken: route.params.token,
+      code: otpCode.value.trim(),
+    })
+    isOtpOpen.value = false
+    otpCode.value = ''
+    await submitApplication()
+  } catch (e) {
+    toast.add({ title: 'Invalid or expired verification code', color: 'error' })
+  } finally {
+    isOtpVerifying.value = false
   }
 }
 
@@ -405,6 +466,15 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                   class="w-full"
                 />
               </UFormField>
+              <UFormField name="developmentLetterFile" label="Development Letter" required>
+                <UFileUpload
+                  v-model="developmentLetterFile"
+                  file-icon="i-lucide-file-text"
+                  description="Upload your Development Letter (PDF)"
+                  accept=".pdf"
+                  class="w-full"
+                />
+              </UFormField>
             </div>
           </UPageCard>
 
@@ -458,6 +528,10 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
                   <p class="text-sm text-muted mb-1">Resume:</p>
                   <p class="font-bold">{{ resumeFile?.name || 'No file uploaded' }}</p>
                 </div>
+                <div>
+                  <p class="text-sm text-muted mb-1">Development Letter:</p>
+                  <p class="font-bold">{{ developmentLetterFile?.name || 'No file uploaded' }}</p>
+                </div>
               </div>
             </UPageCard>
           </div>
@@ -477,8 +551,35 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
               color="primary"
               icon="i-lucide-send"
               label="Confirm & Submit"
-              :loading="isSubmitting"
+              :loading="isSubmitting || isOtpSending"
               @click="onConfirm"
+            />
+          </div>
+        </template>
+      </UModal>
+
+      <UModal v-model:open="isOtpOpen" title="Verify your email">
+        <template #body>
+          <div class="flex flex-col gap-4">
+            <p class="text-muted">Enter the 6-digit code sent to {{ otpEmail }}.</p>
+            <UInput
+              v-model="otpCode"
+              inputmode="numeric"
+              maxlength="6"
+              placeholder="Enter verification code"
+              autofocus
+            />
+          </div>
+        </template>
+        <template #footer>
+          <div class="w-full flex justify-end gap-2">
+            <UButton variant="ghost" color="neutral" @click="isOtpOpen = false">Cancel</UButton>
+            <UButton
+              color="primary"
+              icon="i-lucide-shield-check"
+              label="Verify & Submit"
+              :loading="isOtpVerifying || isSubmitting"
+              @click="verifyOtpAndSubmit"
             />
           </div>
         </template>

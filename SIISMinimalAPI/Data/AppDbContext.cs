@@ -18,6 +18,7 @@ namespace SIISMinimalAPI.Data
         public DbSet<OfficeNotification> OfficeNotifications { get; set; }
         public DbSet<Progress> Progresses {get; set;    }
         public DbSet<SystemSettings> SystemSettings { get; set; }
+        public DbSet<Otp> Otps { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -105,6 +106,13 @@ namespace SIISMinimalAPI.Data
                     .WithMany()
                     .HasForeignKey(n => n.OfficeId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Otp>(otp =>
+            {
+                otp.HasIndex(t => new { t.Identifier, t.HashToken });
+                otp.Property(t => t.Identifier).HasMaxLength(320);
+                otp.Property(t => t.HashToken).HasMaxLength(64);
             });
 
         }

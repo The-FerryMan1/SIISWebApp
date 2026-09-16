@@ -6,6 +6,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Internal;
 using SIISMinimalAPI.Features.RegistrationToken;
+using SIISMinimalAPI.Features.Otp;
 
 
 namespace SIISMinimalAPI.Features.OnBoarding;
@@ -19,7 +20,7 @@ public static class OnBoardingEndpoint
         .RequireRateLimiting("standard")
         .RequireCors("AllowFrontend");
 
-        group.MapPost("/{token}", async Task<IResult> (Guid token, [FromForm] OnBoardingDto dto, CancellationToken ct, IOnBoadringService service, IRegistrationTokenService regservice) =>
+        group.MapPost("/{token}", async Task<IResult> (Guid token, [FromForm] OnBoardingDto dto, CancellationToken ct, IOnBoadringService service, IRegistrationTokenService regservice, IOtpService otpService) =>
         {
 
             var result = await regservice.VerifyRegistrationToken(token, ct);
@@ -52,6 +53,9 @@ public static class OnBoardingEndpoint
 
                 return TypedResults.ValidationProblem(errors);
             }
+
+            if (!await otpService.ConsumeVerifiedOtpAsync(dto.Student.Email, token, ct))
+                return Results.BadRequest("Email verification is required before submitting the application.");
 
             try
             {
