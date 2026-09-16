@@ -41,6 +41,11 @@ const estimatedEndDate = computed(() => {
   return end.toISOString().split('T')[0]
 })
 
+// Sync estimatedEndDate to state for validation
+watch(estimatedEndDate, (value: string | undefined) => {
+  state.value.internship.estimatedEndDate = value ?? ''
+}, { immediate: true })
+
 watch(()=>route.params.token, async(value)=>{
     try{
       await useAxios.get('/registrationtoken/verify/' + value)

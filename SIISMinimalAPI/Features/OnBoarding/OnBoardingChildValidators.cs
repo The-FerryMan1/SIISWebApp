@@ -94,8 +94,12 @@ public class InternshipRegDtoValidator : AbstractValidator<InternshipRegDto>
 
         RuleFor(x => x.EstimatedEndDate)
             .NotEmpty().WithMessage("Estimated end date is required")
+            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today.AddDays(7)))
+            .WithMessage("Estimated end date must be at least 7 days from today")
             .GreaterThan(x => x.StartDate)
-            .WithMessage("End date must be after start date");
+            .WithMessage("End date must be after start date")
+            .LessThanOrEqualTo(x => x.StartDate.AddYears(2))
+            .WithMessage("Estimated end date cannot exceed 2 years from start date");
 
         RuleFor(x => x.InternshipTotalHours)
             .InclusiveBetween(80, 600)
