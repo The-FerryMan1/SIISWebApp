@@ -14,7 +14,7 @@ const onaboard = useOnBoardStore()
 const { state, errorMessage } = storeToRefs(onaboard)
 const isOpen = ref<boolean>(false)
 const isOtpOpen = ref(false)
-const otpCode = ref('')
+const otpCode = ref<number[]>([])
 const otpEmail = ref('')
 const isOtpSending = ref(false)
 const isOtpVerifying = ref(false)
@@ -187,7 +187,7 @@ const submitApplication = async () => {
 }
 
 const verifyOtpAndSubmit = async () => {
-  if (otpCode.value.trim().length !== 6) {
+  if (otpCode.value.length !== 6 || otpCode.value.some(d => !d)) {
     toast.add({ title: 'Enter the 6-digit verification code', color: 'error' })
     return
   }
@@ -197,16 +197,20 @@ const verifyOtpAndSubmit = async () => {
     await useAxios.post('/otp/verify', {
       email: otpEmail.value,
       registrationToken: route.params.token,
-      code: otpCode.value.trim(),
+      code: otpCode.value.join(''),
     })
-    isOtpOpen.value = false
-    otpCode.value = ''
+    closeOtpModal()
     await submitApplication()
   } catch (e) {
     toast.add({ title: 'Invalid or expired verification code', color: 'error' })
   } finally {
     isOtpVerifying.value = false
   }
+}
+
+const closeOtpModal = () => {
+  isOtpOpen.value = false
+  otpCode.value = []
 }
 
   const educationalLevelFinder = (index: number) => educationalLevelItems.find((t) => t.value === index)?.label
@@ -563,22 +567,25 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
         </template>
       </UModal>
 
-      <UModal v-model:open="isOtpOpen" title="Verify your email">
+      <UModal v-model:open="isOtpOpen" title="Verify your email" :persistent="false">
         <template #body>
           <div class="flex flex-col gap-4">
             <p class="text-muted">Enter the 6-digit code sent to {{ otpEmail }}.</p>
-            <UInput
+            <UPinInput
               v-model="otpCode"
-              inputmode="numeric"
-              maxlength="6"
-              placeholder="Enter verification code"
+              :length="6"
+              type="number"
+              otp
+              placeholder="○"
               autofocus
+              class="w-full"
+              @complete="verifyOtpAndSubmit"
             />
           </div>
         </template>
         <template #footer>
           <div class="w-full flex justify-end gap-2">
-            <UButton variant="ghost" color="neutral" @click="isOtpOpen = false">Cancel</UButton>
+            <UButton variant="ghost" color="neutral" @click="closeOtpModal">Cancel</UButton>
             <UButton
               color="primary"
               icon="i-lucide-shield-check"
