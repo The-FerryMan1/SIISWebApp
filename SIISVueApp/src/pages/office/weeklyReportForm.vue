@@ -68,8 +68,13 @@ onMounted(async () => {
     if (dailyEntries.value[0]) {
       dailyEntries.value[0].date = weekStart.value
     }
-  } catch {
-    toast.add({ title: 'Failed to load progress data', color: 'error' })
+  } catch (error: any) {
+    const msg = error.response?.data?.title || error.response?.data?.message || 'Failed to load progress data'
+    if (msg.includes('Placement not found') || msg.includes('placement')) {
+      toast.add({ title: 'Student has no placement yet. Admin must assign & approve first.', color: 'warning' })
+    } else {
+      toast.add({ title: msg, color: 'error' })
+    }
     router.back()
   } finally {
     loading.value = false

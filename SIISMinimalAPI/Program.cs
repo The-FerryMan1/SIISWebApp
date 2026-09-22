@@ -29,6 +29,7 @@ using SIISMinimalAPI.Features.Report.RejectedApplications;
 using SIISMinimalAPI.Features.Report.ImportAudit;
 using SIISMinimalAPI.Features.Report.OfficePerformance;
 using SIISMinimalAPI.Features.Report.WeeklyReport;
+using SIISMinimalAPI.Features.WeeklyReport.WeeklyReportCrud;
 using SIISMinimalAPI.Features.SystemSettings;
 using SIISMinimalAPI.Features.Inbox;
 using SIISMinimalAPI.Features.OfficeDashboard;
@@ -150,6 +151,7 @@ builder.Services.AddScoped<IOfficePerformanceService, OfficePerformanceHandler>(
 builder.Services.AddScoped<IInboxService, InboxHandler>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IProgressService, ProgressHandler>();
+builder.Services.AddScoped<IWeeklyReportCrudService, WeeklyReportCrudService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<SIISMinimalAPI.Features.Daily.CreateDaily.IService, SIISMinimalAPI.Features.Daily.CreateDaily.Service>();
@@ -246,6 +248,7 @@ app.MapToRequirements();
 app.MapToLogs();
 app.MapToPlacementTransfer();
 app.MapToProgress();
+app.MapWeeklyReportCrud();
 
 //seed
 using (var scope = app.Services.CreateScope())

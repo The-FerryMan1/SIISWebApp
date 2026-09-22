@@ -46,9 +46,14 @@ async function fetchProgress() {
   try {
     const { data } = await useAxios.get(`/progress/${uuid}`)
     progress.value = data
-  } catch {
+  } catch (error: any) {
     error.value = true
-    toast.add({ title: 'Failed to load progress', color: 'error' })
+    const msg = error.response?.data?.title || error.response?.data?.message || 'Failed to load progress'
+    if (msg.includes('Placement not found') || msg.includes('placement')) {
+      toast.add({ title: 'Student not assigned to an office yet. Admin must assign & approve first.', color: 'warning' })
+    } else {
+      toast.add({ title: msg, color: 'error' })
+    }
   } finally {
     loading.value = false
   }
