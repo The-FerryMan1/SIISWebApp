@@ -35,7 +35,7 @@ const statusColor = computed(() => {
   return progress.value.placementStatus === 'Finished' ? 'success' : 'warning'
 })
 
-onMounted(async () => {
+async function fetchProgress() {
   const uuid = route.params.uuid
   if (!uuid || typeof uuid !== 'string') {
     toast.add({ title: 'Invalid student ID', color: 'error' })
@@ -52,6 +52,10 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+}
+
+onMounted(async () => {
+  await fetchProgress()
 })
 
 const goBack = () => {
@@ -61,7 +65,9 @@ const goBack = () => {
 const goToWeeklyReport = () => {
   const uuid = route.params.uuid
   if (uuid && typeof uuid === 'string') {
-    router.push({ name: 'office-weekly-report-form', params: { uuid } })
+    const isOffice = route.path.startsWith('/office')
+    const routeName = isOffice ? 'office-weekly-report-form' : 'weekly-report-form'
+    router.push({ name: routeName, params: { uuid } })
   }
 }
 </script>
@@ -144,6 +150,37 @@ const goToWeeklyReport = () => {
             />
           </div>
         </template>
+      </UCard>
+
+      <!-- Weekly Reports Section -->
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-primary">Weekly Reports</h2>
+            <UButton 
+              v-if="progress.placementStatus !== 'Finished'" 
+              @click="goToWeeklyReport" 
+              icon="i-lucide-plus" 
+              label="Add Weekly Report" 
+              color="primary" 
+              size="sm"
+            />
+          </div>
+        </template>
+
+        <div class="text-center py-12 text-muted">
+          <UIcon name="i-lucide-file-text" class="text-4xl mb-2" />
+          <p>No weekly reports found</p>
+          <p class="text-sm mt-1">Create your first weekly report to track progress</p>
+          <UButton 
+            v-if="progress.placementStatus !== 'Finished'" 
+            @click="goToWeeklyReport" 
+            class="mt-4" 
+            icon="i-lucide-plus" 
+            label="Create Weekly Report" 
+            color="primary"
+          />
+        </div>
       </UCard>
     </div>
   </UMain>

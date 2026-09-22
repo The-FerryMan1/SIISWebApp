@@ -84,7 +84,7 @@ public class ApplicationHandler(AppDbContext context, ILogService logService, IE
             _logger.LogError(ex, "Failed to send approval email to {Email}", exists.Email);
         }
 
-        var userId = context.Entry(exists).Property("Id").CurrentValue.ToString() ?? "unknown";
+        var userId = _context.Entry(exists).Property("Id").CurrentValue.ToString() ?? "unknown";
         await _logService.WriteAsync("Approve", "Application", exists.Application.Id, userId, $"Approved application for {exists.FullName}");
     }
 
@@ -424,7 +424,7 @@ public class ApplicationHandler(AppDbContext context, ILogService logService, IE
                 ct);
         }
 
-        var deleteUserId = context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
+        var deleteUserId = _context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
         await _logService.WriteAsync("Delete", "Application", application.Application.Id, deleteUserId, $"Deleted application for {application.FullName}");
     }
 
@@ -623,7 +623,7 @@ public class ApplicationHandler(AppDbContext context, ILogService logService, IE
             _logger.LogError(ex, "Failed to send rejection email to {Email}", application.Email);
         }
 
-        var rejectUserId = context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
+        var rejectUserId = _context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
         await _logService.WriteAsync("Reject", "Application", application.Application.Id, rejectUserId, $"Rejected application for {application.FullName}: {reason}");
 
     }
@@ -664,7 +664,7 @@ public class ApplicationHandler(AppDbContext context, ILogService logService, IE
                 ct);
         }
 
-        var trashUserId = context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
+        var trashUserId = _context.Entry(application).Property("Id").CurrentValue.ToString() ?? "unknown";
         await _logService.WriteAsync("Trash", "Application", application.Application.Id, trashUserId, $"Trashed application for {application.FullName}");
     }
 }
