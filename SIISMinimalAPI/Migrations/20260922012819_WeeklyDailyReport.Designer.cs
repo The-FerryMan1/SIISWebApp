@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SIISMinimalAPI.Data;
 
@@ -10,9 +11,11 @@ using SIISMinimalAPI.Data;
 namespace SIISMinimalAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260922012819_WeeklyDailyReport")]
+    partial class WeeklyDailyReport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
@@ -198,9 +201,6 @@ namespace SIISMinimalAPI.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateOnly>("Date")
                         .HasColumnType("TEXT");
 
@@ -208,15 +208,6 @@ namespace SIISMinimalAPI.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("InCharge")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("IncidentReport")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("WeeklyReportId")

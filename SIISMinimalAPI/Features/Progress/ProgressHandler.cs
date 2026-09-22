@@ -23,9 +23,7 @@ public class ProgressHandler(AppDbContext context) : IProgressService
             throw new KeyNotFoundException("Placement not found for this student");
         }
 
-        var latestProgress = placement.Progresses?
-            .OrderByDescending(p => p.CreatedAt)
-            .FirstOrDefault();
+        var latestProgress = placement.Progress;
 
         var totalHours = student.TotalInternshipHours;
         var accumulatedHours = placement.AccumulatedHours;

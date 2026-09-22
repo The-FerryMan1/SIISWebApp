@@ -64,17 +64,15 @@ public class WeeklyReportHandler(AppDbContext context) : IWeeklyReportService
 
         var data = new List<WeeklyStudentDto>();
 
-        foreach (var s in students)
-        {
-            var placement = s.Placement!;
-            var weekProgresses = placement.Progresses?
-                .Where(p => p.CreatedAt >= weekStart && p.CreatedAt <= weekEnd)
-                .ToList() ?? new List<ProgressModel>();
+foreach (var s in students)
+            {
+                var placement = s.Placement!;
+                var weekProgresses = placement.Progress != null && placement.Progress.CreatedAt >= weekStart && placement.Progress.CreatedAt <= weekEnd
+                    ? new List<ProgressModel> { placement.Progress }
+                    : new List<ProgressModel>();
 
-            var hoursThisWeek = weekProgresses.Sum(p => p.TrainingHoursForWeek);
-            var latestProgress = placement.Progresses?
-                .OrderByDescending(p => p.CreatedAt)
-                .FirstOrDefault();
+                var hoursThisWeek = weekProgresses.Sum(p => p.TrainingHoursForWeek);
+                var latestProgress = placement.Progress;
 
             var progressPercent = 0.0;
             if (s.TotalInternshipHours > 0 && placement.AccumulatedHours > 0)
@@ -190,14 +188,14 @@ public class WeeklyReportHandler(AppDbContext context) : IWeeklyReportService
 
         var data = new List<WeeklyStudentDto>();
 
-        foreach (var s in students)
-        {
-            var placement = s.Placement!;
-            var weekProgresses = placement.Progresses?
-                .Where(p => p.CreatedAt >= weekStart && p.CreatedAt <= weekEnd)
-                .ToList() ?? new List<ProgressModel>();
+foreach (var s in students)
+            {
+                var placement = s.Placement!;
+                var weekProgresses = placement.Progress != null && placement.Progress.CreatedAt >= weekStart && placement.Progress.CreatedAt <= weekEnd
+                    ? new List<ProgressModel> { placement.Progress }
+                    : new List<ProgressModel>();
 
-            var hoursThisWeek = weekProgresses.Sum(p => p.TrainingHoursForWeek);
+                var hoursThisWeek = weekProgresses.Sum(p => p.TrainingHoursForWeek);
 
             var progressPercent = 0.0;
             if (s.TotalInternshipHours > 0 && placement.AccumulatedHours > 0)
@@ -244,7 +242,7 @@ public class WeeklyReportHandler(AppDbContext context) : IWeeklyReportService
         }
 
         var students = await _context.Students
-            .Include(t => t.Placement).ThenInclude(p => p.Progresses!)
+            .Include(t => t.Placement).ThenInclude(p => p.Progress)
             .Where(t => t.Placement != null && t.Placement!.OfficeId == office.Id && !t.IsDeleted)
             .AsNoTracking()
             .AsSplitQuery()
@@ -252,7 +250,8 @@ public class WeeklyReportHandler(AppDbContext context) : IWeeklyReportService
 
         var history = new List<WeeklyHistoryDto>();
         var weekGroups = students
-            .SelectMany(s => s.Placement!.Progresses ?? new List<ProgressModel>())
+            .Where(s => s.Placement?.Progress != null)
+            .Select(s => s.Placement!.Progress!)
             .GroupBy(p => new
             {
                 Year = p.CreatedAt.Year,

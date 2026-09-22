@@ -39,6 +39,7 @@ using SIISMinimalAPI.Features.StudentImport;
 using SIISMinimalAPI.Features.PlacementTransfer;
 using SIISMinimalAPI.Features.Email;
 using SIISMinimalAPI.Features.Notifications;
+using SIISMinimalAPI.Features.Daily;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -151,6 +152,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IProgressService, ProgressHandler>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddScoped<SIISMinimalAPI.Features.Daily.CreateDaily.IService, SIISMinimalAPI.Features.Daily.CreateDaily.Service>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

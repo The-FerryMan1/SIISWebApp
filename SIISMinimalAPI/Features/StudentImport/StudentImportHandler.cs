@@ -201,16 +201,13 @@ public class StudentImportHandler(AppDbContext context, ILogService logService) 
                     EstimatedEndDate = estimatedEndDate,
                     AccumulatedHours = 0,
                     PlacementStatus = PlacementStatusEnum.Ongoing,
-                    Progresses = new List<SIISMinimalAPI.Features.Shared.Models.Progress>
+                    Progress = new SIISMinimalAPI.Features.Shared.Models.Progress
                     {
-                        new SIISMinimalAPI.Features.Shared.Models.Progress
-                        {
-                            TrainingHoursRendered = 0,
-                            TrainingHoursForWeek = 0,
-                            RemainingHours = student.TotalInternshipHours,
-                            CreatedAt = DateTime.Now,
-                            UpdatedAt = DateTime.Now
-                        }
+                        TrainingHoursRendered = 0,
+                        TrainingHoursForWeek = 0,
+                        RemainingHours = student.TotalInternshipHours,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
                     }
                 };
 

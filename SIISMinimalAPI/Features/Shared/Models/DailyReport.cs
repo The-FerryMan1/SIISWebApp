@@ -10,5 +10,10 @@ namespace SIISMinimalAPI.Features.Shared.Models
 
         public int WeeklyReportId { get; set; }
         public WeeklyReport? WeeklyReport { get; set; }
+        public string? Remarks { get; set; }
+        public string? IncidentReport { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
     }
 }
