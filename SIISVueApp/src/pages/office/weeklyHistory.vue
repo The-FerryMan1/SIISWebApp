@@ -76,8 +76,8 @@ function downloadWeeklyReport(item: WeeklyHistoryDto) {
           { accessorKey: 'officeName', header: 'Office' },
           { accessorKey: 'totalStudents', header: 'Students' },
           { accessorKey: 'totalHoursThisWeek', header: 'Hours This Week' },
-          { accessorKey: 'generatedAt', header: 'Generated', cell: ({ row }) => new Date(row.original.generatedAt).toLocaleString() },
-          { id: 'action', header: '', cell: ({ row }) => h('UButton', { icon: 'i-lucide-download', size: 'sm', variant: 'ghost', label: 'Download', onClick: () => downloadWeeklyReport(row.original) }) }
+          { accessorKey: 'generatedAt', header: 'Generated', cell: ({ row }: { row: { original: WeeklyHistoryDto } }) => new Date(row.original.generatedAt).toLocaleString() },
+          { id: 'action', header: '', cell: ({ row }: { row: { original: WeeklyHistoryDto } }) => h('UButton', { icon: 'i-lucide-download', size: 'sm', variant: 'ghost', label: 'Download', onClick: () => downloadWeeklyReport(row.original) }) }
         ]"
         class="w-full"
       />

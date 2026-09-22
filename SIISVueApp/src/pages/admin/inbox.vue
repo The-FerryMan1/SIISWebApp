@@ -73,14 +73,14 @@ const typeLabel = (type: string) => {
       <UTable v-else
         :data="inbox.items"
         :columns="[
-          { accessorKey: 'type', header: 'Type', cell: ({ row }) => typeLabel(row.original.type) },
+          { accessorKey: 'type', header: 'Type', cell: ({ row }: { row: { original: InboxItem } }) => typeLabel(row.original.type) },
           { accessorKey: 'title', header: 'Title' },
           { accessorKey: 'studentName', header: 'Student' },
           { accessorKey: 'schoolName', header: 'School' },
           { accessorKey: 'officeName', header: 'Office' },
-          { accessorKey: 'createdAt', header: 'Date', cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString() },
-          { accessorKey: 'priority', header: 'Priority', cell: ({ row }) => h(UBadge, { color: priorityColor(row.original.priority), variant: 'subtle', size: 'sm' }, () => row.original.priority) },
-          { id: 'action', header: '', cell: ({ row }) => h('UButton', { icon: 'i-lucide-arrow-right', size: 'sm', variant: 'ghost', onClick: () => navigateTo(row.original) }) }
+          { accessorKey: 'createdAt', header: 'Date', cell: ({ row }: { row: { original: InboxItem } }) => new Date(row.original.createdAt).toLocaleDateString() },
+          { accessorKey: 'priority', header: 'Priority', cell: ({ row }: { row: { original: InboxItem } }) => h(UBadge, { color: priorityColor(row.original.priority), variant: 'subtle', size: 'sm' }, () => row.original.priority) },
+          { id: 'action', header: '', cell: ({ row }: { row: { original: InboxItem } }) => h('UButton', { icon: 'i-lucide-arrow-right', size: 'sm', variant: 'ghost', onClick: () => navigateTo(row.original) }) }
         ]"
         class="w-full"
       />

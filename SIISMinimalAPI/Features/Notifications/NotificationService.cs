@@ -17,6 +17,8 @@ public class NotificationService(AppDbContext context) : INotificationService
         string priority,
         CancellationToken ct = default)
     {
+        await EnsureTableExistsAsync(ct);
+
         var officeExists = await _context.Offices
             .AnyAsync(o => o.Id == officeId && !o.IsDeleted, ct);
 
@@ -48,6 +50,8 @@ public class NotificationService(AppDbContext context) : INotificationService
         string priority,
         CancellationToken ct = default)
     {
+        await EnsureTableExistsAsync(ct);
+
         var officeId = await _context.Students
             .Where(s => s.Id == studentId && s.Placement != null)
             .Select(s => s.Placement!.OfficeId)
@@ -56,6 +60,30 @@ public class NotificationService(AppDbContext context) : INotificationService
         if (officeId.HasValue)
         {
             await NotifyOfficeAsync(officeId.Value, type, title, description, actionUrl, priority, ct);
+        }
+    }
+
+    private async Task EnsureTableExistsAsync(CancellationToken ct)
+    {
+        try
+        {
+            await _context.Database.ExecuteSqlRawAsync("""
+                CREATE TABLE IF NOT EXISTS "OfficeNotifications" (
+                    "Id" TEXT NOT NULL PRIMARY KEY,
+                    "OfficeId" INTEGER NOT NULL,
+                    "Type" TEXT NOT NULL,
+                    "Title" TEXT NOT NULL,
+                    "Description" TEXT NOT NULL,
+                    "ActionUrl" TEXT NOT NULL,
+                    "Priority" TEXT NOT NULL,
+                    "CreatedAt" TEXT NOT NULL,
+                    "ReadAt" TEXT NULL
+                )
+                """, ct);
+        }
+        catch
+        {
+            // ignore table creation errors
         }
     }
 }

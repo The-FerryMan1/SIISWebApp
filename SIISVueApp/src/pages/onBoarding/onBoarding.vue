@@ -14,7 +14,7 @@ const onaboard = useOnBoardStore()
 const { state, errorMessage } = storeToRefs(onaboard)
 const isOpen = ref<boolean>(false)
 const isOtpOpen = ref(false)
-const otpCode = ref<number[]>([])
+const otpCode = ref<string[]>([])
 const otpEmail = ref('')
 const isOtpSending = ref(false)
 const isOtpVerifying = ref(false)
@@ -199,18 +199,14 @@ const verifyOtpAndSubmit = async () => {
       registrationToken: route.params.token,
       code: otpCode.value.join(''),
     })
-    closeOtpModal()
+    isOtpOpen.value = false
+    otpCode.value = []
     await submitApplication()
   } catch (e) {
     toast.add({ title: 'Invalid or expired verification code', color: 'error' })
   } finally {
     isOtpVerifying.value = false
   }
-}
-
-const closeOtpModal = () => {
-  isOtpOpen.value = false
-  otpCode.value = []
 }
 
   const educationalLevelFinder = (index: number) => educationalLevelItems.find((t) => t.value === index)?.label
@@ -567,14 +563,13 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
         </template>
       </UModal>
 
-      <UModal v-model:open="isOtpOpen" title="Verify your email" :persistent="false">
+      <UModal v-model:open="isOtpOpen" title="Verify your email" :persistent="true">
         <template #body>
           <div class="flex flex-col gap-4">
             <p class="text-muted">Enter the 6-digit code sent to {{ otpEmail }}.</p>
             <UPinInput
               v-model="otpCode"
               :length="6"
-              type="number"
               otp
               placeholder="○"
               autofocus
@@ -585,7 +580,6 @@ const strandFinder = (index: number) => strandItems.find((t) => t.value === inde
         </template>
         <template #footer>
           <div class="w-full flex justify-end gap-2">
-            <UButton variant="ghost" color="neutral" @click="closeOtpModal">Cancel</UButton>
             <UButton
               color="primary"
               icon="i-lucide-shield-check"
