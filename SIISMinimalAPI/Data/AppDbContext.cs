@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SIISMinimalAPI.Features.Shared.Enums;
 using SIISMinimalAPI.Features.Shared.Models;
@@ -16,9 +17,11 @@ namespace SIISMinimalAPI.Data
         public DbSet<Registration> Registrations { get; set; }
         public DbSet<LogsModel> Logs { get; set; }
         public DbSet<OfficeNotification> OfficeNotifications { get; set; }
-        public DbSet<Progress> Progresses {get; set;    }
+        public DbSet<Progress> Progresses { get; set; }
         public DbSet<SystemSettings> SystemSettings { get; set; }
         public DbSet<Otp> Otps { get; set; }
+        public DbSet<WeeklyReport> WeeklyReports { get; set; }
+        public DbSet<DailyReport> DailyReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -64,6 +67,10 @@ namespace SIISMinimalAPI.Data
                     .WithMany(o => o.Placements)
                     .HasForeignKey(p => p.OfficeId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                placement.HasOne(p => p.Progress)
+                    .WithOne(p => p.Placement)
+                    .HasForeignKey<Progress>(p => p.PlacementId);
             });
 
             builder.Entity<Office>(office =>
@@ -78,10 +85,18 @@ namespace SIISMinimalAPI.Data
 
             builder.Entity<Progress>(progress =>
             {
-                progress.HasOne(p => p.Placement)
-                    .WithMany(p => p.Progresses)
-                    .HasForeignKey(p => p.PlacementId)
-                    .OnDelete(DeleteBehavior.SetNull);   
+                progress.HasMany(p => p.WeeklyReports)
+                    .WithOne(p => p.Progress)
+                    .HasForeignKey(p => p.ProgressId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<WeeklyReport>(weekly =>
+            {
+                weekly.HasMany(w => w.DailyReport)
+                    .WithOne(d => d.WeeklyReport)
+                    .HasForeignKey(w => w.WeeklyReportId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<Requirement>(req =>

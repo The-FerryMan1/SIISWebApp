@@ -21,6 +21,6 @@ namespace SIISMinimalAPI.Features.Shared.Models
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        public ICollection<Progress?>? Progresses { get; set; }
+        public Progress? Progress { get; set; }
     }
 }
