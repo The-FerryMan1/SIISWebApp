@@ -57,6 +57,13 @@ onMounted(async () => {
 const goBack = () => {
   router.back()
 }
+
+const goToWeeklyReport = () => {
+  const uuid = route.params.uuid
+  if (uuid && typeof uuid === 'string') {
+    router.push({ name: 'office-weekly-report-form', params: { uuid } })
+  }
+}
 </script>
 
 <template>
@@ -127,6 +134,14 @@ const goBack = () => {
           <div class="flex items-center justify-between text-sm text-gray-500">
             <span>Office: {{ progress.office }}</span>
             <span>Status: {{ progress.placementStatus }}</span>
+            <UButton 
+              v-if="progress.placementStatus !== 'Finished'" 
+              @click="goToWeeklyReport" 
+              icon="i-lucide-file-plus" 
+              label="Create Weekly Report" 
+              color="primary" 
+              size="sm"
+            />
           </div>
         </template>
       </UCard>

@@ -53,7 +53,7 @@
     <Content Remove="wwwroot\**" />
   </ItemGroup>
 
-  <Target Name="BuildVue" BeforeTargets="Build;Publish" Condition="'$(SKIP_VUE_BUILD)' != 'true'">
+  <Target Name="BuildVue" BeforeTargets="Build;Publish" Condition="'$(BUILD_VUE)' == 'true'">
     <Message Importance="high" Text="Building Vue frontend for the .NET host..." />
     <Exec Command="npm run build" WorkingDirectory="..\SIISVueApp" IgnoreExitCode="true" />
   </Target>

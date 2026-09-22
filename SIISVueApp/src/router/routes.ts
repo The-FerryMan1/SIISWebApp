@@ -71,6 +71,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { isRequiresOfficeAuth: true, title: 'Progress' },
       },
       {
+        path: 'progress/:uuid/weekly-report',
+        component: () => import('../pages/office/weeklyReportForm.vue'),
+        name: 'office-weekly-report-form',
+        meta: { isRequiresOfficeAuth: true, title: 'Weekly Report Form' },
+      },
+      {
         path: 'inbox',
         component: () => import('../pages/office/inbox.vue'),
         name: 'office-inbox',
@@ -207,6 +213,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('../pages/progress.vue'),
         name: 'progress',
         meta: { isRequiresAuth: true, title: 'Progress' },
+      },
+      {
+        path: 'progress/:uuid/weekly-report',
+        component: () => import('../pages/office/weeklyReportForm.vue'),
+        name: 'weekly-report-form',
+        meta: { isRequiresAuth: true, title: 'Weekly Report Form' },
       },
       {
         path: 'inbox',
