@@ -291,6 +291,29 @@ async function handleBulkEndorsement() {
   }
 }
 
+async function handleBulkDelete() {
+  if (!selectedCount.value) return
+
+  const instance = confirmModal.open()
+  if (!await instance) return
+
+  isBulkActionLoading.value = true
+  try {
+    const uuids = selectedApplicationUuids.value
+    await Promise.all(uuids.map((uuid) => useAxios.delete('/application/delete/' + uuid)))
+    toast.add({
+      title: `${uuids.length} applications deleted`,
+      color: 'success',
+    })
+    selectedRow.value = {}
+    await application.applicationInit()
+  } catch {
+    toast.add({ title: 'Bulk delete failed', color: 'error' })
+  } finally {
+    isBulkActionLoading.value = false
+  }
+}
+
 watch(
   () => pagination.value.pageSize,
   (size) => {
@@ -390,20 +413,28 @@ watch(pageSize, (size) => {
             <span class="text-sm text-muted">{{ selectedCount }} selected</span>
             <div class="flex items-center gap-2">
               <UButton
-                v-if="pendingSelected > 0"
-                icon="i-lucide-check"
-                label="Approve & Assign"
-                color="success"
-                size="sm"
-                @click="bulkApproveModal = true"
-              />
-              <UButton
                 label="Endorsement"
                 icon="i-lucide-printer"
                 color="primary"
                 size="sm"
                 :loading="isBulkActionLoading"
                 @click="handleBulkEndorsement"
+              />
+              <UButton
+                icon="i-lucide-trash-2"
+                label="Delete"
+                color="error"
+                size="sm"
+                :loading="isBulkActionLoading"
+                @click="handleBulkDelete"
+              />
+              <UButton
+                v-if="pendingSelected > 0"
+                icon="i-lucide-check"
+                label="Approve"
+                color="success"
+                size="sm"
+                @click="bulkApproveModal = true"
               />
               <UButton
                 icon="i-lucide-x"
