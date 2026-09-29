@@ -6,11 +6,12 @@ import type { Axios, AxiosError } from 'axios'
 export type Applicaton = {
   id: number
   uuid: string
+  studentUUID: string
   fullName: string
   degreeStrand: string
   status: string
-  createdAt: Date
-  updatedAt: Date | null
+  createdAt: string
+  updatedAt: string | null
 }
 
 export const useApplicationStore = defineStore('applicaton', () => {

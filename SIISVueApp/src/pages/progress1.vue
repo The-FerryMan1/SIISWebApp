@@ -2,7 +2,6 @@
 import { onMounted, ref, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAxios } from '../fetch/axios'
-import type { TableColumn } from '@nuxt/ui'
 
 const route = useRoute()
 const router = useRouter()
@@ -44,6 +43,25 @@ interface DailyReport {
 
 const weeklyReports = ref<WeeklyReport[]>([])
 const weeklyLoading = ref(false)
+
+const weeklyReportModal = ref(false)
+const savingWeeklyReport = ref(false)
+const dailyEntries = ref<{
+  date: string
+  activities: string
+  hours: number
+  inCharge: string
+  remarks: string
+  incidentReport: string
+}[]>([
+  { date: '', activities: '', hours: 0, inCharge: '', remarks: '', incidentReport: '' }
+])
+const weekStart = ref('')
+const weekEnd = ref('')
+
+const totalWeeklyHours = computed(() => 
+  dailyEntries.value.reduce((sum, entry) => sum + (entry.hours || 0), 0)
+)
 
 const progressColor = computed(() => {
   if (!progress.value) return 'bg-gray-500'
@@ -97,27 +115,55 @@ async function fetchWeeklyReports() {
   }
 }
 
-onMounted(async () => {
-  await fetchProgress()
-  await fetchWeeklyReports()
-})
-
-const goBack = () => {
-  router.back()
+function openWeeklyReportModal() {
+  if (!progress.value) return
+  
+  const today = new Date()
+  const dayOfWeek = today.getDay()
+  const startOfWeek = new Date(today)
+  startOfWeek.setDate(today.getDate() - dayOfWeek)
+  const endOfWeek = new Date(startOfWeek)
+  endOfWeek.setDate(startOfWeek.getDate() + 6)
+  
+   weekStart.value = startOfWeek.toISOString().split('T')[0] ?? ''
+   weekEnd.value = endOfWeek.toISOString().split('T')[0] ?? ''
+  
+  dailyEntries.value = [
+    { date: weekStart.value, activities: '', hours: 0, inCharge: '', remarks: '', incidentReport: '' }
+  ]
+  
+  weeklyReportModal.value = true
 }
 
-const goToWeeklyReport = () => {
-  const uuid = route.params.uuid
-  if (uuid && typeof uuid === 'string') {
-    const isOffice = route.path.startsWith('/office')
-    const routeName = isOffice ? 'office-weekly-report-form' : 'weekly-report-form'
-    router.push({ name: routeName, params: { uuid } })
+function closeWeeklyReportModal() {
+  weeklyReportModal.value = false
+  savingWeeklyReport.value = false
+}
+
+function addDailyEntry() {
+   const newDate = dailyEntries.value.length > 0
+    ? new Date(dailyEntries.value[dailyEntries.value.length - 1]!.date)
+    : new Date(weekStart.value)
+  newDate.setDate(newDate.getDate() + 1)
+  
+  if (newDate <= new Date(weekEnd.value)) {
+    dailyEntries.value.push({
+       date: newDate.toISOString().split('T')[0] ?? '',
+      activities: '',
+      hours: 0,
+      inCharge: '',
+      remarks: '',
+      incidentReport: ''
+    })
+  } else {
+    toast.add({ title: 'Cannot add more days beyond week end', color: 'warning' })
   }
 }
 
-const viewWeeklyReport = (report: WeeklyReport) => {
-  // TODO: Navigate to weekly report detail view
-  console.log('View report:', report)
+function removeDailyEntry(index: number) {
+  if (dailyEntries.value.length > 1) {
+    dailyEntries.value.splice(index, 1)
+  }
 }
 
 function formatDate(dateStr: string) {
@@ -125,22 +171,62 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-const weeklyReportColumns: TableColumn<WeeklyReport>[] = [
-  { accessorKey: 'weekStartDate', header: 'Week Start', cell: ({ row }) => formatDate(row.original.weekStartDate) },
-  { accessorKey: 'weekEndDate', header: 'Week End', cell: ({ row }) => formatDate(row.original.weekEndDate) },
-  { accessorKey: 'totalHours', header: 'Total Hours' },
-  { accessorKey: 'createdAt', header: 'Submitted', cell: ({ row }) => formatDate(row.original.createdAt) },
-  {
-    id: 'view',
-    header: '',
-    cell: ({ row }) => h('UButton', {
-      icon: 'i-lucide-eye',
-      size: 'sm',
-      variant: 'ghost',
-      onClick: () => viewWeeklyReport(row.original)
-    })
+function formatDateShort(dateStr: string) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr + 'T00:00:00')
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+const goBack = () => {
+  router.back()
+}
+
+async function submitWeeklyReport() {
+  if (!progress.value) return
+  
+  const validEntries = dailyEntries.value.filter(e => e.activities.trim() && e.hours > 0)
+  if (validEntries.length === 0) {
+    toast.add({ title: 'Please add at least one daily entry with activities and hours', color: 'warning' })
+    return
   }
-]
+
+  savingWeeklyReport.value = true
+  
+  try {
+    const uuid = route.params.uuid as string
+    const request = {
+      StudentUuid: uuid,
+      WeekStartDate: weekStart.value,
+      DailyReports: validEntries.map(entry => ({
+        Date: entry.date,
+        Activities: entry.activities,
+        Hours: entry.hours,
+        InCharge: entry.inCharge || undefined,
+        Remarks: entry.remarks || undefined,
+        IncidentReport: entry.incidentReport || undefined
+      }))
+    }
+
+    await useAxios.post('weekly-report', request)
+    toast.add({ title: 'Weekly report submitted successfully!', color: 'success' })
+    closeWeeklyReportModal()
+    await fetchWeeklyReports()
+  } catch (error: any) {
+    const msg = error.response?.data?.title || error.message || 'Failed to submit weekly report'
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    savingWeeklyReport.value = false
+  }
+}
+
+const viewWeeklyReport = (report: WeeklyReport) => {
+  console.log('View report:', report)
+}
+
+onMounted(async () => {
+  await fetchProgress()
+  await fetchWeeklyReports()
+})
 </script>
 
 <template>
@@ -182,87 +268,4 @@ const weeklyReportColumns: TableColumn<WeeklyReport>[] = [
           <UPageCard title="Remaining Hours" icon="i-lucide-hourglass" variant="outline">
             <p class="text-3xl font-bold text-orange-600">{{ progress.remainingHours }}</p>
           </UPageCard>
-          <UPageCard title="Progress" icon="i-lucide-bar-chart-2" variant="outline">
-            <p class="text-3xl font-bold" :class="progressColor">{{ progress.progressPercent }}%</p>
-          </UPageCard>
-        </div>
-
-        <div class="mt-6">
-          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Progress Bar</h4>
-          <div class="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              class="h-full rounded-full transition-all duration-500"
-              :class="progressColor"
-              :style="{ width: `${Math.min(progress.progressPercent, 100)}%` }"
-            />
-          </div>
-        </div>
-
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <UPageCard title="Training Hours This Week" icon="i-lucide-calendar" variant="outline">
-            <p class="text-2xl font-bold text-blue-600">{{ progress.trainingHoursForWeek }}</p>
-          </UPageCard>
-          <UPageCard title="Total Training Hours Rendered" icon="i-lucide-activity" variant="outline">
-            <p class="text-2xl font-bold text-purple-600">{{ progress.trainingHoursRendered }}</p>
-          </UPageCard>
-        </div>
-
-        <template #footer>
-          <div class="flex items-center justify-between text-sm text-gray-500">
-            <span>Office: {{ progress.office }}</span>
-            <span>Status: {{ progress.placementStatus }}</span>
-            <UButton 
-              v-if="progress.placementStatus !== 'Finished'" 
-              @click="goToWeeklyReport" 
-              icon="i-lucide-file-plus" 
-              label="Create Weekly Report" 
-              color="primary" 
-              size="sm"
-            />
-          </div>
-        </template>
-      </UCard>
-
-      <!-- Weekly Reports Section -->
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-bold text-primary">Weekly Reports</h2>
-            <UButton 
-              v-if="progress.placementStatus !== 'Finished'" 
-              @click="goToWeeklyReport" 
-              icon="i-lucide-plus" 
-              label="Add Weekly Report" 
-              color="primary" 
-              size="sm"
-            />
-          </div>
-        </template>
-
-        <div v-if="weeklyLoading" class="flex justify-center py-8">
-          <USpinner size="lg" />
-        </div>
-
-        <div v-else-if="weeklyReports.length === 0" class="text-center py-12 text-muted">
-          <UIcon name="i-lucide-file-text" class="text-4xl mb-2" />
-          <p>No weekly reports found</p>
-          <p class="text-sm mt-1">Create your first weekly report to track progress</p>
-          <UButton 
-            v-if="progress.placementStatus !== 'Finished'" 
-            @click="goToWeeklyReport" 
-            class="mt-4" 
-            icon="i-lucide-plus" 
-            label="Create Weekly Report" 
-            color="primary"
-          />
-        </div>
-
-        <UTable v-else
-          :data="weeklyReports"
-          :columns="weeklyReportColumns"
-          class="w-full"
-        />
-      </UCard>
-    </div>
-  </UMain>
-</template>
+          <UP

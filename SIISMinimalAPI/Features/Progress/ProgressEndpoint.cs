@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SIISMinimalAPI.Data;
 using SIISMinimalAPI.Features.Progress;
+using SIISMinimalAPI.Features.Shared.Models;
 
 namespace SIISMinimalAPI.Features.Progress;
 
@@ -31,6 +33,28 @@ public static class ProgressEndpoint
             {
                 return TypedResults.InternalServerError();
             }
+        }).RequireAuthorization();
+
+        group.MapGet("/student/{studentUuid:guid}", [Authorize] async Task<IResult>(
+            Guid studentUuid,
+            CancellationToken ct,
+            AppDbContext db) =>
+        {
+            var student = await db.Students
+                .Where(s => s.StudentUUID == studentUuid && !s.IsDeleted)
+                .Select(s => new
+                {
+                    s.StudentUUID,
+                    s.FullName,
+                    s.TotalInternshipHours,
+                    s.Email
+                })
+                .FirstOrDefaultAsync(ct);
+
+            if (student == null)
+                return TypedResults.NotFound("Student not found");
+
+            return TypedResults.Ok(student);
         }).RequireAuthorization();
 
         return app;

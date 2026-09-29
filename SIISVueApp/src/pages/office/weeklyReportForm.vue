@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, reactive, computed } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAxios } from '../../fetch/axios'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const axios = useAxios()
+const axios = useAxios
 
 const uuid = route.params.uuid as string
 const loading = ref(true)
@@ -40,35 +40,63 @@ const dailyEntries = ref<DailyEntry[]>([
 const weekStart = ref('')
 const weekEnd = ref('')
 
-const totalWeeklyHours = computed(() => 
+const totalWeeklyHours = computed(() =>
   dailyEntries.value.reduce((sum, entry) => sum + (entry.hours || 0), 0)
 )
 
 onMounted(async () => {
   if (!uuid) {
+    console.error('No UUID in route params:', route.params)
     toast.add({ title: 'Invalid student ID', color: 'error' })
     router.back()
     return
   }
 
   try {
-    const { data } = await axios.get(`/progress/${uuid}`)
-    progressData.value = data
-    
+    // Try progress endpoint first (requires placement)
+    try {
+      const { data } = await axios.get(`/progress/${uuid}`)
+      progressData.value = data
+    } catch (progressError: any) {
+      console.error('Progress endpoint error:', progressError.response?.data || progressError.message)
+      // If no placement, fetch student directly
+      if (typeof progressError.response?.data === 'string' &&
+        progressError.response.data.includes('Placement not found') ||
+        progressError.response?.data?.message?.includes('Placement not found') ||
+        progressError.response?.data?.title?.includes('Placement not found')) {
+        const { data: student } = await axios.get(`/progress/student/${uuid}`)
+        progressData.value = {
+          studentUuid: student.studentUUID,
+          studentName: student.fullName,
+          office: 'Not assigned',
+          totalHours: student.totalInternshipHours,
+          accumulatedHours: 0,
+          remainingHours: student.totalInternshipHours,
+          trainingHoursRendered: 0,
+          trainingHoursForWeek: 0,
+          progressPercent: 0,
+          placementStatus: 'Pending'
+        }
+      } else {
+        throw progressError
+      }
+    }
+
     const today = new Date()
     const dayOfWeek = today.getDay()
     const startOfWeek = new Date(today)
     startOfWeek.setDate(today.getDate() - dayOfWeek)
     const endOfWeek = new Date(startOfWeek)
     endOfWeek.setDate(startOfWeek.getDate() + 6)
-    
-    weekStart.value = startOfWeek.toISOString().split('T')[0]
-    weekEnd.value = endOfWeek.toISOString().split('T')[0]
-    
+
+    weekStart.value = startOfWeek.toISOString().split('T')[0] ?? ''
+    weekEnd.value = endOfWeek.toISOString().split('T')[0] ?? ''
+
     if (dailyEntries.value[0]) {
       dailyEntries.value[0].date = weekStart.value
     }
   } catch (error: any) {
+    console.error('Form load error:', error.response?.data || error.message)
     const msg = error.response?.data?.title || error.response?.data?.message || 'Failed to load progress data'
     if (msg.includes('Placement not found') || msg.includes('placement')) {
       toast.add({ title: 'Student has no placement yet. Admin must assign & approve first.', color: 'warning' })
@@ -82,14 +110,15 @@ onMounted(async () => {
 })
 
 function addDailyEntry() {
-  const newDate = dailyEntries.value.length > 0 
-    ? new Date(dailyEntries.value[dailyEntries.value.length - 1].date)
+  const lastEntry = dailyEntries.value[dailyEntries.value.length - 1]
+  const newDate = lastEntry
+    ? new Date(lastEntry.date)
     : new Date(weekStart.value)
   newDate.setDate(newDate.getDate() + 1)
-  
+
   if (newDate <= new Date(weekEnd.value)) {
     dailyEntries.value.push({
-      date: newDate.toISOString().split('T')[0],
+      date: newDate.toISOString().split('T')[0] ?? '',
       activities: '',
       hours: 0,
       inCharge: '',
@@ -115,7 +144,7 @@ function formatDate(dateStr: string) {
 
 async function submitWeeklyReport() {
   if (!progressData.value) return
-  
+
   const validEntries = dailyEntries.value.filter(e => e.activities.trim() && e.hours > 0)
   if (validEntries.length === 0) {
     toast.add({ title: 'Please add at least one daily entry with activities and hours', color: 'warning' })
@@ -123,10 +152,12 @@ async function submitWeeklyReport() {
   }
 
   saving.value = true
-  
+
   try {
     const request = {
-      Dailies: validEntries.map(entry => ({
+      StudentUuid: uuid,
+      WeekStartDate: weekStart.value,
+      DailyReports: validEntries.map(entry => ({
         Date: entry.date,
         Activities: entry.activities,
         Hours: entry.hours,
@@ -136,7 +167,7 @@ async function submitWeeklyReport() {
       }))
     }
 
-    await axios.post('/api/daily', request)
+    await axios.post('/weekly-report', request)
     toast.add({ title: 'Weekly report submitted successfully!', color: 'success' })
     router.back()
   } catch (error: any) {
@@ -189,94 +220,54 @@ function goBack() {
         </div>
 
         <div class="border-t pt-6">
-          <h3 class="text-lg font-semibold mb-4">Daily Entries</h3>
-          
-          <div v-for="(entry, index) in dailyEntries" :key="index" class="space-y-4 p-4 bg-gray-50 rounded-lg border">
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="font-medium">{{ formatDate(entry.date) || `Day ${index + 1}` }}</h4>
-              <UButton 
-                v-if="dailyEntries.length > 1" 
-                @click="removeDailyEntry(index)" 
-                variant="ghost" 
-                size="sm" 
-                color="error" 
-                icon="i-lucide-trash-2"
-              />
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormGroup label="Date" :required="true">
-                <UInput 
-                  v-model="entry.date" 
-                  type="date" 
-                  :min="weekStart" 
-                  :max="weekEnd"
-                  class="w-full"
-                />
-              </UFormGroup>
-              
-              <UFormGroup label="Hours" :required="true">
-                <UInput 
-                  v-model.number="entry.hours" 
-                  type="number" 
-                  min="0" 
-                  max="24"
-                  step="0.5"
-                  placeholder="0"
-                  class="w-full"
-                />
-              </UFormGroup>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold">Daily Entries</h3>
+              <UButton @click="addDailyEntry" icon="i-lucide-plus" label="Add Day" size="sm" />
             </div>
 
-            <UFormGroup label="Activities" :required="true">
-              <UTextarea 
-                v-model="entry.activities" 
-                placeholder="Describe activities performed..."
-                rows="3"
-                class="w-full"
-              />
-            </UFormGroup>
+            <div v-for="(entry, index) in dailyEntries" :key="index" class="space-y-4 p-4 bg-gray-50 rounded-lg border">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-medium">{{ formatDate(entry.date) || `Day ${index + 1}` }}</h4>
+                <UButton v-if="dailyEntries.length > 1" @click="removeDailyEntry(index)" variant="ghost" size="sm"
+                  color="error" icon="i-lucide-trash-2" />
+              </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <UFormGroup label="In Charge">
-                <UInput 
-                  v-model="entry.inCharge" 
-                  placeholder="Supervisor/Officer in charge"
-                  class="w-full"
-                />
-              </UFormGroup>
-              
-              <UFormGroup label="Remarks">
-                <UInput 
-                  v-model="entry.remarks" 
-                  placeholder="Additional remarks"
-                  class="w-full"
-                />
-              </UFormGroup>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">Date</label>
+                  <UInput v-model="entry.date" type="date" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Hours</label>
+                  <UInput v-model.number="entry.hours" type="number" min="0" />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium mb-1">Activities</label>
+                  <UInput v-model="entry.activities" placeholder="Description of daily activities" />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium mb-1">In Charge</label>
+                  <UInput v-model="entry.inCharge" placeholder="Person in charge" />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium mb-1">Remarks</label>
+                  <UInput v-model="entry.remarks" placeholder="Additional remarks" />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium mb-1">Incident Report</label>
+                  <UInput v-model="entry.incidentReport" placeholder="Incident report (if any)" />
+                </div>
+              </div>
             </div>
-
-            <UFormGroup label="Incident Report (if any)">
-              <UTextarea 
-                v-model="entry.incidentReport" 
-                placeholder="Report any incidents or issues..."
-                rows="2"
-                class="w-full"
-              />
-            </UFormGroup>
           </div>
 
-          <div class="mt-4 flex justify-end">
-            <UButton @click="addDailyEntry" icon="i-lucide-plus" label="Add Another Day" variant="outline" />
-          </div>
-        </div>
-
-        <template #footer>
-          <div class="flex justify-end gap-3 pt-4 border-t">
+          <div class="flex justify-end gap-4 pt-6 border-t">
             <UButton @click="goBack" variant="ghost" label="Cancel" />
-            <UButton @click="submitWeeklyReport" :loading="saving" color="primary" label="Submit Weekly Report" />
+            <UButton @click="submitWeeklyReport" :loading="saving" :disabled="saving" label="Submit Weekly Report" color="primary" />
           </div>
-        </template>
-      </UCard>
+        </UCard>
     </div>
+
   </UMain>
+
 </template>

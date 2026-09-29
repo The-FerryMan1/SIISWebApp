@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { UseAuthStore } from '../../stores/auth'
 import { computed, h, onMounted, ref, resolveComponent, useTemplateRef, watch } from 'vue'
-import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui'
 import { useApplicationStore } from '../../stores/application'
 import type { Applicaton } from '../../stores/application'
-import { getPaginationRowModel, type Row } from '@tanstack/vue-table'
+import { getPaginationRowModel } from '@tanstack/vue-table'
 import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import ConfirmationModal from '../../components/confirmationModal.vue'
 import { useAxios } from '../../fetch/axios'
-import { ApplicationStatusEnum } from './types/applicationType.ts'
+import { OfficeNameLabels, OfficesArray, OfficeNameEnum } from './types/officeSelectValue'
 
 //states
 const auth = UseAuthStore()
@@ -24,6 +24,10 @@ const toast = useToast()
 const overlay = useOverlay()
 const confirmModal = overlay.create(ConfirmationModal)
 const loading = ref(false)
+const selectedRow = ref<Record<string, boolean>>({})
+const bulkApproveModal = ref(false)
+const selectedOfficeForBulk = ref<number | undefined>(undefined)
+const isBulkActionLoading = ref(false)
 
 onMounted(async () => {
   loading.value = true
@@ -36,6 +40,24 @@ onMounted(async () => {
 
 //table column
 const columns: TableColumn<Applicaton>[] = [
+  {
+    id: 'select',
+    header: ({ table }) =>
+      h(UCheckbox, {
+        modelValue: table.getIsSomePageRowsSelected()
+          ? 'indeterminate'
+          : table.getIsAllPageRowsSelected(),
+        'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+          table.toggleAllPageRowsSelected(!!value),
+        'aria-label': 'Select all',
+      }),
+    cell: ({ row }) =>
+      h(UCheckbox, {
+        modelValue: row.getIsSelected(),
+        'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
+        'aria-label': 'Select row',
+      }),
+  },
   {
     accessorKey: 'fullName',
     header: 'Applicant',
@@ -142,11 +164,6 @@ const debounceDelete = useDebounceFn(async (uuid: string) => {
   }
 }, 500)
 
-//row actions
-const rowActions = (row: Row<Applicaton>) => {
-  return []
-}
-
 //cards
 const cards = computed(() => [
   {
@@ -195,6 +212,84 @@ const statusFilterResult = computed(() => {
     }
   })
 })
+
+const selectedApplicationUuids = computed(() => {
+  return Object.keys(selectedRow.value).filter((key) => selectedRow.value[key])
+})
+
+const selectedStudentUuids = computed(() => {
+  return application.applications
+    ?.filter((t) => selectedRow.value[t.uuid])
+    .map((t) => t.studentUUID as string) ?? []
+})
+
+const selectedCount = computed(() => selectedApplicationUuids.value.length)
+
+const pendingSelected = computed(() => {
+  return application.applications?.filter(
+    (t) => selectedRow.value[t.uuid] && t.status === 'Pending'
+  ).length ?? 0
+})
+
+async function handleBulkApproveAndAssign() {
+  if (!selectedOfficeForBulk.value) {
+    toast.add({ title: 'Please select an office', color: 'warning' })
+    return
+  }
+
+  const uuids = selectedApplicationUuids.value
+  if (!uuids.length) return
+
+  isBulkActionLoading.value = true
+  try {
+    const officeName = OfficeNameLabels[selectedOfficeForBulk.value as OfficeNameEnum]
+    await useAxios.post('/application/details/bulk/approve', {
+      uuids: uuids,
+      officeDto: { office: officeName }
+    })
+    toast.add({ title: `${uuids.length} applications approved and assigned`, color: 'success' })
+    selectedRow.value = {}
+    bulkApproveModal.value = false
+    selectedOfficeForBulk.value = undefined
+    await application.applicationInit()
+  } catch {
+    toast.add({ title: 'Bulk approval failed', color: 'error' })
+  } finally {
+    isBulkActionLoading.value = false
+  }
+}
+
+async function handleBulkEndorsement() {
+  const approvedUuids = application.applications
+    ?.filter((t) => selectedRow.value[t.uuid] && t.status === 'Approved')
+    .map((t) => t.studentUUID as string) ?? []
+
+  if (!approvedUuids.length) {
+    toast.add({ title: 'Please select at least one approved application for endorsement', color: 'warning' })
+    return
+  }
+
+  isBulkActionLoading.value = true
+  try {
+    const { data } = await useAxios.post('/endorsement/', {
+      office: null,
+      uuids: approvedUuids
+    }, { responseType: 'blob' })
+
+    const blobUrl = URL.createObjectURL(data)
+    window.open(blobUrl, '_blank')
+    toast.add({
+      title: 'Endorsement generated',
+      description: `${approvedUuids.length} endorsements sent to printer`,
+      color: 'success',
+    })
+    selectedRow.value = {}
+  } catch {
+    toast.add({ title: 'Failed to generate endorsement', color: 'error' })
+  } finally {
+    isBulkActionLoading.value = false
+  }
+}
 
 watch(
   () => pagination.value.pageSize,
@@ -281,6 +376,7 @@ watch(pageSize, (size) => {
           sticky
           v-model:global-filter="globalFilter"
           v-model:pagination="pagination"
+          v-model:row-selection="selectedRow"
           :data="statusFilterResult ?? []"
           :columns="columns"
           class="flex-1"
@@ -288,6 +384,37 @@ watch(pageSize, (size) => {
             getPaginationRowModel: getPaginationRowModel(),
           }"
         />
+
+        <template v-if="selectedCount > 0" #bottom>
+          <div class="flex items-center justify-between p-4 border-t border-default">
+            <span class="text-sm text-muted">{{ selectedCount }} selected</span>
+            <div class="flex items-center gap-2">
+              <UButton
+                v-if="pendingSelected > 0"
+                icon="i-lucide-check"
+                label="Approve & Assign"
+                color="success"
+                size="sm"
+                @click="bulkApproveModal = true"
+              />
+              <UButton
+                label="Endorsement"
+                icon="i-lucide-printer"
+                color="primary"
+                size="sm"
+                :loading="isBulkActionLoading"
+                @click="handleBulkEndorsement"
+              />
+              <UButton
+                icon="i-lucide-x"
+                label="Clear Selection"
+                variant="ghost"
+                size="sm"
+                @click="selectedRow = {}"
+              />
+            </div>
+          </div>
+        </template>
 
         <template v-if="statusFilterResult?.length" #footer>
           <div class="flex justify-end border-t border-default pt-4 px-4">
@@ -300,6 +427,18 @@ watch(pageSize, (size) => {
           </div>
         </template>
       </UCard>
+
+      <UModal v-model:open="bulkApproveModal" title="Approve & Assign Office" description="Select an office to assign to all selected applications">
+        <template #body>
+          <USelectMenu v-model="selectedOfficeForBulk" :items="OfficesArray" placeholder="Select office" class="w-full" value-key="value" />
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <UButton label="Cancel" variant="ghost" @click="bulkApproveModal = false" />
+            <UButton label="Approve & Assign" color="success" :loading="isBulkActionLoading" @click="handleBulkApproveAndAssign" />
+          </div>
+        </template>
+      </UModal>
 
       <div v-if="!statusFilterResult?.length" class="flex items-center justify-center h-48 text-muted mt-4">
         <UAlert icon="i-lucide-info" title="No applications found" description="There are no applications matching your filter." />

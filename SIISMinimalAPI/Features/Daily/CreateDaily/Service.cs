@@ -19,10 +19,10 @@ public class Service(AppDbContext db) : IService
         var student = await _db.Students
             .Include(s => s.Placement)
             .ThenInclude(p => p.Progress)
-            .FirstOrDefaultAsync(s => s.Placement != null && s.Placement.Progress != null, ct);
+            .FirstOrDefaultAsync(s => s.StudentUUID == request.StudentUuid && s.Placement != null && s.Placement.Progress != null, ct);
 
         if (student == null)
-            throw new KeyNotFoundException("Student or placement not found");
+            throw new KeyNotFoundException("Student, placement, or progress not found for the given student");
 
         var progress = student.Placement!.Progress!;
 

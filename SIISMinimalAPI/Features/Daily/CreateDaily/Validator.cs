@@ -6,6 +6,10 @@ public class Validator: AbstractValidator<Request>
 {
     public Validator()
     {
+        RuleFor(x => x.StudentUuid)
+            .NotEmpty()
+            .WithMessage("Student UUID is required.");
+
         RuleFor(x => x.Dailies)
             .NotEmpty()
             .WithMessage("At least one daily record is required.");

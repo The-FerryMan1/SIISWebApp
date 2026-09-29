@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +11,13 @@ using SIISMinimalAPI.Features.Application.AssignAndApprove;
 
 namespace SIISMinimalAPI.Features.Application;
 
-public static class  ApplicationEndpoint
+public class BulkApproveRequest
+{
+    public List<Guid> Uuids { get; set; } = new();
+    public RequestDto OfficeDto { get; set; } = new();
+}
+
+public static class ApplicationEndpoint
 {
     public static IEndpointRouteBuilder MapToApplication(this IEndpointRouteBuilder app)
     {
@@ -84,18 +93,23 @@ public static class  ApplicationEndpoint
 
             try
             {
-                await service.AssignAndApprove(uuid, requestDto, ct);
+         await service.AssignAndApprove(uuid, requestDto, ct);
                 return TypedResults.Ok();
             }
             catch (KeyNotFoundException ex)
             {
-                
                 return TypedResults.NotFound(ex.Message);
             }
             catch (Exception ex)
             {
                 return TypedResults.InternalServerError(ex.Message);
             }
+        }).RequireAuthorization("Admin");
+
+        group.MapPost("/details/bulk/approve", [Authorize(Roles = "Admin")] async Task<IResult> (BulkApproveRequest request, IApplicationService service, CancellationToken ct) =>
+        {
+            await service.BulkAssignAndApprove(request.Uuids, request.OfficeDto, ct);
+            return TypedResults.Ok();
         }).RequireAuthorization("Admin");
 
         group.MapPut("/trash/{uuid}", [Authorize(Roles = "Admin")] async Task<IResult>([FromRoute]Guid uuid, IApplicationService service , CancellationToken ct) =>

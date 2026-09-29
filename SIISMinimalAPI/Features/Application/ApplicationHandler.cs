@@ -25,6 +25,34 @@ public class ApplicationHandler(AppDbContext context, ILogService logService, IE
 
     public async Task AssignAndApprove(Guid uuid, RequestDto requestDto, CancellationToken ct)
     {
+        await AssignAndApproveInternal(uuid, requestDto, ct);
+    }
+
+    public async Task BulkAssignAndApprove(IEnumerable<Guid> uuids, RequestDto requestDto, CancellationToken ct)
+    {
+        var uuidList = uuids.ToList();
+        if (!uuidList.Any())
+            return;
+
+        var office = await _context.Offices
+            .FirstOrDefaultAsync(t => t.OfficeName == requestDto.Office, ct)
+            ?? throw new KeyNotFoundException("No office found");
+
+        foreach (var studentUuid in uuidList)
+        {
+            try
+            {
+                await AssignAndApproveInternal(studentUuid, requestDto, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to approve application for {StudentUUID}", studentUuid);
+            }
+        }
+    }
+
+    private async Task AssignAndApproveInternal(Guid uuid, RequestDto requestDto, CancellationToken ct)
+    {
         var exists = await _context.Students
      .Include(t => t.Application)
      .Include(t => t.Placement)

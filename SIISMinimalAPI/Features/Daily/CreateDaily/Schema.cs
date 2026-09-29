@@ -12,5 +12,6 @@ public record Schema
 
 public record Request
 {
-     public required ICollection<Schema> Dailies { get; set; }
+    public required Guid StudentUuid { get; set; }
+    public required ICollection<Schema> Dailies { get; set; }
 }
